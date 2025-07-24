@@ -1,0 +1,32 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "cardfolio",
+  "dockerComposeFile": ["compose.yaml"],
+  "service": "cardfolio",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [3000, 8000],
+  "portsAttributes": {
+    "3000": { "label": "Frontend" },
+    "8000": { "label": "Backend" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "gplane.dprint2",
+        "humao.rest-client",
+        "rust-lang.rust-analyzer",
+        "ryanluker.vscode-coverage-gutters",
+        "tamasfe.even-better-toml",
+        "vadimcn.vscode-lldb",
+        "vitest.explorer",
+        "vunguyentuan.vscode-postcss"
+      ],
+      "settings": {
+        "eslint.runtime": "/usr/bin/node"
+      }
+    }
+  }
+}

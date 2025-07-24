@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "gplane.dprint2",
+    "humao.rest-client",
+    "rust-lang.rust-analyzer",
+    "ryanluker.vscode-coverage-gutters",
+    "tamasfe.even-better-toml",
+    "vadimcn.vscode-lldb",
+    "vitest.explorer",
+    "vunguyentuan.vscode-postcss"
+  ]
+}

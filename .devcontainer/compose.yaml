@@ -1,0 +1,12 @@
+name: "cardfolio"
+
+services:
+  cardfolio:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    hostname: cardfolio
+    environment:
+      CARDFOLIO_LOGLEVEL: DEBUG
+    volumes:
+      - ..:/workspace

@@ -1,0 +1,13 @@
+{
+  "name": "@cardfolio/monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "dprint": "^0.50.1"
+  }
+}

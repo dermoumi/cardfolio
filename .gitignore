@@ -1,0 +1,39 @@
+# Devcontainer
+.devcontainer/user
+
+# Node, pnpm and other tooling
+node_modules/
+.notebooks/
+.pnpm-store/
+.output/
+.turbo/
+*.tsbuildinfo
+.pnpm-debug.log
+next-env.d.ts
+
+# Local env files and other local files
+.env
+.env*.local
+*.pem
+
+# Build artifacts
+dist/
+target/
+
+# Testing artifacts
+.eslintcache
+coverage/
+
+# IDEs and editors
+*.code-workspace
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Gitkeep files
+!**/.gitkeep
+
+# Generated content
+uploads/
+content/
