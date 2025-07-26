@@ -1,0 +1,10 @@
+{
+  "name": "@cardfolio/tsconfig",
+  "version": "0.1.0",
+  "private": true,
+  "peerDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

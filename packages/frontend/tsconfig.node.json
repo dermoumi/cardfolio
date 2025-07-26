@@ -1,0 +1,4 @@
+{
+  "extends": "@cardfolio/tsconfig/tsconfig.node.json",
+  "include": ["vite.config.ts", "eslint.config.js"]
+}

@@ -1,6 +1,23 @@
 packages:
-  - apps/*
-  - libs/*
+  - packages/*
 
 onlyBuiltDependencies:
+  - deasync
   - dprint
+  - esbuild
+  - unrs-resolver
+
+catalog:
+  "@testing-library/dom": ^10.4.0
+  "@testing-library/react": ^16.2.0
+  "@types/node": ^24.1.0
+  "@types/react": ^19.0.8
+  "@types/react-dom": ^19.0.3
+  "@vitejs/plugin-react": ^4.3.4
+  typescript: ^5.8.3
+  typescript-eslint: ^8.38.0
+  jsdom: ^26.0.0
+  react: ^19.0.0
+  react-dom: ^19.0.0
+  vite: ^7.0.6
+  vitest: ^3.0.5

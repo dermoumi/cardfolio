@@ -5,9 +5,28 @@
   "type": "module",
   "packageManager": "pnpm@10.13.1",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:cov": "turbo run test:cov",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix"
+  },
+  "dependencies": {
+    "turbo": "^2.5.5",
+    "typescript": "catalog:"
   },
   "devDependencies": {
-    "dprint": "^0.50.1"
+    "@eslint/js": "^9.31.0",
+    "@tanstack/eslint-config": "^0.3.0",
+    "dprint": "^0.50.1",
+    "eslint": "^9.31.0",
+    "eslint-plugin-import-x": "^4.16.1",
+    "eslint-plugin-postcss-modules": "^2.0.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "turbo": "^2.5.5",
+    "typescript-eslint": "^8.38.0"
   }
 }

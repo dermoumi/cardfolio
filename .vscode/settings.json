@@ -1,4 +1,8 @@
 {
+  // Files excluded from watchers in extensions
+  "files.watcherExclude": {
+    "**/routeTree.gen.ts": true
+  },
   // Exclude node_modules from search results
   "search.exclude": {
     "**/node_modules": true,
@@ -10,7 +14,13 @@
     "**/platforms": true,
     "**/.turbo": true,
     "**/pnpm-lock.yaml": true,
-    "**/.eslintcache": true
+    "**/.eslintcache": true,
+    "**/.tanstack": true,
+    "**/routeTree.gen.ts": true
+  },
+  // Readonly files
+  "files.readonlyInclude": {
+    "**/routeTree.gen.ts": true
   },
   // Editor settings
   "editor.rulers": [100],

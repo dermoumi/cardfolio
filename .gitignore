@@ -7,9 +7,9 @@ node_modules/
 .pnpm-store/
 .output/
 .turbo/
+.tanstack/
 *.tsbuildinfo
 .pnpm-debug.log
-next-env.d.ts
 
 # Local env files and other local files
 .env
@@ -31,9 +31,5 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Gitkeep files
-!**/.gitkeep
-
-# Generated content
-uploads/
-content/
+# App contents
+run/

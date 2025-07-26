@@ -1,0 +1,110 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": ["CARDFOLIO_*"],
+  "globalEnv": ["CARDFOLIO_*"],
+  "tasks": {
+    "dev": {
+      "dependsOn": ["^build"],
+      "passThroughEnv": ["LOGLEVEL"],
+      "persistent": true,
+      "cache": false
+    },
+    "build": {
+      "outputLogs": "errors-only",
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.{ts,tsx,css,rs}",
+        "!src/**/*.test.{ts,tsx}",
+        "migrations/**/*",
+        "package.json",
+        "Cargo.toml",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "vite.config.ts",
+        "tsup.config.ts",
+        "$TURBO_ROOT$/libs/tsconfig/**/*"
+      ],
+      "env": ["CARDFOLIO_*"],
+      "outputs": ["dist/**/*", "$TURBO_ROOT$/target/**/*"]
+    },
+    "test": {
+      "outputLogs": "errors-only",
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.{ts,tsx,css,rs}",
+        "migrations/**/*",
+        "test_assets/**/*",
+        "vitest.config.ts",
+        "package.json",
+        "Cargo.toml",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "vite.config.ts",
+        "tsup.config.ts",
+        "$TURBO_ROOT$/libs/tsconfig/**/*"
+      ]
+    },
+    "test:cov": {
+      "outputLogs": "errors-only",
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.{ts,tsx,css,rs}",
+        "migrations/**/*",
+        "test_assets/**/*",
+        "vitest.config.ts",
+        "package.json",
+        "Cargo.toml",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "vite.config.ts",
+        "tsup.config.ts",
+        "$TURBO_ROOT$/libs/tsconfig/**/*"
+      ],
+      "outputs": ["coverage/**/*"]
+    },
+    "lint": {
+      "outputLogs": "errors-only",
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.{ts,tsx,css,rs}",
+        "migrations/**/*",
+        "test_assets/**/*",
+        "vitest.config.ts",
+        "package.json",
+        "Cargo.toml",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "vite.config.ts",
+        "tsup.config.ts",
+        "$TURBO_ROOT$/libs/tsconfig/**/*",
+        "eslint.config.js",
+        "$TURBO_ROOT$/libs/eslint-config/**/*"
+      ]
+    },
+    "lint:fix": {
+      "outputLogs": "errors-only",
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.{ts,tsx,css,rs}",
+        "migrations/**/*",
+        "test_assets/**/*",
+        "vitest.config.ts",
+        "package.json",
+        "Cargo.toml",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "vite.config.ts",
+        "tsup.config.ts",
+        "$TURBO_ROOT$/libs/tsconfig/**/*",
+        "eslint.config.js",
+        "$TURBO_ROOT$/libs/eslint-config/**/*"
+      ],
+      "outputs": ["src/**/*"]
+    }
+  }
+}
