@@ -3,7 +3,34 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "fullstack",
+      "configurations": ["Backend", "Frontend"],
+      "presentation": {
+        "group": "20",
+        "order": 1
+      },
+      "stopAll": true
+    }
+  ],
   "configurations": [
+    {
+      "name": "Backend",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/cardfolio",
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "rust: cargo build",
+      "env": {
+        "CARDFOLIO_LOGLEVEL": "DEBUG"
+      },
+      "presentation": {
+        "group": "50",
+        "order": 2
+      }
+    },
     {
       "name": "Frontend",
       "type": "node",
