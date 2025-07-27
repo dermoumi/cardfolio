@@ -1,0 +1,9 @@
+{
+  "name": "@cardfolio/backend",
+  "scripts": {
+    "prepare": "cargo install cargo-watch",
+    "dev": "cargo watch -x run",
+    "build": "cargo build",
+    "lint": "cargo fmt --check && cargo clippy"
+  }
+}

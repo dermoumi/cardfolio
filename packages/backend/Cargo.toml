@@ -1,0 +1,17 @@
+[package]
+name = "cardfolio-backend"
+version = "0.0.0"
+edition = "2024"
+
+[[bin]]
+name = "cardfolio"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.98"
+axum = { version = "0.8.4", features = ["multipart"] }
+tokio = { version = "1.47.0", features = ["full"] }
+tower-http = { version = "0.6.6", features = ["compression-gzip", "fs", "limit", "trace"] }
+tower_governor = "0.7.0"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
