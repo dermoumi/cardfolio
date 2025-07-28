@@ -72,7 +72,6 @@ mod tests {
             let retrieved_cards: Vec<ygo::Card> =
                 serde_json::from_slice(&body).expect("Unable to parse response body");
             assert_eq!(retrieved_cards.len(), 2);
-            assert_eq!(retrieved_cards.len(), 2);
         })
         .await
     }
