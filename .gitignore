@@ -23,6 +23,7 @@ target/
 # Testing artifacts
 .eslintcache
 coverage/
+lcov.info
 
 # IDEs and editors
 *.code-workspace

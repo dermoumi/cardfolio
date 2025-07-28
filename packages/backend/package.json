@@ -1,9 +1,11 @@
 {
   "name": "@cardfolio/backend",
   "scripts": {
-    "prepare": "cargo install cargo-watch",
+    "prepare": "cargo install cargo-watch cargo-nextest cargo-llvm-cov",
     "dev": "cargo watch -x run",
     "build": "cargo build",
-    "lint": "cargo fmt --check && cargo clippy"
+    "lint": "cargo fmt --check && cargo clippy",
+    "test": "cargo nextest run",
+    "test:cov": "cargo llvm-cov --lcov --output-path lcov.info && cargo llvm-cov report"
   }
 }
