@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::{Ok, Result};
-use axum::Router;
+use axum::{Router, routing::get};
 use tokio::{net::TcpListener, signal};
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::{
@@ -11,7 +11,13 @@ use tower_http::{
     trace::TraceLayer,
 };
 
+mod api_v1;
+mod error;
+mod models;
 mod prelude;
+
+#[cfg(test)]
+mod test_utils;
 
 use prelude::*;
 
@@ -21,12 +27,12 @@ fn app(state: AppState) -> Router {
     let frontend =
         ServeDir::new(frontend_path).fallback(ServeFile::new(frontend_path.join("index.html")));
 
+    // API v1
+    let api_v1 = Router::new().route("/ygo/cards", get(api_v1::ygo_cards::get_yugioh_cards));
+
     // Define your routes here
     Router::new()
-        .route(
-            "/api/hello",
-            axum::routing::get(|| async { "Hello, World!" }),
-        )
+        .nest("/api/v1", api_v1)
         .fallback_service(frontend)
         .with_state(state)
 }
