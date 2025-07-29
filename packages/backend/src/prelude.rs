@@ -1,7 +1,12 @@
-use std::{env, path::Path, result};
+use std::{
+    env::{self, VarError},
+    path::Path,
+    result,
+};
 
 use tracing::level_filters::LevelFilter;
 
+use crate::database::setup::DbPool;
 pub use crate::error::AppError;
 
 /// Shortcut for the Result types
@@ -11,6 +16,8 @@ pub type Result<T, E = AppError> = result::Result<T, E>;
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub config: AppConfig,
+    #[allow(dead_code)] // TODO: Remove this when an endpoint uses the database
+    pub db: DbPool,
 }
 
 /// App configuration
@@ -21,6 +28,10 @@ pub struct AppConfig {
 
     // HTTP server configuration
     pub port: String,
+
+    // Database
+    pub db_url: String,
+    pub db_pool_size: u32,
 
     // Local directories
     pub frontend_dir: String,
@@ -35,11 +46,21 @@ impl AppConfig {
 
         let port = env::var("CARDFOLIO_PORT").unwrap_or("8000".to_string());
 
+        let db_url = env::var("CARDFOLIO_DB").map_err(|error| match error {
+            VarError::NotPresent => anyhow::anyhow!("CARDFOLIO_DB must be set"),
+            VarError::NotUnicode(_) => anyhow::anyhow!("CARDFOLIO_DB must be valid UTF-8"),
+        })?;
+        let db_pool_size = env::var("CARDFOLIO_DB_POOL_SIZE")
+            .unwrap_or("16".to_string())
+            .parse()?;
+
         let frontend_dir = env::var("CARDFOLIO_FRONTEND_DIR").unwrap_or("frontend/".to_string());
 
         Ok(Self {
             log_level,
             port,
+            db_url,
+            db_pool_size,
             frontend_dir,
         })
     }

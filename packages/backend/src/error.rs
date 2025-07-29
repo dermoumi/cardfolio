@@ -10,6 +10,10 @@ use serde::{Serialize, ser::SerializeMap};
 #[serde(tag = "error", rename_all = "snake_case")]
 pub enum AppError {
     #[error(transparent)]
+    #[serde(serialize_with = "no_content", rename = "database_error")]
+    Postgres(#[from] tokio_postgres::Error),
+
+    #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "internal_error")]
     Anyhow(#[from] anyhow::Error),
 }

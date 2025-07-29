@@ -12,9 +12,12 @@ use tower_http::{
 };
 
 mod api_v1;
+mod database;
 mod error;
 mod models;
 mod prelude;
+
+use database::setup::init_db;
 
 #[cfg(test)]
 mod test_utils;
@@ -79,6 +82,10 @@ async fn main() -> Result<()> {
 
     tracing::info!("Starting server.");
 
+    // Postgresql connection pool
+    let db_pool = init_db(&config.db_url, config.db_pool_size).await?;
+    tracing::info!("Connection to PostgreSQL established.");
+
     // Tracing layer for tower
     let trace = TraceLayer::new_for_http();
 
@@ -105,6 +112,7 @@ async fn main() -> Result<()> {
     // Create the app
     let state = AppState {
         config: config.clone(),
+        db: db_pool,
     };
     let app = app(state)
         .layer(trace)
