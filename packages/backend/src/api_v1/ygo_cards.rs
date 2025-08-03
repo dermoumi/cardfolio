@@ -1,6 +1,6 @@
-use axum::extract::Path;
 use axum::{Json, extract::State, response::IntoResponse};
 
+use crate::api_v1::utils::Path;
 use crate::models::ygo;
 use crate::prelude::*;
 
@@ -82,7 +82,7 @@ fn make_card(id: i32) -> ygo::Card {
             }
 
             ygo::Card {
-                id: id.into(),
+                id,
                 updated_at: chrono::Utc::now(),
                 data: card_data,
             }

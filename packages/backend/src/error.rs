@@ -1,6 +1,9 @@
+use std::fmt::Display;
+
 use axum::{
     Json,
     body::Body,
+    extract::rejection::PathRejection,
     http::{Response, StatusCode},
     response::IntoResponse,
 };
@@ -10,6 +13,10 @@ use serde::{Serialize, ser::SerializeMap};
 #[serde(tag = "error", rename_all = "snake_case")]
 pub enum AppError {
     #[error(transparent)]
+    #[serde(serialize_with = "a_message", rename = "path_error")]
+    PathRejection(#[from] PathRejection),
+
+    #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "internal_error")]
     Anyhow(#[from] anyhow::Error),
 }
@@ -17,7 +24,10 @@ pub enum AppError {
 impl AppError {
     /// Returns the HTTP status code for the error
     pub fn status_code(&self) -> StatusCode {
-        StatusCode::INTERNAL_SERVER_ERROR
+        match self {
+            AppError::PathRejection(_) => StatusCode::BAD_REQUEST,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        }
     }
 }
 
@@ -39,6 +49,17 @@ where
     S: serde::Serializer,
 {
     serializer.serialize_map(Some(0))?.end()
+}
+
+/// Serialize an error with a string message
+fn a_message<T, S>(entry: &T, serializer: S) -> Result<S::Ok, S::Error>
+where
+    T: Display,
+    S: serde::Serializer,
+{
+    let mut map = serializer.serialize_map(Some(1))?;
+    map.serialize_entry("message", &entry.to_string())?;
+    map.end()
 }
 
 #[cfg(test)]
