@@ -75,10 +75,10 @@ fn make_card(id: i32) -> ygo::Card {
                     7 => ygo::MonsterRace::Machine,
                     _ => unreachable!(),
                 });
-                let factor: i16 = id.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
-                card_data.monster_level = Some((factor % 9) + 1);
-                card_data.monster_atk = Some(1000 + (factor % 20) * 100);
-                card_data.monster_def = Some(800 + (factor % 20) * 100);
+                let variation_seed: i16 = id.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
+                card_data.monster_level = Some((variation_seed % 9) + 1);
+                card_data.monster_atk = Some(1000 + (variation_seed % 20) * 100);
+                card_data.monster_def = Some(800 + (variation_seed % 20) * 100);
             }
 
             ygo::Card {
