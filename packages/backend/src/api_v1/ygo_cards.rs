@@ -144,10 +144,10 @@ mod tests {
     async fn test_get_yugioh_card() {
         with_app_state(async move |state| {
             let router = Router::new()
-                .route("/ygo/card/{id}", get(get_ygo_card))
+                .route("/ygo/cards/{id}", get(get_ygo_card))
                 .with_state(state.as_ref().clone());
             let request = Request::builder()
-                .uri("/ygo/card/1")
+                .uri("/ygo/cards/1")
                 .body(Body::empty())
                 .unwrap();
 
