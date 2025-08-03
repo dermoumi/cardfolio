@@ -30,7 +30,9 @@ fn app(state: AppState) -> Router {
         ServeDir::new(frontend_path).fallback(ServeFile::new(frontend_path.join("index.html")));
 
     // API v1
-    let api_v1 = Router::new().route("/ygo/cards", get(api_v1::ygo_cards::get_yugioh_cards));
+    let api_v1 = Router::new()
+        .route("/ygo/cards", get(api_v1::ygo_cards::get_ygo_cards))
+        .route("/ygo/cards/{id}", get(api_v1::ygo_cards::get_ygo_card));
 
     // Define your routes here
     Router::new()
