@@ -2,10 +2,7 @@ use std::{env, ops::Deref, panic, sync::Arc};
 
 use tracing::level_filters::LevelFilter;
 
-use crate::{
-    database::setup::{DbPool, init_db},
-    prelude::*,
-};
+use crate::{database, migrations, prelude::*};
 
 use futures_util::FutureExt;
 pub use http_body_util::BodyExt;
@@ -14,13 +11,18 @@ pub use tower::ServiceExt; // Import for .oneshot() // Import for .catch_unwind(
 /// Utility to create a database connection pool for testing
 pub async fn with_db_pool<Fn, Fut>(f: Fn)
 where
-    Fn: FnOnce(Arc<DbPool>) -> Fut,
+    Fn: FnOnce(Arc<database::Pool>) -> Fut,
     Fut: Future<Output = ()>,
 {
     let db_url = env::var("CARDFOLIO_DB_TEST").expect("CARDFOLIO_DB_TEST must be set");
-    let db_pool = init_db(&db_url, 1)
+    let db_pool = database::init(&db_url, 1)
         .await
         .expect("Failed to create test DB pool");
+
+    database::Migrate::new("migrations")
+        .run(&db_pool, migrations::MIGRATIONS)
+        .await
+        .expect("Failed to run migrations");
 
     // Since we're using just a single connection in our pool
     // We can wrap the test in a transaction to ensure that

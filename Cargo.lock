@@ -294,6 +294,7 @@ dependencies = [
  "chrono",
  "futures-util",
  "http-body-util",
+ "rand 0.9.2",
  "rust_decimal",
  "serde",
  "serde_json",

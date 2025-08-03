@@ -1,0 +1,57 @@
+use std::{convert::From, result::Result};
+use tokio_postgres::Client;
+
+#[cfg(test)]
+/// Generates a random alphanumeric string of the given length
+pub fn random_string(length: usize) -> String {
+    use rand::distr::{Alphanumeric, SampleString as _};
+
+    Alphanumeric.sample_string(&mut rand::rng(), length)
+}
+
+/// Utility to run a function inside a database transaction.
+/// Automatically rolls back if the function returns an error.
+/// If a checkpoint is provided, it will be used instead of a transaction.
+/// When testing, we'll assume that we're using a transaction and simulate checkpoints instead.
+pub async fn with_transaction<'a, R, E, F, Fut>(
+    db: &'a mut Client,
+    checkpoint: Option<String>,
+    f: F,
+) -> Result<R, E>
+where
+    E: From<tokio_postgres::Error>,
+    F: FnOnce(&'a Client) -> Fut,
+    Fut: Future<Output = Result<R, E>>,
+{
+    // When testing, we usually are inside a transaction already,
+    // so we simulate a checkpoint instead
+    #[cfg(test)]
+    let checkpoint = checkpoint.or_else(|| Some(format!("T{}", random_string(16))));
+
+    let query = if let Some(checkpoint_id) = &checkpoint {
+        format!("SAVEPOINT {checkpoint_id}")
+    } else {
+        "BEGIN".to_string()
+    };
+
+    db.execute(&query, &[]).await.map_err(|e| e.into())?;
+
+    // Run the function and save the result
+    let result = f(db).await;
+
+    // Rollback if the function returned an error, commit otherwise
+    if result.is_err() {
+        let query = if let Some(checkpoint_id) = &checkpoint {
+            format!("ROLLBACK TO {checkpoint_id}")
+        } else {
+            "ROLLBACK".to_string()
+        };
+
+        db.execute(&query, &[]).await.map_err(|e| e.into())?;
+    } else if checkpoint.is_none() {
+        db.execute("COMMIT", &[]).await.map_err(|e| e.into())?;
+    }
+
+    // Forward the result
+    result
+}

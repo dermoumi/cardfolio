@@ -14,10 +14,9 @@ use tower_http::{
 mod api_v1;
 mod database;
 mod error;
+mod migrations;
 mod models;
 mod prelude;
-
-use database::setup::init_db;
 
 #[cfg(test)]
 mod test_utils;
@@ -83,7 +82,10 @@ async fn main() -> Result<()> {
     tracing::info!("Starting server.");
 
     // Postgresql connection pool
-    let db_pool = init_db(&config.db_url, config.db_pool_size).await?;
+    let db_pool = database::init(&config.db_url, config.db_pool_size).await?;
+    database::Migrate::new("migrations")
+        .run(&db_pool, migrations::MIGRATIONS)
+        .await?;
     tracing::info!("Connection to PostgreSQL established.");
 
     // Tracing layer for tower

@@ -6,7 +6,7 @@ use std::{
 
 use tracing::level_filters::LevelFilter;
 
-use crate::database::setup::DbPool;
+use crate::database::Pool;
 pub use crate::error::AppError;
 
 /// Shortcut for the Result types
@@ -17,7 +17,7 @@ pub type Result<T, E = AppError> = result::Result<T, E>;
 pub struct AppState {
     pub config: AppConfig,
     #[allow(dead_code)] // TODO: Remove this when an endpoint uses the database
-    pub db: DbPool,
+    pub db: Pool,
 }
 
 /// App configuration
