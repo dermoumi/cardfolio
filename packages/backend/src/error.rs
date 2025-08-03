@@ -17,6 +17,10 @@ pub enum AppError {
     PathRejection(#[from] PathRejection),
 
     #[error(transparent)]
+    #[serde(serialize_with = "no_content", rename = "database_error")]
+    Postgres(#[from] tokio_postgres::Error),
+
+    #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "internal_error")]
     Anyhow(#[from] anyhow::Error),
 }
