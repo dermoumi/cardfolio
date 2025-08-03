@@ -100,7 +100,7 @@ impl Migrate {
             with_transaction(
                 &mut client,
                 None,
-                async move |client| -> Result<(), DatabaseError> {
+                async |client| -> Result<(), DatabaseError> {
                     if !self.migration_exists(client, name).await? {
                         tracing::info!("Applying migration '{}'", name);
                         self.execute_script(client, up_script).await?;
@@ -128,7 +128,7 @@ impl Migrate {
                 let done = with_transaction::<_, DatabaseError, _, _>(
                     &mut client,
                     None,
-                    async move |client| -> Result<bool, DatabaseError> {
+                    async |client| -> Result<bool, DatabaseError> {
                         let last_applied_migration =
                             self.get_last_applied_migration(client).await?;
                         if let Some((name, down_script)) = last_applied_migration
@@ -265,7 +265,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_migrate_run_applies_new_migrations() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             {
                 let client = db.get().await.expect("Failed to get DB connection");
                 let migrator = Migrate::new("test_migrations");
@@ -326,7 +326,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_migrate_run_skips_existing_migrations() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let migrations = &[(
                 "001_initial",
                 r#"
@@ -374,7 +374,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_migration_run_undoes_migrations() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let migrations_initial = &[
                 (
                     "001_initial",
@@ -420,7 +420,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_table_creates_migration_table() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let migrator = Migrate::new("test_migrations");
             let client = db.get().await.expect("Failed to get DB connection");
 
@@ -448,7 +448,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_script() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
             let migrator = Migrate::new("test_migrations");
             migrator
@@ -480,7 +480,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_check_migrations_only_checks_existing_migrations() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
 
             let migrator = Migrate::new("test_migrations");
@@ -516,7 +516,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_check_migrations_fails_on_conflict() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
 
             let migrator = Migrate::new("test_migrations");
@@ -552,7 +552,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_last_applied_migration() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
 
             let migrator = Migrate::new("test_migrations");
@@ -586,7 +586,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_last_applied_migration_no_migrations() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
 
             let migrator = Migrate::new("test_migrations");
@@ -607,7 +607,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_insert_migration() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
 
             let migrator = Migrate::new("test_migrations");
@@ -636,7 +636,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_delete_migration() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
 
             let migrator = Migrate::new("test_migrations");
@@ -675,7 +675,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_migration_down_skips_revert_if_no_migrations() {
-        with_db_pool_no_migrations(async move |db| {
+        with_db_pool_no_migrations(async |db| {
             let migrator = Migrate::new("test_migrations");
             let mut client = db.get().await.expect("Failed to get DB connection");
 
