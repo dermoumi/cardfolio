@@ -97,7 +97,10 @@ impl Migrate {
         migrations: &[Migration<'_>],
     ) -> Result<(), DatabaseError> {
         for (name, up_script, down_script) in migrations {
-            with_transaction(
+            // Acquire an advisory lock
+            client.execute("SELECT pg_advisory_lock(1)", &[]).await?;
+
+            let result = with_transaction(
                 &mut client,
                 None,
                 async |client| -> Result<(), DatabaseError> {
@@ -106,12 +109,17 @@ impl Migrate {
                         self.execute_script(client, up_script).await?;
                         self.insert_migration(client, name, down_script.as_deref())
                             .await?;
-                    }
+                    };
 
                     Ok(())
                 },
             )
-            .await?;
+            .await;
+
+            // Release the advisory lock
+            client.execute("SELECT pg_advisory_unlock(1)", &[]).await?;
+
+            result?;
         }
         Ok(())
     }

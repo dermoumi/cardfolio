@@ -19,6 +19,7 @@ where
         .await
         .expect("Failed to create test DB pool");
 
+    // Run migrations
     database::Migrate::new("migrations")
         .run(&db_pool, migrations::MIGRATIONS)
         .await
