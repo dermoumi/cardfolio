@@ -23,18 +23,41 @@ where
     F: FnOnce(&'a Client) -> Fut,
     Fut: Future<Output = Result<R, E>>,
 {
+    #[allow(unused_mut)]
+    let mut checkpoint = checkpoint;
+
     // When testing, we usually are inside a transaction already,
     // so we simulate a checkpoint instead
     #[cfg(test)]
-    let checkpoint = checkpoint.or_else(|| Some(format!("T{}", random_string(16))));
+    {
+        use tokio_postgres::error::SqlState;
 
-    let query = if let Some(checkpoint_id) = &checkpoint {
-        format!("SAVEPOINT {checkpoint_id}")
-    } else {
-        "BEGIN".to_string()
-    };
+        let checkpoint_id = checkpoint.unwrap_or_else(|| format!("T{}", random_string(16)));
+        let query = format!("SAVEPOINT {checkpoint_id}");
+        checkpoint = Some(checkpoint_id);
 
-    db.execute(&query, &[]).await.map_err(|e| e.into())?;
+        let result = db.execute(&query, &[]).await;
+        if let Err(e) = result {
+            if let Some(db_error) = e.as_db_error()
+                && *db_error.code() == SqlState::NO_ACTIVE_SQL_TRANSACTION
+            {
+                // If we are not in a transaction, we start a transaction
+                db.execute("BEGIN", &[]).await?;
+                checkpoint = None; // No checkpoint in this case
+            }
+        }
+    }
+
+    #[cfg(not(test))]
+    {
+        let query = if let Some(checkpoint_id) = &checkpoint {
+            format!("SAVEPOINT {checkpoint_id}")
+        } else {
+            "BEGIN".to_string()
+        };
+
+        db.execute(&query, &[]).await.map_err(|e| e.into())?;
+    }
 
     // Run the function and save the result
     let result = f(db).await;

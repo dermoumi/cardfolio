@@ -19,6 +19,12 @@ where
         .await
         .expect("Failed to create test DB pool");
 
+    // Run migrations
+    database::Migrate::new("migrations")
+        .run(&db_pool, migrations::MIGRATIONS)
+        .await
+        .expect("Failed to run migrations");
+
     // Since we're using just a single connection in our pool
     // We can wrap the test in a transaction to ensure that
     // the database is in a clean state before and after the test
@@ -34,12 +40,6 @@ where
             .await
             .expect("Failed to begin transaction");
     }
-
-    // Run migrations
-    database::Migrate::new("migrations")
-        .run(&db_pool, migrations::MIGRATIONS)
-        .await
-        .expect("Failed to run migrations");
 
     let db = Arc::new(db_pool.clone());
     let res = panic::AssertUnwindSafe(f(db)).catch_unwind().await;
