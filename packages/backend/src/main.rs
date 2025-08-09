@@ -1,12 +1,14 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::{Ok, Result};
-use axum::{Router, routing::get};
+use axum::{Router, ServiceExt, extract::Request, routing::get};
 use tokio::{net::TcpListener, signal};
+use tower::Layer;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::{
     compression::CompressionLayer,
     limit::RequestBodyLimitLayer,
+    normalize_path::NormalizePathLayer,
     services::{ServeDir, ServeFile},
     trace::TraceLayer,
 };
@@ -122,17 +124,22 @@ async fn main() -> Result<()> {
         .layer(trace)
         .layer(compression)
         .layer(request_size)
-        .layer(rate_limiter)
-        .into_make_service_with_connect_info::<SocketAddr>();
+        .layer(rate_limiter);
+
+    // Normalize path layer to trim trailing slashes
+    let app = NormalizePathLayer::trim_trailing_slash().layer(app);
 
     // TCP Listener
     let listener = TcpListener::bind(format!("0.0.0.0:{}", &config.port)).await?;
 
     // Serve the application
     tracing::info!("Listening on http://{}", listener.local_addr()?);
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    axum::serve(
+        listener,
+        ServiceExt::<Request>::into_make_service_with_connect_info::<SocketAddr>(app),
+    )
+    .with_graceful_shutdown(shutdown_signal())
+    .await?;
 
     Ok(())
 }
