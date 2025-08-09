@@ -95,6 +95,80 @@ pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::C
     Ok(card)
 }
 
+/// Update an existing card by id and return the updated record.
+pub async fn save(client: &Client, card: &ygo::Card) -> Result<ygo::Card> {
+    let id = card.id;
+    let d = &card.data;
+
+    let row = client
+        .query_opt(
+            r#"
+            UPDATE ygo_cards SET
+                name = $1,
+                description = $2,
+                kind = $3,
+                password = $4,
+                konami_id = $5,
+                treated_as = $6,
+                tcg_date = $7,
+                ocg_date = $8,
+                tcgplayer_price = $9,
+                cardmarket_price = $10,
+                ebay_price = $11,
+                coolstuffinc_price = $12,
+                monster_kind = $13,
+                monster_attribute = $14,
+                monster_race = $15,
+                monster_subtypes = $16,
+                monster_atk = $17,
+                monster_def = $18,
+                monster_level = $19,
+                monster_pendulum_scale = $20,
+                monster_pendulum_effect = $21,
+                monster_link_arrows = $22,
+                spell_kind = $23,
+                trap_kind = $24,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $25
+            RETURNING *
+            "#,
+            &[
+                &d.name,
+                &d.description,
+                &d.kind,
+                &d.password,
+                &d.konami_id,
+                &d.treated_as,
+                &d.tcg_date,
+                &d.ocg_date,
+                &d.tcgplayer_price,
+                &d.cardmarket_price,
+                &d.ebay_price,
+                &d.coolstuffinc_price,
+                &d.monster_kind,
+                &d.monster_attribute,
+                &d.monster_race,
+                &d.monster_subtypes,
+                &d.monster_atk,
+                &d.monster_def,
+                &d.monster_level,
+                &d.monster_pendulum_scale,
+                &d.monster_pendulum_effect,
+                &d.monster_link_arrows,
+                &d.spell_kind,
+                &d.trap_kind,
+                &id,
+            ],
+        )
+        .await?;
+
+    let row = row.ok_or_else(|| AppError::NotFound {
+        resource: id.into(),
+    })?;
+    let updated: ygo::Card = (&row).try_into()?;
+    Ok(updated)
+}
+
 /// Seeds the database with a fixed set of sample Yu-Gi-Oh! cards.
 /// Used by the import HTTP handler and tests.
 pub async fn import_sample_cards(client: &Client) -> Result<Vec<ygo::Card>> {
@@ -236,6 +310,50 @@ mod tests {
 
             let fetched = get_one(&client, created.id).await.expect("fetch");
             assert_eq!(fetched, created);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_save_updates_card() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            // Create
+            let new = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "To Be Updated".to_string(),
+                    description: "Before".to_string(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_attribute: Some(ygo::MonsterAttribute::Light),
+                    monster_race: Some(ygo::MonsterRace::Dragon),
+                    monster_level: Some(4),
+                    monster_atk: Some(1400),
+                    monster_def: Some(1200),
+                    ..Default::default()
+                },
+            };
+            let created = save_new(&client, &new).await.expect("insert");
+
+            // Modify a few fields
+            let mut to_update = created.clone();
+            to_update.data.name = "Updated Name".to_string();
+            to_update.data.description = "After".to_string();
+            to_update.data.monster_atk = Some(1600);
+
+            // Save
+            let updated = save(&client, &to_update).await.expect("save");
+            assert_eq!(updated.id, created.id);
+            assert_eq!(updated.data.name, "Updated Name");
+            assert_eq!(updated.data.description, "After");
+            assert_eq!(updated.data.monster_atk, Some(1600));
+
+            // Fetch to confirm persistence
+            let fetched = get_one(&client, created.id).await.expect("fetch");
+            assert_eq!(fetched.data.name, "Updated Name");
+            assert_eq!(fetched.data.description, "After");
+            assert_eq!(fetched.data.monster_atk, Some(1600));
         })
         .await;
     }
