@@ -8,10 +8,14 @@ use axum::{
     response::IntoResponse,
 };
 use serde::{Serialize, ser::SerializeMap};
+use serde_json::Value;
 
 #[derive(thiserror::Error, Debug, Serialize)]
 #[serde(tag = "error", rename_all = "snake_case")]
 pub enum AppError {
+    #[error("Resource {resource} not found")]
+    NotFound { resource: Value },
+
     #[error(transparent)]
     #[serde(serialize_with = "a_message", rename = "path_error")]
     PathRejection(#[from] PathRejection),
@@ -19,6 +23,10 @@ pub enum AppError {
     #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "database_error")]
     Postgres(#[from] tokio_postgres::Error),
+
+    #[error(transparent)]
+    #[serde(serialize_with = "no_content", rename = "database_error")]
+    Bb8(#[from] bb8::RunError<tokio_postgres::Error>),
 
     #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "internal_error")]
@@ -29,6 +37,7 @@ impl AppError {
     /// Returns the HTTP status code for the error
     pub fn status_code(&self) -> StatusCode {
         match self {
+            AppError::NotFound { .. } => StatusCode::NOT_FOUND,
             AppError::PathRejection(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }

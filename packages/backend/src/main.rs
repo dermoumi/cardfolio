@@ -1,7 +1,11 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::{Ok, Result};
-use axum::{Router, ServiceExt, extract::Request, routing::get};
+use axum::{
+    Router, ServiceExt,
+    extract::Request,
+    routing::{get, post},
+};
 use tokio::{net::TcpListener, signal};
 use tower::Layer;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
@@ -19,6 +23,7 @@ mod error;
 mod migrations;
 mod models;
 mod prelude;
+mod services;
 
 #[cfg(test)]
 mod test_utils;
@@ -33,10 +38,13 @@ fn app(state: AppState) -> Router {
 
     // API v1
     let api_v1 = Router::new()
-        .route("/ygo/cards", get(api_v1::ygo_cards::get_ygo_cards))
-        .route("/ygo/cards/{id}", get(api_v1::ygo_cards::get_ygo_card));
+        .route("/ygo/cards", get(api_v1::ygo_cards::list_ygo_cards))
+        .route("/ygo/cards/{id}", get(api_v1::ygo_cards::get_ygo_card))
+        .route(
+            "/ygo/cards/import",
+            post(api_v1::ygo_cards::import_ygo_cards),
+        );
 
-    // Define your routes here
     Router::new()
         .nest("/api/v1", api_v1)
         .fallback_service(frontend)
