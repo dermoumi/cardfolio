@@ -2,6 +2,7 @@ use std::fmt;
 
 use bitflags::bitflags;
 use chrono::{DateTime, NaiveDate, Utc};
+use postgres_types::{FromSql, ToSql};
 use rust_decimal::Decimal;
 use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
@@ -71,7 +72,8 @@ pub struct CardData {
 }
 
 /// Card kinds (Monster, Spell, Trap)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, ToSql, FromSql)]
+#[postgres(name = "ygo_card_kind", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum CardKind {
     #[default]
@@ -81,7 +83,8 @@ pub enum CardKind {
 }
 
 /// Monster card types (Token, Normal, Effect, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, ToSql, FromSql)]
+#[postgres(name = "ygo_monster_kind", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum MonsterKind {
     #[default]
@@ -97,7 +100,8 @@ pub enum MonsterKind {
 }
 
 /// Monster card subtypes (Flip, Gemini, Spirit, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, ToSql, FromSql)]
+#[postgres(name = "ygo_monster_subtype", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum MonsterSubtype {
     #[default]
@@ -111,7 +115,8 @@ pub enum MonsterSubtype {
 }
 
 /// Monster card attributes (Dark, Divine, Earth, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, ToSql, FromSql)]
+#[postgres(name = "ygo_monster_attribute", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum MonsterAttribute {
     #[default]
@@ -126,7 +131,8 @@ pub enum MonsterAttribute {
 }
 
 /// Monster types (Aqua, Beast, BeastWarrior, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, ToSql, FromSql)]
+#[postgres(name = "ygo_monster_race", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum MonsterRace {
     #[default]
@@ -159,7 +165,7 @@ pub enum MonsterRace {
     Zombie,
 }
 
-#[derive(Debug, Clone, PartialEq, Copy)]
+#[derive(Debug, Clone, PartialEq, Copy, ToSql, FromSql)]
 pub struct LinkArrows(pub i16);
 
 bitflags! {
@@ -252,7 +258,8 @@ impl<'de> Deserialize<'de> for LinkArrows {
 }
 
 /// Spell card kinds (Normal, Continuous, Field, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, ToSql, FromSql)]
+#[postgres(name = "ygo_spell_kind", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum SpellKind {
     #[default]
@@ -266,7 +273,8 @@ pub enum SpellKind {
 }
 
 /// Trap card kinds (Normal, Continous, Counter)
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, ToSql, FromSql)]
+#[postgres(name = "ygo_trap_kind", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum TrapKind {
     #[default]
