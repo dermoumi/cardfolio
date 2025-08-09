@@ -91,7 +91,7 @@ impl TryFrom<&Row> for ygo::Card {
     type Error = AppError;
 
     /// Converts a database row into a YugiohCard struct
-    fn try_from(value: &Row) -> Result<Self, self::AppError> {
+    fn try_from(value: &Row) -> Result<Self, Self::Error> {
         let id: i32 = value.get("id");
         let updated_at: TimestampWithTimeZone = value.get("updated_at");
 
