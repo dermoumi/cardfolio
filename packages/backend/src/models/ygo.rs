@@ -20,6 +20,14 @@ pub struct Card {
     pub data: CardData,
 }
 
+/// A new Yu-Gi-Oh! card to be inserted into the database.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct NewCard {
+    #[serde(flatten)]
+    pub data: CardData,
+}
+
 /// Represents card informations.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -166,6 +174,7 @@ pub enum MonsterRace {
 }
 
 #[derive(Debug, Clone, PartialEq, Copy, ToSql, FromSql)]
+#[postgres(transparent)]
 pub struct LinkArrows(pub i16);
 
 bitflags! {
