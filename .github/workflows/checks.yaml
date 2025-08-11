@@ -77,7 +77,5 @@ jobs:
       - name: Publish code coverage
         if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v5
-        with:
-          files: packages/backend/lcov.info
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
