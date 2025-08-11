@@ -61,7 +61,7 @@ impl IntoResponse for ApiError {
 }
 
 /// Serialize the error with no content.
-fn no_content<T, S>(_: &T, serializer: S) -> ApiResult<S::Ok, S::Error>
+fn no_content<T, S>(_: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -69,7 +69,7 @@ where
 }
 
 /// Serialize an error with a string message
-fn a_message<T, S>(entry: &T, serializer: S) -> ApiResult<S::Ok, S::Error>
+fn a_message<T, S>(entry: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     T: Display,
     S: serde::Serializer,
