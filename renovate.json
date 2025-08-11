@@ -12,7 +12,8 @@
     },
     {
       "description": "Allow automerge for minor and patch updates",
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"]
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
     }
   ]
 }
