@@ -1,8 +1,11 @@
 use tokio_postgres::{Client, Row};
 
-use crate::{database::TimestampWithTimeZone, models::ygo, prelude::*};
+use crate::database::TimestampWithTimeZone;
+use crate::models::ygo;
+use crate::prelude::*;
 
-pub async fn get_one(client: &Client, id: i32) -> Result<ygo::Card> {
+/// Retrieves a card by ID
+pub async fn get_by_id(client: &Client, id: i32) -> Result<ygo::Card> {
     let query = "SELECT * FROM ygo_cards WHERE id = $1";
     let row = &client
         .query_opt(query, &[&id])
@@ -15,6 +18,7 @@ pub async fn get_one(client: &Client, id: i32) -> Result<ygo::Card> {
     Ok(card)
 }
 
+/// Retrieves all cards in the database
 pub async fn get_all(client: &Client) -> Result<Vec<ygo::Card>> {
     let query = "SELECT * FROM ygo_cards";
     let rows = client.query(query, &[]).await?;
@@ -426,7 +430,7 @@ mod tests {
             assert_eq!(created.data.name, new.data.name);
             assert_eq!(created.data.kind, ygo::CardKind::Monster);
 
-            let fetched = get_one(&client, created.id).await.expect("fetch");
+            let fetched = get_by_id(&client, created.id).await.expect("fetch");
             assert_eq!(fetched, created);
         })
         .await;
@@ -468,7 +472,7 @@ mod tests {
             assert_eq!(updated.data.monster_atk, Some(1600));
 
             // Fetch to confirm persistence
-            let fetched = get_one(&client, created.id).await.expect("fetch");
+            let fetched = get_by_id(&client, created.id).await.expect("fetch");
             assert_eq!(fetched.data.name, "Updated Name");
             assert_eq!(fetched.data.description, "After");
             assert_eq!(fetched.data.monster_atk, Some(1600));

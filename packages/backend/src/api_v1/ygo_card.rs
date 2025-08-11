@@ -5,7 +5,7 @@ use crate::prelude::*;
 use crate::services::ygo_card;
 
 /// Lists yugioh cards
-pub async fn list_ygo_cards(State(state): State<AppState>) -> Result<impl IntoResponse> {
+pub async fn get_all(State(state): State<AppState>) -> Result<impl IntoResponse> {
     let client = state.db.get().await?;
 
     let cards = ygo_card::get_all(&client).await?;
@@ -14,19 +14,19 @@ pub async fn list_ygo_cards(State(state): State<AppState>) -> Result<impl IntoRe
 }
 
 /// Get card by ID
-pub async fn get_ygo_card(
+pub async fn get_by_id(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<impl IntoResponse> {
     let client = state.db.get().await?;
 
-    let card = ygo_card::get_one(&client, id).await?;
+    let card = ygo_card::get_by_id(&client, id).await?;
 
     Ok(Json(card).into_response())
 }
 
 /// Import yugioh cards
-pub async fn import_ygo_cards(State(state): State<AppState>) -> Result<impl IntoResponse> {
+pub async fn import(State(state): State<AppState>) -> Result<impl IntoResponse> {
     let client = state.db.get().await?;
 
     let cards = ygo_card::import_sample_cards(&client).await?;
@@ -57,7 +57,7 @@ mod tests {
             };
 
             let router = Router::new()
-                .route("/ygo/cards", get(list_ygo_cards))
+                .route("/ygo/cards", get(get_all))
                 .with_state(state.as_ref().clone());
             let request = Request::builder()
                 .uri("/ygo/cards")
@@ -85,7 +85,7 @@ mod tests {
             };
 
             let router = Router::new()
-                .route("/ygo/cards/{id}", get(get_ygo_card))
+                .route("/ygo/cards/{id}", get(get_by_id))
                 .with_state(state.as_ref().clone());
             let request = Request::builder()
                 .uri("/ygo/cards/1")
