@@ -1,16 +1,11 @@
 use std::{
     env::{self, VarError},
     path::Path,
-    result,
 };
 
 use tracing::level_filters::LevelFilter;
 
 use crate::database::Pool;
-pub use crate::error::AppError;
-
-/// Shortcut for the Result types
-pub type Result<T, E = AppError> = result::Result<T, E>;
 
 /// Common struct for request state
 #[derive(Debug, Clone)]

@@ -17,9 +17,8 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-mod api_v1;
+mod api;
 mod database;
-mod error;
 mod migrations;
 mod models;
 mod prelude;
@@ -31,12 +30,12 @@ mod test_utils;
 use prelude::*;
 
 fn api_v1() -> Router<AppState> {
-    use api_v1::ygo_card;
+    use api::v1::ygo;
 
     Router::new()
-        .route("/ygo/cards", get(ygo_card::get_all))
-        .route("/ygo/cards/{id}", get(ygo_card::get_by_id))
-        .route("/ygo/cards/import", post(ygo_card::import))
+        .route("/ygo/cards", get(ygo::card::get_cards))
+        .route("/ygo/cards/{id}", get(ygo::card::get_by_id))
+        .route("/ygo/cards/import", post(ygo::card::import))
 }
 
 fn app(state: AppState) -> Router {

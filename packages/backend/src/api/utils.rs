@@ -1,7 +1,7 @@
 use axum::extract::FromRequestParts;
 use serde::de::DeserializeOwned;
 
-use crate::error::AppError;
+use super::ApiError;
 
 /// Custom Path extractor with error handling
 pub struct Path<T>(pub T);
@@ -11,7 +11,7 @@ where
     T: DeserializeOwned + Send,
     S: Send + Sync,
 {
-    type Rejection = AppError;
+    type Rejection = ApiError;
 
     async fn from_request_parts(
         parts: &mut axum::http::request::Parts,
@@ -19,7 +19,7 @@ where
     ) -> Result<Self, Self::Rejection> {
         let value = axum::extract::Path::<T>::from_request_parts(parts, state)
             .await
-            .map_err(AppError::PathRejection)?;
+            .map_err(Self::Rejection::PathRejection)?;
 
         Ok(Self(value.0))
     }

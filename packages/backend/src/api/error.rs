@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, result};
 
 use axum::{
     Json,
@@ -10,9 +10,13 @@ use axum::{
 use serde::{Serialize, ser::SerializeMap};
 use serde_json::Value;
 
+/// Shortcut for the Result types
+pub type ApiResult<T, E = ApiError> = result::Result<T, E>;
+
+/// API error types
 #[derive(thiserror::Error, Debug, Serialize)]
 #[serde(tag = "error", rename_all = "snake_case")]
-pub enum AppError {
+pub enum ApiError {
     #[error("Resource {resource} not found")]
     NotFound { resource: Value },
 
@@ -33,19 +37,19 @@ pub enum AppError {
     Anyhow(#[from] anyhow::Error),
 }
 
-impl AppError {
+impl ApiError {
     /// Returns the HTTP status code for the error
     pub fn status_code(&self) -> StatusCode {
         match self {
-            AppError::NotFound { .. } => StatusCode::NOT_FOUND,
-            AppError::PathRejection(_) => StatusCode::BAD_REQUEST,
+            ApiError::NotFound { .. } => StatusCode::NOT_FOUND,
+            ApiError::PathRejection(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
 
 /// Axum allows returning errors as long as they implement IntoResponse
-impl IntoResponse for AppError {
+impl IntoResponse for ApiError {
     fn into_response(self) -> Response<Body> {
         // Log the error
         tracing::error!("{self}");
@@ -57,7 +61,7 @@ impl IntoResponse for AppError {
 }
 
 /// Serialize the error with no content.
-fn no_content<T, S>(_: &T, serializer: S) -> Result<S::Ok, S::Error>
+fn no_content<T, S>(_: &T, serializer: S) -> ApiResult<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -65,7 +69,7 @@ where
 }
 
 /// Serialize an error with a string message
-fn a_message<T, S>(entry: &T, serializer: S) -> Result<S::Ok, S::Error>
+fn a_message<T, S>(entry: &T, serializer: S) -> ApiResult<S::Ok, S::Error>
 where
     T: Display,
     S: serde::Serializer,
@@ -80,12 +84,11 @@ mod tests {
     use axum::{Router, http::Request, routing::get};
 
     use super::*;
-    use crate::prelude::*;
     use crate::test_utils::*;
 
     #[test]
     fn test_serialize_anyhow_errors() {
-        let error = AppError::Anyhow(anyhow::anyhow!("Test error"));
+        let error = ApiError::Anyhow(anyhow::anyhow!("Test error"));
         let json = serde_json::to_string(&error).unwrap();
         assert_eq!(json, r#"{"error":"internal_error"}"#);
     }
@@ -96,8 +99,8 @@ mod tests {
             let router = Router::new()
                 .route(
                     "/test",
-                    get(async || -> Result<()> {
-                        Err(AppError::Anyhow(anyhow::anyhow!("Test error")))
+                    get(async || -> ApiResult<()> {
+                        Err(ApiError::Anyhow(anyhow::anyhow!("Test error")))
                     }),
                 )
                 .with_state(state.as_ref().clone());
