@@ -17,9 +17,8 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-mod api_v1;
+mod api;
 mod database;
-mod error;
 mod migrations;
 mod models;
 mod prelude;
@@ -30,6 +29,15 @@ mod test_utils;
 
 use prelude::*;
 
+fn api_v1() -> Router<AppState> {
+    use api::v1::ygo;
+
+    Router::new()
+        .route("/ygo/cards", get(ygo::card::get_cards))
+        .route("/ygo/cards/{id}", get(ygo::card::get_by_id))
+        .route("/ygo/cards/import", post(ygo::card::import))
+}
+
 fn app(state: AppState) -> Router {
     // Serve the frontend, and fallback all unknown routes to the index file
     let frontend_path = state.config.get_frontend_path();
@@ -37,16 +45,8 @@ fn app(state: AppState) -> Router {
         ServeDir::new(frontend_path).fallback(ServeFile::new(frontend_path.join("index.html")));
 
     // API v1
-    let api_v1 = Router::new()
-        .route("/ygo/cards", get(api_v1::ygo_cards::list_ygo_cards))
-        .route("/ygo/cards/{id}", get(api_v1::ygo_cards::get_ygo_card))
-        .route(
-            "/ygo/cards/import",
-            post(api_v1::ygo_cards::import_ygo_cards),
-        );
-
     Router::new()
-        .nest("/api/v1", api_v1)
+        .nest("/api/v1", api_v1())
         .fallback_service(frontend)
         .with_state(state)
 }

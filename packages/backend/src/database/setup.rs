@@ -1,21 +1,20 @@
-use std::{str::FromStr, time::Duration};
+use std::{result::Result, str::FromStr, time::Duration};
 
 use bb8_postgres::PostgresConnectionManager;
 use tokio_postgres::{Config, NoTls};
 
-use crate::prelude::*;
-
+/// Alias for the bb8 database pool type
 pub type Pool = bb8::Pool<PostgresConnectionManager<NoTls>>;
 
 /// Initialize the database connection pool
-pub async fn init<'a>(db_url: &str, pool_size: u32) -> Result<Pool> {
+pub async fn init<'a>(db_url: &str, pool_size: u32) -> Result<Pool, tokio_postgres::Error> {
     let config = create_db_config(db_url)?;
 
     create_db_pool(config, pool_size).await
 }
 
 /// Create a database config from the database URL string
-fn create_db_config(db_url: &str) -> Result<Config> {
+fn create_db_config(db_url: &str) -> Result<Config, tokio_postgres::Error> {
     let mut config = Config::from_str(db_url)?;
 
     config
@@ -26,7 +25,7 @@ fn create_db_config(db_url: &str) -> Result<Config> {
 }
 
 /// Create a database connection pool
-async fn create_db_pool(config: Config, pool_size: u32) -> Result<Pool> {
+async fn create_db_pool(config: Config, pool_size: u32) -> Result<Pool, tokio_postgres::Error> {
     let manager = PostgresConnectionManager::new(config, NoTls);
     let pool = Pool::builder().max_size(pool_size).build(manager).await?;
 

@@ -1,34 +1,31 @@
-use tokio_postgres::{Client, Row};
+use tokio_postgres::{Client, Error, Row};
 
-use crate::{database::TimestampWithTimeZone, models::ygo, prelude::*};
+use crate::database::TimestampWithTimeZone;
+use crate::models::ygo;
 
-pub async fn get_one(client: &Client, id: i32) -> Result<ygo::Card> {
+/// Retrieves a card by ID
+pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Error> {
     let query = "SELECT * FROM ygo_cards WHERE id = $1";
-    let row = &client
-        .query_opt(query, &[&id])
-        .await?
-        .ok_or_else(|| AppError::NotFound {
-            resource: id.into(),
-        })?;
+    let row = &client.query_opt(query, &[&id]).await?;
 
-    let card = row.try_into()?;
-    Ok(card)
+    row.as_ref().map(|r| r.try_into()).transpose()
 }
 
-pub async fn get_all(client: &Client) -> Result<Vec<ygo::Card>> {
+/// Retrieves all cards in the database
+pub async fn get_all(client: &Client) -> Result<Vec<ygo::Card>, Error> {
     let query = "SELECT * FROM ygo_cards";
     let rows = client.query(query, &[]).await?;
 
     let cards = rows
         .iter()
         .map(|row| row.try_into())
-        .collect::<Result<Vec<ygo::Card>>>()?;
+        .collect::<Result<Vec<ygo::Card>, Error>>()?;
 
     Ok(cards)
 }
 
 /// Insert a new card and return the created record.
-pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::Card> {
+pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::Card, Error> {
     let card_data = &new_card.data;
     let row = client
         .query_one(
@@ -96,7 +93,7 @@ pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::C
 }
 
 /// Update an existing card by id and return the updated record.
-pub async fn save(client: &Client, card: &ygo::Card) -> Result<ygo::Card> {
+pub async fn save(client: &Client, card: &ygo::Card) -> Result<Option<ygo::Card>, Error> {
     let id = card.id;
     let d = &card.data;
 
@@ -162,11 +159,7 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<ygo::Card> {
         )
         .await?;
 
-    let row = row.ok_or_else(|| AppError::NotFound {
-        resource: id.into(),
-    })?;
-    let updated: ygo::Card = (&row).try_into()?;
-    Ok(updated)
+    row.as_ref().map(|r| r.try_into()).transpose()
 }
 
 fn make_card(id: i32) -> ygo::Card {
@@ -257,7 +250,7 @@ fn make_card(id: i32) -> ygo::Card {
 
 /// Seeds the database with a fixed set of sample Yu-Gi-Oh! cards.
 /// Used by the import HTTP handler and tests.
-pub async fn import_sample_cards(client: &Client) -> Result<Vec<ygo::Card>> {
+pub async fn import_sample_cards(client: &Client) -> Result<Vec<ygo::Card>, Error> {
     let mut cards = Vec::with_capacity(80);
 
     for id in 1..=80 {
@@ -348,7 +341,7 @@ pub async fn import_sample_cards(client: &Client) -> Result<Vec<ygo::Card>> {
 }
 
 impl TryFrom<&Row> for ygo::Card {
-    type Error = AppError;
+    type Error = Error;
 
     /// Converts a database row into a YugiohCard struct
     fn try_from(value: &Row) -> Result<Self, Self::Error> {
@@ -364,7 +357,7 @@ impl TryFrom<&Row> for ygo::Card {
 }
 
 impl TryFrom<&Row> for ygo::CardData {
-    type Error = AppError;
+    type Error = Error;
 
     fn try_from(value: &Row) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -426,8 +419,8 @@ mod tests {
             assert_eq!(created.data.name, new.data.name);
             assert_eq!(created.data.kind, ygo::CardKind::Monster);
 
-            let fetched = get_one(&client, created.id).await.expect("fetch");
-            assert_eq!(fetched, created);
+            let fetched = get_by_id(&client, created.id).await.expect("fetch");
+            assert_eq!(fetched, Some(created));
         })
         .await;
     }
@@ -462,16 +455,22 @@ mod tests {
 
             // Save
             let updated = save(&client, &to_update).await.expect("save");
-            assert_eq!(updated.id, created.id);
-            assert_eq!(updated.data.name, "Updated Name");
-            assert_eq!(updated.data.description, "After");
-            assert_eq!(updated.data.monster_atk, Some(1600));
+            assert!(updated.is_some());
+            if let Some(updated) = updated {
+                assert_eq!(updated.id, created.id);
+                assert_eq!(updated.data.name, "Updated Name");
+                assert_eq!(updated.data.description, "After");
+                assert_eq!(updated.data.monster_atk, Some(1600));
+            }
 
             // Fetch to confirm persistence
-            let fetched = get_one(&client, created.id).await.expect("fetch");
-            assert_eq!(fetched.data.name, "Updated Name");
-            assert_eq!(fetched.data.description, "After");
-            assert_eq!(fetched.data.monster_atk, Some(1600));
+            let fetched = get_by_id(&client, created.id).await.expect("fetch");
+            assert!(fetched.is_some());
+            if let Some(fetched) = fetched {
+                assert_eq!(fetched.data.name, "Updated Name");
+                assert_eq!(fetched.data.description, "After");
+                assert_eq!(fetched.data.monster_atk, Some(1600));
+            }
         })
         .await;
     }
