@@ -8,7 +8,7 @@ on:
 
 jobs:
   checks:
-    name: Lint files
+    name: Lint and test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -51,3 +51,14 @@ jobs:
 
       - name: Run linters
         run: pnpm run lint
+
+      - name: Run tests
+        run: pnpm run test:cov
+
+      - name: Publish code coverage
+        if: ${{ env.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          name: cardfolio
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
