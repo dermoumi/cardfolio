@@ -1,5 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
+use futures_util::FutureExt;
 use postgres_types::{FromSql, Type};
+use std::panic;
 use std::{convert::From, result::Result};
 use tokio_postgres::Client;
 
@@ -87,10 +89,12 @@ where
     }
 
     // Run the function and save the result
-    let result = f(db).await;
+    let result = panic::AssertUnwindSafe(f(db)).catch_unwind().await;
+
+    let should_rollback = result.as_ref().map_or(true, |r| r.is_err());
 
     // Rollback if the function returned an error, commit otherwise
-    if result.is_err() {
+    if should_rollback {
         let query = if let Some(checkpoint_id) = &checkpoint {
             format!("ROLLBACK TO {checkpoint_id}")
         } else {
@@ -102,6 +106,130 @@ where
         db.execute("COMMIT", &[]).await.map_err(|e| e.into())?;
     }
 
-    // Forward the result
-    result
+    // Forward the result or panic
+    match result {
+        Ok(res) => res,
+        Err(panic) => panic::resume_unwind(panic),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use crate::test_utils::with_db_pool;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_with_transaction_commits() {
+        with_db_pool(async |pool| {
+            let client = pool.get().await.unwrap();
+
+            // Create a table for testing
+            client
+                .execute(
+                    "CREATE TABLE test (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
+                    &[],
+                )
+                .await
+                .expect("Failed to create test table");
+
+            // Insert a test row while in a transaction
+            with_transaction(&client, None, async |client| {
+                client
+                    .execute("INSERT INTO test (name) VALUES ($1)", &[&"Test"])
+                    .await
+            })
+            .await
+            .expect("Failed to insert row");
+
+            // Verify the test row was inserted
+            let row = client
+                .query_one("SELECT name FROM test WHERE id = $1", &[&1])
+                .await;
+            assert_eq!(row.unwrap().get::<_, String>("name"), "Test");
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_with_transaction_rolls_back() {
+        with_db_pool(async |pool| {
+            let client = pool.get().await.unwrap();
+
+            // Create a table for test
+            client
+                .execute(
+                    "CREATE TABLE test (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
+                    &[],
+                )
+                .await
+                .expect("Failed to create test table");
+
+            // Insert a test row while in a transaction, but return an error
+            with_transaction(&client, None, async |client| -> anyhow::Result<()> {
+                client
+                    .execute("INSERT INTO test (name) VALUES ($1)", &[&"Test"])
+                    .await
+                    .expect("Failed to insert row");
+
+                anyhow::bail!("Simulated error to trigger rollback");
+            })
+            .await
+            .unwrap_err();
+
+            // Verify the test row was not inserted
+            let row = client
+                .query_opt("SELECT name FROM test WHERE id = $1", &[&1])
+                .await
+                .expect("Failed to query test row");
+            assert!(row.is_none());
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_with_transaction_rolls_back_on_panic() {
+        with_db_pool(async |pool| {
+            let client = pool.get().await.unwrap();
+
+            // Create a table for test
+            client
+                .execute(
+                    "CREATE TABLE test (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
+                    &[],
+                )
+                .await
+                .expect("Failed to create test table");
+
+            // Insert a test row while in a transaction, but panic
+            let result = panic::AssertUnwindSafe(with_transaction(
+                &client,
+                None,
+                async |client| -> anyhow::Result<()> {
+                    // To suppress verbose output in tests
+                    panic::set_hook(Box::new(|_| {}));
+
+                    client
+                        .execute("INSERT INTO test (name) VALUES ($1)", &[&"Test"])
+                        .await
+                        .expect("Failed to insert row");
+
+                    panic!("Simulated panic to trigger rollback");
+                },
+            ))
+            .catch_unwind()
+            .await;
+
+            assert!(result.is_err());
+
+            // Verify the test row was not inserted
+            let row = client
+                .query_opt("SELECT name FROM test WHERE id = $1", &[&1])
+                .await
+                .expect("Failed to query test row");
+            assert!(row.is_none());
+        })
+        .await
+    }
 }

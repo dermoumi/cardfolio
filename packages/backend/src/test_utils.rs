@@ -42,7 +42,7 @@ where
     }
 
     let db = Arc::new(db_pool.clone());
-    let res = panic::AssertUnwindSafe(f(db)).catch_unwind().await;
+    let result = panic::AssertUnwindSafe(f(db)).catch_unwind().await;
 
     db_pool
         .get()
@@ -52,7 +52,7 @@ where
         .await
         .expect("Failed to rollback transaction");
 
-    if let Err(panic) = res {
+    if let Err(panic) = result {
         panic::resume_unwind(panic);
     }
 }
