@@ -5,6 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@10.14.0",
   "scripts": {
+    "prepare": "husky",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
@@ -26,6 +27,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "husky": "^9.1.7",
     "turbo": "^2.5.5",
     "typescript-eslint": "^8.39.0"
   }
