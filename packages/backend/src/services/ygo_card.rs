@@ -169,62 +169,180 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<ygo::Card> {
     Ok(updated)
 }
 
+fn make_card(id: i32) -> ygo::Card {
+    match id {
+        1 => ygo::Card {
+            id: 1,
+            updated_at: chrono::Utc::now(),
+            data: ygo::CardData {
+                name: "Blue-Eyes White Dragon".to_string(),
+                description: "This legendary dragon is a powerful engine of destruction. Virtually invincible, very few have faced this awesome creature and lived to tell the tale.".to_string(),
+                kind: ygo::CardKind::Monster,
+                monster_attribute: Some(ygo::MonsterAttribute::Light),
+                monster_race: Some(ygo::MonsterRace::Dragon),
+                monster_level: Some(8),
+                monster_atk: Some(3000),
+                monster_def: Some(2500),
+                ..Default::default()
+            },
+        },
+        2 => ygo::Card {
+            id: 2,
+            updated_at: chrono::Utc::now(),
+            data: ygo::CardData {
+                name: "Dark Magician".to_string(),
+                description: "The ultimate wizard in terms of attack and defense.".to_string(),
+                kind: ygo::CardKind::Monster,
+                monster_attribute: Some(ygo::MonsterAttribute::Dark),
+                monster_race: Some(ygo::MonsterRace::Spellcaster),
+                monster_level: Some(7),
+                monster_atk: Some(2500),
+                monster_def: Some(2100),
+                ..Default::default()
+            },
+        },
+        _ => {
+            let name = format!("Card {}", id);
+            let description = format!("This is the description for card {}.", id);
+            let kind = match id % 5 {
+                0 => ygo::CardKind::Spell,
+                3 => ygo::CardKind::Trap,
+                _ => ygo::CardKind::Monster,
+            };
+
+            let mut card_data = ygo::CardData {
+                name,
+                description,
+                kind: kind.clone(),
+                ..Default::default()
+            };
+
+            if kind == ygo::CardKind::Monster {
+                // Use all 6 MonsterAttribute enum variants by mapping id % 6 to the variant
+                card_data.monster_attribute = Some(match id % 6 {
+                    0 => ygo::MonsterAttribute::Dark,
+                    1 => ygo::MonsterAttribute::Light,
+                    2 => ygo::MonsterAttribute::Earth,
+                    3 => ygo::MonsterAttribute::Water,
+                    4 => ygo::MonsterAttribute::Fire,
+                    5 => ygo::MonsterAttribute::Wind,
+                    _ => unreachable!(),
+                });
+                // Use all MonsterRace enum variants by mapping id to the variant
+                card_data.monster_race = Some(match id % 8 {
+                    0 => ygo::MonsterRace::Dragon,
+                    1 => ygo::MonsterRace::Spellcaster,
+                    2 => ygo::MonsterRace::Warrior,
+                    3 => ygo::MonsterRace::Beast,
+                    4 => ygo::MonsterRace::Fiend,
+                    5 => ygo::MonsterRace::Fairy,
+                    6 => ygo::MonsterRace::Zombie,
+                    7 => ygo::MonsterRace::Machine,
+                    _ => unreachable!(),
+                });
+                let variation_seed: i16 = id.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
+                card_data.monster_level = Some((variation_seed % 9) + 1);
+                card_data.monster_atk = Some(1000 + (variation_seed % 20) * 100);
+                card_data.monster_def = Some(800 + (variation_seed % 20) * 100);
+            }
+
+            ygo::Card {
+                id,
+                updated_at: chrono::Utc::now(),
+                data: card_data,
+            }
+        }
+    }
+}
+
 /// Seeds the database with a fixed set of sample Yu-Gi-Oh! cards.
 /// Used by the import HTTP handler and tests.
 pub async fn import_sample_cards(client: &Client) -> Result<Vec<ygo::Card>> {
-    client
-        .execute(
-            r#"
+    let mut cards = Vec::with_capacity(80);
+
+    for id in 1..=80 {
+        let card = make_card(id);
+        let d = &card.data;
+
+        // Try to insert; if it already exists, fetch the existing row.
+        let inserted = client
+            .query_opt(
+                r#"
                 INSERT INTO ygo_cards (
                     id,
                     name,
                     description,
                     kind,
+                    password,
+                    konami_id,
+                    treated_as,
+                    tcg_date,
+                    ocg_date,
+                    tcgplayer_price,
+                    cardmarket_price,
+                    ebay_price,
+                    coolstuffinc_price,
                     monster_kind,
                     monster_attribute,
                     monster_race,
-                    monster_level,
+                    monster_subtypes,
                     monster_atk,
-                    monster_def
+                    monster_def,
+                    monster_level,
+                    monster_pendulum_scale,
+                    monster_pendulum_effect,
+                    monster_link_arrows,
+                    spell_kind,
+                    trap_kind
                 ) VALUES (
-                    1,
-                    'Blue-eyes White Dragon',
-                    'This legendary dragon is a powerful engine of destruction. Virtually invincible, very few have faced this awesome creature and lived to tell the tale.',
-                    'monster',
-                    'normal',
-                    'light',
-                    'dragon',
-                    8,
-                    3000,
-                    2500
-                ), (
-                    2,
-                    'Dark Magician',
-                    'The ultimate wizard in terms of attack and defense.',
-                    'monster',
-                    'normal',
-                    'dark',
-                    'spellcaster',
-                    7,
-                    2500,
-                    2100
-                ) ON CONFLICT DO NOTHING;
-            "#,
-            &[],
-        )
-        .await?;
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                    $11, $12, $13, $14, $15, $16, $17, $18, $19,
+                    $20, $21, $22, $23, $24, $25
+                )
+                ON CONFLICT (id) DO NOTHING
+                RETURNING *
+                "#,
+                &[
+                    &card.id,
+                    &d.name,
+                    &d.description,
+                    &d.kind,
+                    &d.password,
+                    &d.konami_id,
+                    &d.treated_as,
+                    &d.tcg_date,
+                    &d.ocg_date,
+                    &d.tcgplayer_price,
+                    &d.cardmarket_price,
+                    &d.ebay_price,
+                    &d.coolstuffinc_price,
+                    &d.monster_kind,
+                    &d.monster_attribute,
+                    &d.monster_race,
+                    &d.monster_subtypes,
+                    &d.monster_atk,
+                    &d.monster_def,
+                    &d.monster_level,
+                    &d.monster_pendulum_scale,
+                    &d.monster_pendulum_effect,
+                    &d.monster_link_arrows,
+                    &d.spell_kind,
+                    &d.trap_kind,
+                ],
+            )
+            .await?;
 
-    let rows = client
-        .query(
-            "SELECT * FROM ygo_cards WHERE name = ANY($1)",
-            &[&vec!["Blue-eyes White Dragon", "Dark Magician"]],
-        )
-        .await?;
+        let card_row = if let Some(row) = inserted {
+            row
+        } else {
+            client
+                .query_one("SELECT * FROM ygo_cards WHERE id = $1", &[&id])
+                .await?
+        };
 
-    let cards = rows
-        .iter()
-        .map(|r| r.try_into())
-        .collect::<Result<Vec<ygo::Card>>>()?;
+        let saved: ygo::Card = (&card_row).try_into()?;
+        cards.push(saved);
+    }
 
     Ok(cards)
 }
