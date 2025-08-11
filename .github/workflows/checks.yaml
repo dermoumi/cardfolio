@@ -10,6 +10,16 @@ jobs:
   checks:
     name: Lint and test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: cardfolio
+          POSTGRES_PASSWORD: cardfolio
+          POSTGRES_DB: cardfolio_test
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -54,6 +64,8 @@ jobs:
 
       - name: Run tests
         run: pnpm run test:cov
+        env:
+          CARDFOLIO_DB_TEST: postgres://cardfolio:cardfolio@localhost:5432/cardfolio_test
 
       - name: Publish code coverage
         if: ${{ env.CODECOV_TOKEN != '' }}
