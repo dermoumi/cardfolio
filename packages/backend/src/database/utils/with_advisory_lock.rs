@@ -13,23 +13,17 @@ where
     Fut: Future<Output = Result<R, E>>,
 {
     // Acquire the advisory lock
-    db.execute(
-        format!("SELECT pg_advisory_lock(hashtext('{}'))", lock_id).as_str(),
-        &[],
-    )
-    .await
-    .map_err(|e| e.into())?;
+    db.execute("SELECT pg_advisory_lock(hashtext($1))", &[&lock_id])
+        .await
+        .map_err(|e| e.into())?;
 
     // Run the function and save the result
     let result = panic::AssertUnwindSafe(f(db)).catch_unwind().await;
 
     // Release the advisory lock
-    db.execute(
-        format!("SELECT pg_advisory_unlock(hashtext('{}'))", lock_id).as_str(),
-        &[],
-    )
-    .await
-    .map_err(|e| e.into())?;
+    db.execute("SELECT pg_advisory_unlock(hashtext($1))", &[&lock_id])
+        .await
+        .map_err(|e| e.into())?;
 
     // Forward the result or panic
     match result {
