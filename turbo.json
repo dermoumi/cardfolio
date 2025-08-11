@@ -63,7 +63,7 @@
         "tsup.config.ts",
         "$TURBO_ROOT$/libs/tsconfig/**/*"
       ],
-      "outputs": ["coverage/**/*"]
+      "outputs": ["lcov.info"]
     },
     "lint": {
       "outputLogs": "errors-only",

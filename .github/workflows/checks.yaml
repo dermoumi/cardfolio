@@ -68,6 +68,14 @@ jobs:
         run: pnpm run lint
 
       - name: Run tests
-        run: pnpm run test:cov
+        run: |
+          pnpm run test:cov
+          ls packages/backend/
         env:
           CARDFOLIO_DB_TEST: postgres://cardfolio:cardfolio@localhost:5432/cardfolio_test
+
+      - name: Publish code coverage
+        if: ${{ env.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
