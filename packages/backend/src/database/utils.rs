@@ -41,7 +41,7 @@ pub fn random_string(length: usize) -> String {
 /// If a checkpoint is provided, it will be used instead of a transaction.
 /// When testing, we'll assume that we're using a transaction and simulate checkpoints instead.
 pub async fn with_transaction<'a, R, E, F, Fut>(
-    db: &'a mut Client,
+    db: &'a Client,
     checkpoint: Option<String>,
     f: F,
 ) -> Result<R, E>

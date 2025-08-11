@@ -23,17 +23,17 @@ impl Migrate {
     ) -> Result<(), DatabaseError> {
         tracing::info!("Migrating up into {}", self.tablename);
 
-        let mut client = db_pool.get().await?;
+        let client = db_pool.get().await?;
         self.create_table(&client).await?;
 
         let applied_migrations_count = self.check_migrations(&client, migrations).await?;
 
         if applied_migrations_count > migrations.len() {
             tracing::info!("Applying migrations down");
-            self.migrate_down(&mut client, migrations).await?;
+            self.migrate_down(&client, migrations).await?;
         } else if applied_migrations_count < migrations.len() {
             tracing::info!("Applying migrations up");
-            self.migrate_up(&mut client, migrations).await?;
+            self.migrate_up(&client, migrations).await?;
         } else {
             tracing::info!("No migrations to apply, already at the latest version");
         }
@@ -45,25 +45,24 @@ impl Migrate {
         tracing::debug!("Creating migration table {}", self.tablename);
 
         let query = format!(
-            r#"CREATE TABLE IF NOT EXISTS {} (
-                id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL,
-                down_script TEXT NULL,
-                executed_at TIMESTAMP NOT NULL DEFAULT now()
-            )"#,
+            r#"
+            DO $$ BEGIN
+                EXECUTE 'LOCK TABLE pg_namespace IN ACCESS EXCLUSIVE MODE';
+                EXECUTE '
+                    CREATE TABLE IF NOT EXISTS {} (
+                        id SERIAL PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        down_script TEXT NULL,
+                        executed_at TIMESTAMP NOT NULL DEFAULT now()
+                    )
+                ';
+            END $$
+            "#,
             self.tablename
         );
 
-        // Acquire an advisory lock
-        client.execute("SELECT pg_advisory_lock(1)", &[]).await?;
-
         // Create the table
-        let result = self.execute_script(client, &query).await;
-
-        // Release the advisory lock
-        client.execute("SELECT pg_advisory_unlock(1)", &[]).await?;
-
-        result
+        self.execute_script(client, &query).await
     }
 
     async fn check_migrations(
@@ -103,17 +102,15 @@ impl Migrate {
 
     async fn migrate_up(
         &self,
-        mut client: &mut Client,
+        client: &Client,
         migrations: &[Migration<'_>],
     ) -> Result<(), DatabaseError> {
         for (name, up_script, down_script) in migrations {
             // Acquire an advisory lock
             client.execute("SELECT pg_advisory_lock(1)", &[]).await?;
 
-            let result = with_transaction(
-                &mut client,
-                None,
-                async |client| -> Result<(), DatabaseError> {
+            let result =
+                with_transaction(&client, None, async |client| -> Result<(), DatabaseError> {
                     if !self.migration_exists(client, name).await? {
                         tracing::info!("Applying migration '{}'", name);
                         self.execute_script(client, up_script).await?;
@@ -122,21 +119,21 @@ impl Migrate {
                     };
 
                     Ok(())
-                },
-            )
-            .await;
+                })
+                .await;
 
             // Release the advisory lock
             client.execute("SELECT pg_advisory_unlock(1)", &[]).await?;
 
             result?;
         }
+
         Ok(())
     }
 
     async fn migrate_down(
         &self,
-        mut client: &mut Client,
+        client: &Client,
         migrations: &[Migration<'_>],
     ) -> Result<(), DatabaseError> {
         if let Some(&(last_migration_name, _, _)) = migrations.last() {
@@ -144,7 +141,7 @@ impl Migrate {
 
             loop {
                 let done = with_transaction::<_, DatabaseError, _, _>(
-                    &mut client,
+                    &client,
                     None,
                     async |client| -> Result<bool, DatabaseError> {
                         let last_applied_migration =
@@ -286,6 +283,7 @@ mod tests {
         with_db_pool_no_migrations(async |db| {
             {
                 let client = db.get().await.expect("Failed to get DB connection");
+
                 let migrator = Migrate::new("test_migrations");
                 migrator
                     .create_table(&client)
@@ -439,9 +437,9 @@ mod tests {
     #[tokio::test]
     async fn test_create_table_creates_migration_table() {
         with_db_pool_no_migrations(async |db| {
-            let migrator = Migrate::new("test_migrations");
             let client = db.get().await.expect("Failed to get DB connection");
 
+            let migrator = Migrate::new("test_migrations");
             migrator
                 .create_table(&client)
                 .await
@@ -468,6 +466,7 @@ mod tests {
     async fn test_execute_script() {
         with_db_pool_no_migrations(async |db| {
             let client = db.get().await.expect("Failed to get DB connection");
+
             let migrator = Migrate::new("test_migrations");
             migrator
                 .create_table(&client)
@@ -695,7 +694,7 @@ mod tests {
     async fn test_migration_down_skips_revert_if_no_migrations() {
         with_db_pool_no_migrations(async |db| {
             let migrator = Migrate::new("test_migrations");
-            let mut client = db.get().await.expect("Failed to get DB connection");
+            let client = db.get().await.expect("Failed to get DB connection");
 
             // Create the migration table and a few migrations
             migrator
@@ -709,7 +708,7 @@ mod tests {
 
             // Run the migration down without any migrations
             migrator
-                .migrate_down(&mut client, &[])
+                .migrate_down(&client, &[])
                 .await
                 .expect("Migration down failed");
 
