@@ -1,34 +1,7 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
 use futures_util::FutureExt;
-use postgres_types::{FromSql, Type};
 use std::panic;
 use std::{convert::From, result::Result};
 use tokio_postgres::Client;
-
-/// Utility to convert a timestamp with timezone to a DateTime<Utc>
-#[derive(Debug)]
-pub struct TimestampWithTimeZone(pub DateTime<Utc>);
-
-impl<'a> FromSql<'a> for TimestampWithTimeZone {
-    fn from_sql(
-        ty: &Type,
-        raw: &'a [u8],
-    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-        if ty.name() == "timestamp" {
-            let naive_datetime = NaiveDateTime::from_sql(ty, raw)?;
-            Ok(TimestampWithTimeZone(DateTime::from_naive_utc_and_offset(
-                naive_datetime,
-                Utc,
-            )))
-        } else {
-            Err("Unexpected column type".into())
-        }
-    }
-
-    fn accepts(ty: &Type) -> bool {
-        ty.name() == "timestamp"
-    }
-}
 
 #[cfg(test)]
 /// Generates a random alphanumeric string of the given length
@@ -128,7 +101,7 @@ mod tests {
             // Create a table for testing
             client
                 .execute(
-                    "CREATE TABLE test (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
+                    "CREATE TABLE test_transaction_commit (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
                     &[],
                 )
                 .await
@@ -137,7 +110,7 @@ mod tests {
             // Insert a test row while in a transaction
             with_transaction(&client, None, async |client| {
                 client
-                    .execute("INSERT INTO test (name) VALUES ($1)", &[&"Test"])
+                    .execute("INSERT INTO test_transaction_commit (name) VALUES ($1)", &[&"Test"])
                     .await
             })
             .await
@@ -145,7 +118,7 @@ mod tests {
 
             // Verify the test row was inserted
             let row = client
-                .query_one("SELECT name FROM test WHERE id = $1", &[&1])
+                .query_one("SELECT name FROM test_transaction_commit WHERE id = $1", &[&1])
                 .await;
             assert_eq!(row.unwrap().get::<_, String>("name"), "Test");
         })
@@ -160,7 +133,7 @@ mod tests {
             // Create a table for test
             client
                 .execute(
-                    "CREATE TABLE test (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
+                    "CREATE TABLE test_transaction_rollback (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
                     &[],
                 )
                 .await
@@ -169,7 +142,7 @@ mod tests {
             // Insert a test row while in a transaction, but return an error
             with_transaction(&client, None, async |client| -> anyhow::Result<()> {
                 client
-                    .execute("INSERT INTO test (name) VALUES ($1)", &[&"Test"])
+                    .execute("INSERT INTO test_transaction_rollback (name) VALUES ($1)", &[&"Test"])
                     .await
                     .expect("Failed to insert row");
 
@@ -180,7 +153,7 @@ mod tests {
 
             // Verify the test row was not inserted
             let row = client
-                .query_opt("SELECT name FROM test WHERE id = $1", &[&1])
+                .query_opt("SELECT name FROM test_transaction_rollback WHERE id = $1", &[&1])
                 .await
                 .expect("Failed to query test row");
             assert!(row.is_none());
@@ -196,7 +169,7 @@ mod tests {
             // Create a table for test
             client
                 .execute(
-                    "CREATE TABLE test (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
+                    "CREATE TABLE test_transaction_panic (id SERIAL PRIMARY KEY, name TEXT NOT NULL)",
                     &[],
                 )
                 .await
@@ -211,7 +184,7 @@ mod tests {
                     panic::set_hook(Box::new(|_| {}));
 
                     client
-                        .execute("INSERT INTO test (name) VALUES ($1)", &[&"Test"])
+                        .execute("INSERT INTO test_transaction_panic (name) VALUES ($1)", &[&"Test"])
                         .await
                         .expect("Failed to insert row");
 
@@ -225,7 +198,7 @@ mod tests {
 
             // Verify the test row was not inserted
             let row = client
-                .query_opt("SELECT name FROM test WHERE id = $1", &[&1])
+                .query_opt("SELECT name FROM test_transaction_panic WHERE id = $1", &[&1])
                 .await
                 .expect("Failed to query test row");
             assert!(row.is_none());

@@ -1,6 +1,6 @@
 use tokio_postgres::{Client, Error, Row};
 
-use crate::database::TimestampWithTimeZone;
+use crate::database::TzTimestamp;
 use crate::models::ygo;
 
 /// Retrieves a card by ID
@@ -346,7 +346,7 @@ impl TryFrom<&Row> for ygo::Card {
     /// Converts a database row into a YugiohCard struct
     fn try_from(value: &Row) -> Result<Self, Self::Error> {
         let id: i32 = value.get("id");
-        let updated_at: TimestampWithTimeZone = value.get("updated_at");
+        let updated_at: TzTimestamp = value.get("updated_at");
 
         Ok(Self {
             id,
