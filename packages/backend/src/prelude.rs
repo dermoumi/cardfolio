@@ -67,7 +67,7 @@ impl AppConfig {
 
 #[cfg(test)]
 mod tests {
-    use temp_env::{with_var, with_vars};
+    use temp_env::with_vars;
 
     use super::*;
 
@@ -76,6 +76,7 @@ mod tests {
         with_vars(
             [
                 ("CARDFOLIO_LOGLEVEL", None::<&str>),
+                ("CARDFOLIO_DB", Some("postgres://localhost:5432/cardfolio")),
                 ("CARDFOLIO_PORT", None),
                 ("CARDFOLIO_FRONTEND_DIR", None),
             ],
@@ -93,6 +94,7 @@ mod tests {
         with_vars(
             [
                 ("CARDFOLIO_LOGLEVEL", Some("debug")),
+                ("CARDFOLIO_DB", Some("postgres://localhost:5432/cardfolio")),
                 ("CARDFOLIO_PORT", Some("8080")),
                 ("CARDFOLIO_FRONTEND_DIR", Some("test_frontend/")),
             ],
@@ -107,10 +109,16 @@ mod tests {
 
     #[test]
     fn test_app_config_get_frontend_path() {
-        with_var("CARDFOLIO_FRONTEND_DIR", Some("frontend/"), || {
-            let config = AppConfig::from_env().unwrap();
-            let path = config.get_frontend_path();
-            assert_eq!(path, Path::new("frontend/"));
-        });
+        with_vars(
+            [
+                ("CARDFOLIO_FRONTEND_DIR", Some("frontend/")),
+                ("CARDFOLIO_DB", Some("postgres://localhost:5432/cardfolio")),
+            ],
+            || {
+                let config = AppConfig::from_env().unwrap();
+                let path = config.get_frontend_path();
+                assert_eq!(path, Path::new("frontend/"));
+            },
+        );
     }
 }

@@ -43,6 +43,7 @@ impl Migrate {
 
     async fn create_table(&self, client: &Client) -> Result<(), DatabaseError> {
         tracing::debug!("Creating migration table {}", self.tablename);
+
         let query = format!(
             r#"CREATE TABLE IF NOT EXISTS {} (
                 id SERIAL PRIMARY KEY,
@@ -53,7 +54,16 @@ impl Migrate {
             self.tablename
         );
 
-        self.execute_script(client, &query).await
+        // Acquire an advisory lock
+        client.execute("SELECT pg_advisory_lock(1)", &[]).await?;
+
+        // Create the table
+        let result = self.execute_script(client, &query).await;
+
+        // Release the advisory lock
+        client.execute("SELECT pg_advisory_unlock(1)", &[]).await?;
+
+        result
     }
 
     async fn check_migrations(
