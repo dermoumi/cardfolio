@@ -1,6 +1,6 @@
 use tokio_postgres::Client;
 
-use crate::database::{DatabaseError, Pool, with_transaction};
+use crate::database::{DatabaseError, Pool, with_advisory_lock, with_transaction};
 
 pub type Migration<'a> = (&'a str, &'a str, Option<&'a str>);
 
@@ -106,10 +106,7 @@ impl Migrate {
         migrations: &[Migration<'_>],
     ) -> Result<(), DatabaseError> {
         for (name, up_script, down_script) in migrations {
-            // Acquire an advisory lock
-            client.execute("SELECT pg_advisory_lock(1)", &[]).await?;
-
-            let result =
+            with_advisory_lock(&client, "migration_running", async move |client| {
                 with_transaction(&client, None, async |client| -> Result<(), DatabaseError> {
                     if !self.migration_exists(client, name).await? {
                         tracing::info!("Applying migration '{}'", name);
@@ -120,12 +117,9 @@ impl Migrate {
 
                     Ok(())
                 })
-                .await;
-
-            // Release the advisory lock
-            client.execute("SELECT pg_advisory_unlock(1)", &[]).await?;
-
-            result?;
+                .await
+            })
+            .await?;
         }
 
         Ok(())
@@ -140,27 +134,31 @@ impl Migrate {
             tracing::info!("Reverting migrations down to '{}'", last_migration_name);
 
             loop {
-                let done = with_transaction::<_, DatabaseError, _, _>(
-                    &client,
-                    None,
-                    async |client| -> Result<bool, DatabaseError> {
-                        let last_applied_migration =
-                            self.get_last_applied_migration(client).await?;
-                        if let Some((name, down_script)) = last_applied_migration
-                            && last_migration_name != name
-                        {
-                            tracing::info!("Reverting migration '{}'...", name);
-                            self.delete_migration(client, &name).await?;
-                            if let Some(script) = down_script {
-                                self.execute_script(client, &script).await?;
-                            }
+                let done = with_advisory_lock(&client, "migration_running", async |client| {
+                    with_transaction::<_, DatabaseError, _, _>(
+                        &client,
+                        None,
+                        async |client| -> Result<bool, DatabaseError> {
+                            let last_applied_migration =
+                                self.get_last_applied_migration(client).await?;
+                            if let Some((name, down_script)) = last_applied_migration
+                                && last_migration_name != name
+                            {
+                                tracing::info!("Reverting migration '{}'...", name);
 
-                            Ok(false)
-                        } else {
-                            Ok(true)
-                        }
-                    },
-                )
+                                self.delete_migration(client, &name).await?;
+                                if let Some(script) = down_script {
+                                    self.execute_script(client, &script).await?;
+                                }
+
+                                Ok(false)
+                            } else {
+                                Ok(true)
+                            }
+                        },
+                    )
+                    .await
+                })
                 .await?;
 
                 if done {
