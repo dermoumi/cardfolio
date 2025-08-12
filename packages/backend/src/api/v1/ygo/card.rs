@@ -1,16 +1,43 @@
-use axum::{Json, extract::State, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Query, State},
+    response::IntoResponse,
+};
 
 use crate::api::{ApiError, ApiResult, Path};
 use crate::prelude::AppState;
 use crate::services::ygo as service;
 
-/// Lists yugioh cards
-pub async fn get_cards(State(state): State<AppState>) -> ApiResult<impl IntoResponse> {
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize)]
+pub struct Pagination {
+    pub limit: Option<u32>,
+    pub cursor: Option<service::card::PageCursor>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Page {
+    pub cards: Vec<crate::models::ygo::Card>,
+    pub next: Option<service::card::PageCursor>,
+}
+
+/// Lists yugioh cards (paginated)
+pub async fn get_cards(
+    State(state): State<AppState>,
+    Query(pagination): Query<Pagination>,
+) -> ApiResult<impl IntoResponse> {
     let client = state.db.get().await?;
 
-    let cards = service::card::get_all(&client).await?;
+    let limit = pagination.limit.unwrap_or(100).min(100);
+    let cursor = pagination.cursor;
 
-    Ok(Json(cards).into_response())
+    let (cards, next_cursor) = service::card::get_page(&client, limit, cursor).await?;
+    Ok(Json(Page {
+        cards,
+        next: next_cursor,
+    })
+    .into_response())
 }
 
 /// Get card by ID
@@ -33,7 +60,7 @@ pub async fn get_by_id(
 pub async fn import(State(state): State<AppState>) -> ApiResult<impl IntoResponse> {
     let client = state.db.get().await?;
 
-    let cards = service::card::import_sample_cards(&client).await?;
+    let cards = service::card::seed_cards(&client, 80).await?;
 
     Ok(Json(cards).into_response())
 }
@@ -57,9 +84,7 @@ mod tests {
             // Seed sample cards
             let added_cards = {
                 let client = state.db.get().await.expect("db");
-                service::card::import_sample_cards(&client)
-                    .await
-                    .expect("seed")
+                service::card::seed_cards(&client, 1).await.expect("seed")
             };
 
             let router = Router::new()
@@ -74,9 +99,9 @@ mod tests {
             assert_eq!(response.status(), StatusCode::OK);
 
             let body = response.into_body().collect().await.unwrap().to_bytes();
-            let retrieved_cards: Vec<ygo::Card> =
+            let paginated: super::Page =
                 serde_json::from_slice(&body).expect("Unable to parse response body");
-            assert_eq!(retrieved_cards.len(), added_cards.len());
+            assert_eq!(paginated.cards.len(), added_cards.len());
         })
         .await
     }
@@ -87,9 +112,7 @@ mod tests {
             // Seed sample cards
             {
                 let client = state.db.get().await.expect("db");
-                service::card::import_sample_cards(&client)
-                    .await
-                    .expect("seed")
+                service::card::seed_cards(&client, 1).await.expect("seed")
             };
 
             let router = Router::new()

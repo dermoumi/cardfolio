@@ -1,7 +1,54 @@
+use postgres_types::ToSql;
 use tokio_postgres::{Client, Error, Row};
 
 use crate::database::TzTimestamp;
 use crate::models::ygo;
+
+pub type PageCursor = i32;
+
+/// Retrieves cards with cursor-based pagination
+pub async fn get_page(
+    client: &Client,
+    limit: u32,
+    cursor: Option<PageCursor>,
+) -> Result<(Vec<ygo::Card>, Option<PageCursor>), Error> {
+    // Tiny query builder
+    let mut query = String::from("SELECT * FROM ygo_cards");
+    let mut params: Vec<&(dyn ToSql + Sync)> = vec![];
+    let mut idx = 1;
+
+    // Retrieve only items after the cursor index
+    if cursor.is_some() {
+        query.push_str(&format!(" WHERE id > ${idx}"));
+        params.push(&cursor);
+        idx += 1;
+    }
+
+    // Retrieve one extra item to check if there's still another page
+    let limit_plus = (limit + 1) as i64;
+    query.push_str(&format!(" ORDER BY id ASC LIMIT ${idx}"));
+    params.push(&limit_plus);
+    // idx += 1;
+
+    // Make the query
+    let rows = client.query(&query, &params).await?;
+
+    // Retrieve the cards
+    let cards: Vec<ygo::Card> = rows
+        .iter()
+        .take(limit as usize)
+        .map(|row| row.try_into())
+        .collect::<Result<_, _>>()?;
+
+    // Generate the next cursor
+    let next_cursor = if rows.len() > limit as usize {
+        cards.last().map(|card| card.id as PageCursor)
+    } else {
+        None
+    };
+
+    Ok((cards, next_cursor))
+}
 
 /// Retrieves a card by ID
 pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Error> {
@@ -9,19 +56,6 @@ pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Er
     let row = &client.query_opt(query, &[&id]).await?;
 
     row.as_ref().map(|r| r.try_into()).transpose()
-}
-
-/// Retrieves all cards in the database
-pub async fn get_all(client: &Client) -> Result<Vec<ygo::Card>, Error> {
-    let query = "SELECT * FROM ygo_cards";
-    let rows = client.query(query, &[]).await?;
-
-    let cards = rows
-        .iter()
-        .map(|row| row.try_into())
-        .collect::<Result<Vec<ygo::Card>, Error>>()?;
-
-    Ok(cards)
 }
 
 /// Insert a new card and return the created record.
@@ -222,15 +256,11 @@ fn make_card(id: i32) -> ygo::Card {
                     _ => unreachable!(),
                 });
                 // Use all MonsterRace enum variants by mapping id to the variant
-                card_data.monster_race = Some(match id % 8 {
+                card_data.monster_race = Some(match id % 4 {
                     0 => ygo::MonsterRace::Dragon,
                     1 => ygo::MonsterRace::Spellcaster,
                     2 => ygo::MonsterRace::Warrior,
                     3 => ygo::MonsterRace::Beast,
-                    4 => ygo::MonsterRace::Fiend,
-                    5 => ygo::MonsterRace::Fairy,
-                    6 => ygo::MonsterRace::Zombie,
-                    7 => ygo::MonsterRace::Machine,
                     _ => unreachable!(),
                 });
                 let variation_seed: i16 = id.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
@@ -248,12 +278,13 @@ fn make_card(id: i32) -> ygo::Card {
     }
 }
 
-/// Seeds the database with a fixed set of sample Yu-Gi-Oh! cards.
+/// Seeds the database with a given number of sample Yu-Gi-Oh! cards.
 /// Used by the import HTTP handler and tests.
-pub async fn import_sample_cards(client: &Client) -> Result<Vec<ygo::Card>, Error> {
-    let mut cards = Vec::with_capacity(80);
+pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>, Error> {
+    let mut cards = Vec::with_capacity(amount);
 
-    for id in 1..=80 {
+    for id in 1..=amount {
+        let id = id as i32;
         let card = make_card(id);
         let d = &card.data;
 
@@ -393,6 +424,49 @@ impl TryFrom<&Row> for ygo::CardData {
 mod tests {
     use super::*;
     use crate::{models::ygo, test_utils::with_db_pool};
+
+    #[tokio::test]
+    async fn test_get_page_basic_pagination() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+            // Seed 15 cards
+            let _ = seed_cards(&client, 15).await.expect("seed");
+
+            // Get first page (limit 5)
+            let (page1, next1) = get_page(&client, 5, None).await.expect("page1");
+            assert_eq!(page1.len(), 5);
+            assert!(next1.is_some());
+
+            // Get second page
+            let (page2, next2) = get_page(&client, 5, next1).await.expect("page2");
+            assert_eq!(page2.len(), 5);
+            assert!(next2.is_some());
+
+            // Get third page (should have 5 or less)
+            let (page3, next3) = get_page(&client, 5, next2).await.expect("page3");
+            assert_eq!(page3.len(), 5);
+            assert!(next3.is_none());
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_get_page_empty_and_exact() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+            // No cards in DB
+            let (empty, next) = get_page(&client, 10, None).await.expect("empty");
+            assert!(empty.is_empty());
+            assert!(next.is_none());
+
+            // Seed exactly 3 cards
+            let _ = seed_cards(&client, 3).await.expect("seed");
+            let (all, next) = get_page(&client, 10, None).await.expect("all");
+            assert_eq!(all.len(), 3);
+            assert!(next.is_none());
+        })
+        .await;
+    }
 
     #[tokio::test]
     async fn test_save_new_inserts_and_returns_card() {
