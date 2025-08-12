@@ -25,6 +25,10 @@ pub enum ApiError {
     PathRejection(#[from] PathRejection),
 
     #[error(transparent)]
+    #[serde(serialize_with = "a_message", rename = "query_error")]
+    QueryRejection(#[from] axum::extract::rejection::QueryRejection),
+
+    #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "database_error")]
     Postgres(#[from] tokio_postgres::Error),
 
@@ -43,6 +47,7 @@ impl ApiError {
         match self {
             ApiError::NotFound { .. } => StatusCode::NOT_FOUND,
             ApiError::PathRejection(_) => StatusCode::BAD_REQUEST,
+            ApiError::QueryRejection(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -82,9 +87,13 @@ where
 #[cfg(test)]
 mod tests {
     use axum::{Router, http::Request, routing::get};
+    use serde::Deserialize;
 
     use super::*;
-    use crate::{api::utils::Path, test_utils::*};
+    use crate::{
+        api::{Path, Query},
+        test_utils::*,
+    };
 
     #[test]
     fn test_serialize_anyhow_errors() {
@@ -163,6 +172,39 @@ mod tests {
             assert_eq!(
                 body,
                 r#"{"error":"path_error","message":"Cannot parse `not_i32` to a `i32`"}"#
+            );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_query_rejection_error() {
+        with_app_state(async move |state| {
+            #[derive(Debug, Deserialize)]
+            pub struct Pagination {
+                #[allow(dead_code)]
+                pub page: Option<u32>,
+            }
+
+            let router = Router::new()
+                .route(
+                    "/test",
+                    get(async |Query(_): Query<Pagination>| -> ApiResult<()> { Ok(()) }),
+                )
+                .with_state(state.as_ref().clone());
+
+            let request = Request::builder()
+                .uri("/test?page=invalid")
+                .body(Body::empty())
+                .unwrap();
+
+            let response = router.oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            assert_eq!(
+                body,
+                r#"{"error":"query_error","message":"Failed to deserialize query string: page: invalid digit found in string"}"#
             );
         })
         .await;
