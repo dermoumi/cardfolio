@@ -8,7 +8,7 @@ name = "cardfolio"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.99"
 axum = { version = "0.8.4", features = ["multipart"] }
 bb8 = "0.9.0"
 bb8-postgres = "0.9.0"
