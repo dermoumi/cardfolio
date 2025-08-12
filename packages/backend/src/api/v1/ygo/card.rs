@@ -33,7 +33,7 @@ pub async fn get_by_id(
 pub async fn import(State(state): State<AppState>) -> ApiResult<impl IntoResponse> {
     let client = state.db.get().await?;
 
-    let cards = service::card::import_sample_cards(&client).await?;
+    let cards = service::card::seed_cards(&client, 80).await?;
 
     Ok(Json(cards).into_response())
 }
@@ -57,9 +57,7 @@ mod tests {
             // Seed sample cards
             let added_cards = {
                 let client = state.db.get().await.expect("db");
-                service::card::import_sample_cards(&client)
-                    .await
-                    .expect("seed")
+                service::card::seed_cards(&client, 1).await.expect("seed")
             };
 
             let router = Router::new()
@@ -87,9 +85,7 @@ mod tests {
             // Seed sample cards
             {
                 let client = state.db.get().await.expect("db");
-                service::card::import_sample_cards(&client)
-                    .await
-                    .expect("seed")
+                service::card::seed_cards(&client, 1).await.expect("seed")
             };
 
             let router = Router::new()

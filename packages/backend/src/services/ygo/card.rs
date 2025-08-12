@@ -222,15 +222,11 @@ fn make_card(id: i32) -> ygo::Card {
                     _ => unreachable!(),
                 });
                 // Use all MonsterRace enum variants by mapping id to the variant
-                card_data.monster_race = Some(match id % 8 {
+                card_data.monster_race = Some(match id % 4 {
                     0 => ygo::MonsterRace::Dragon,
                     1 => ygo::MonsterRace::Spellcaster,
                     2 => ygo::MonsterRace::Warrior,
                     3 => ygo::MonsterRace::Beast,
-                    4 => ygo::MonsterRace::Fiend,
-                    5 => ygo::MonsterRace::Fairy,
-                    6 => ygo::MonsterRace::Zombie,
-                    7 => ygo::MonsterRace::Machine,
                     _ => unreachable!(),
                 });
                 let variation_seed: i16 = id.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
@@ -248,12 +244,13 @@ fn make_card(id: i32) -> ygo::Card {
     }
 }
 
-/// Seeds the database with a fixed set of sample Yu-Gi-Oh! cards.
+/// Seeds the database with a given number of sample Yu-Gi-Oh! cards.
 /// Used by the import HTTP handler and tests.
-pub async fn import_sample_cards(client: &Client) -> Result<Vec<ygo::Card>, Error> {
-    let mut cards = Vec::with_capacity(80);
+pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>, Error> {
+    let mut cards = Vec::with_capacity(amount);
 
-    for id in 1..=80 {
+    for id in 1..=amount {
+        let id = id as i32;
         let card = make_card(id);
         let d = &card.data;
 
