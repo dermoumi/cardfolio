@@ -84,7 +84,7 @@ mod tests {
     use axum::{Router, http::Request, routing::get};
 
     use super::*;
-    use crate::test_utils::*;
+    use crate::{api::utils::Path, test_utils::*};
 
     #[test]
     fn test_serialize_anyhow_errors() {
@@ -112,6 +112,58 @@ mod tests {
 
             let body = response.into_body().collect().await.unwrap().to_bytes();
             assert_eq!(body, r#"{"error":"internal_error"}"#);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_not_found_error() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route(
+                    "/test",
+                    get(async || -> ApiResult<()> {
+                        Err(ApiError::NotFound {
+                            resource: 42.into(),
+                        })
+                    }),
+                )
+                .with_state(state.as_ref().clone());
+
+            let request = Request::builder().uri("/test").body(Body::empty()).unwrap();
+
+            let response = router.oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::NOT_FOUND);
+
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            assert_eq!(body, r#"{"error":"not_found","resource":42}"#);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_path_rejection_error() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route(
+                    "/test/{id}",
+                    get(async |Path(_): Path<i32>| -> ApiResult<()> { Ok(()) }),
+                )
+                .with_state(state.as_ref().clone());
+
+            let request = Request::builder()
+                .uri("/test/not_i32")
+                .body(Body::empty())
+                .unwrap();
+
+            let response = router.oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            assert_eq!(
+                body,
+                r#"{"error":"path_error","message":"Cannot parse `not_i32` to a `i32`"}"#
+            );
         })
         .await;
     }

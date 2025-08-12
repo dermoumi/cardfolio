@@ -127,7 +127,6 @@ mod tests {
             assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
             let body = response.into_body().collect().await.unwrap().to_bytes();
-            let body = String::from_utf8(body.to_vec()).expect("Unable to parse response body");
             assert_eq!(body, r#"{"error":"not_found","resource":144}"#);
         })
         .await
