@@ -1,10 +1,6 @@
-use axum::{
-    Json,
-    extract::{Query, State},
-    response::IntoResponse,
-};
+use axum::{Json, extract::State, response::IntoResponse};
 
-use crate::api::{ApiError, ApiResult, Path};
+use crate::api::{ApiError, ApiResult, Path, Query};
 use crate::prelude::AppState;
 use crate::services::ygo as service;
 
@@ -151,6 +147,29 @@ mod tests {
 
             let body = response.into_body().collect().await.unwrap().to_bytes();
             assert_eq!(body, r#"{"error":"not_found","resource":144}"#);
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_get_cards_invalid_query() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route("/ygo/cards", get(get_cards))
+                .with_state(state.as_ref().clone());
+            let request = Request::builder()
+                .uri("/ygo/cards?limit=invalid")
+                .body(Body::empty())
+                .unwrap();
+
+            let response = router.oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            assert_eq!(
+                body,
+                r#"{"error":"query_error","message":"Failed to deserialize query string: limit: invalid digit found in string"}"#
+            );
         })
         .await
     }
