@@ -65,6 +65,14 @@ pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Er
     row.as_ref().map(|r| r.try_into()).transpose()
 }
 
+/// Deletes a card by ID. Returns true if a row was deleted, false otherwise.
+pub async fn delete_by_id(client: &Client, id: i32) -> Result<bool, Error> {
+    let affected = client
+        .execute("DELETE FROM ygo_cards WHERE id = $1", &[&id])
+        .await?;
+    Ok(affected == 1)
+}
+
 /// Insert a new card and return the created record.
 pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::Card, Error> {
     let card_data = &new_card.data;

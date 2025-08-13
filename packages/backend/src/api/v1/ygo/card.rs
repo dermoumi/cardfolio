@@ -1,4 +1,4 @@
-use axum::{Json, extract::State, response::IntoResponse};
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
 use crate::api::utils::{decode_pagination_cursor, encode_pagination_cursor};
 use crate::api::{ApiError, ApiResult, Path, Query};
@@ -71,6 +71,23 @@ pub async fn import(State(state): State<AppState>) -> ApiResult<impl IntoRespons
     Ok(Json(cards).into_response())
 }
 
+/// Delete a card by ID
+pub async fn delete_by_id(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> ApiResult<impl IntoResponse> {
+    let client = state.db.get().await?;
+
+    let deleted = service::card::delete_by_id(&client, id).await?;
+    if deleted {
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        Err(ApiError::NotFound {
+            resource: id.into(),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::models::ygo;
@@ -81,7 +98,7 @@ mod tests {
         Router,
         body::Body,
         http::{Request, StatusCode},
-        routing::get,
+        routing::{delete, get},
     };
 
     #[tokio::test]
@@ -180,6 +197,60 @@ mod tests {
                 body,
                 r#"{"error":"query_error","message":"Failed to deserialize query string: limit: invalid digit found in string"}"#
             );
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_delete_by_id_success() {
+        with_app_state(async move |state| {
+            // Seed
+            {
+                let client = state.db.get().await.expect("db");
+                service::card::seed_cards(&client, 1).await.expect("seed");
+            }
+
+            let router = Router::new()
+                .route("/ygo/cards/{id}", delete(delete_by_id).get(get_by_id))
+                .with_state(state.as_ref().clone());
+
+            // Delete
+            let del = Request::builder()
+                .method("DELETE")
+                .uri("/ygo/cards/1")
+                .body(Body::empty())
+                .unwrap();
+            let resp = router.clone().oneshot(del).await.unwrap();
+            assert_eq!(resp.status(), StatusCode::NO_CONTENT);
+
+            // Verify gone
+            let get = Request::builder()
+                .uri("/ygo/cards/1")
+                .body(Body::empty())
+                .unwrap();
+            let resp = router.oneshot(get).await.unwrap();
+            assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_delete_by_id_not_found() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route("/ygo/cards/{id}", delete(delete_by_id))
+                .with_state(state.as_ref().clone());
+
+            let del = Request::builder()
+                .method("DELETE")
+                .uri("/ygo/cards/9999")
+                .body(Body::empty())
+                .unwrap();
+            let resp = router.oneshot(del).await.unwrap();
+            assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+
+            let body = resp.into_body().collect().await.unwrap().to_bytes();
+            assert_eq!(body, r#"{"error":"not_found","resource":9999}"#);
         })
         .await
     }
