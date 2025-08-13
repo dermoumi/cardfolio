@@ -2,6 +2,7 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
 use crate::api::utils::{decode_pagination_cursor, encode_pagination_cursor};
 use crate::api::{ApiError, ApiResult, Path, Query};
+use crate::models::ygo;
 use crate::prelude::AppState;
 use crate::services::ygo as service;
 
@@ -71,6 +72,16 @@ pub async fn import(State(state): State<AppState>) -> ApiResult<impl IntoRespons
     Ok(Json(cards).into_response())
 }
 
+/// Create a new card
+pub async fn create(
+    State(state): State<AppState>,
+    Json(new_card): Json<ygo::NewCard>,
+) -> ApiResult<impl IntoResponse> {
+    let client = state.db.get().await?;
+    let created = service::card::save_new(&client, &new_card).await?;
+    Ok((StatusCode::CREATED, Json(created)).into_response())
+}
+
 /// Delete a card by ID
 pub async fn delete_by_id(
     State(state): State<AppState>,
@@ -98,7 +109,7 @@ mod tests {
         Router,
         body::Body,
         http::{Request, StatusCode},
-        routing::{delete, get},
+        routing::{delete, get, post},
     };
 
     #[tokio::test]
@@ -197,6 +208,56 @@ mod tests {
                 body,
                 r#"{"error":"query_error","message":"Failed to deserialize query string: limit: invalid digit found in string"}"#
             );
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_create_card_success() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route("/ygo/cards", post(create))
+                .route("/ygo/cards/{id}", get(get_by_id))
+                .with_state(state.as_ref().clone());
+
+            let new = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Test Monster".to_string(),
+                    description: "A test card".to_string(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_attribute: Some(ygo::MonsterAttribute::Light),
+                    monster_race: Some(ygo::MonsterRace::Dragon),
+                    monster_level: Some(4),
+                    monster_atk: Some(1500),
+                    monster_def: Some(1200),
+                    ..Default::default()
+                },
+            };
+
+            let body = serde_json::to_vec(&new).unwrap();
+            let request = Request::builder()
+                .method("POST")
+                .uri("/ygo/cards")
+                .header("content-type", "application/json")
+                .body(Body::from(body))
+                .unwrap();
+
+            let response = router.clone().oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::CREATED);
+
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            let created: ygo::Card = serde_json::from_slice(&body).expect("json");
+            assert!(created.id > 0);
+            assert_eq!(created.data.name, "Test Monster");
+
+            // Fetch it back
+            let get = Request::builder()
+                .uri(format!("/ygo/cards/{}", created.id))
+                .body(Body::empty())
+                .unwrap();
+            let resp = router.oneshot(get).await.unwrap();
+            assert_eq!(resp.status(), StatusCode::OK);
         })
         .await
     }
