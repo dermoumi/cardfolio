@@ -1,4 +1,3 @@
-use base64::{Engine as _, engine::general_purpose};
 use postgres_types::ToSql;
 use serde::{Deserialize, Serialize};
 use std::result::Result;
@@ -10,20 +9,6 @@ use crate::models::ygo;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PageCursor {
     pub id: i32,
-}
-
-impl PageCursor {
-    pub fn encode(&self) -> Result<String, anyhow::Error> {
-        let json = serde_json::to_string(self)?;
-        let as_b64 = general_purpose::URL_SAFE_NO_PAD.encode(json);
-        Ok(as_b64)
-    }
-
-    pub fn decode(s: &str) -> Result<Self, anyhow::Error> {
-        let decoded = general_purpose::URL_SAFE_NO_PAD.decode(s)?;
-        let cursor = serde_json::from_slice(&decoded)?;
-        Ok(cursor)
-    }
 }
 
 /// Retrieves cards with cursor-based pagination

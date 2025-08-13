@@ -1,5 +1,6 @@
 use axum::{Json, extract::State, response::IntoResponse};
 
+use crate::api::utils::{decode_pagination_cursor, encode_pagination_cursor};
 use crate::api::{ApiError, ApiResult, Path, Query};
 use crate::prelude::AppState;
 use crate::services::ygo as service;
@@ -29,14 +30,17 @@ pub async fn get_cards(
     let cursor = pagination
         .cursor
         .as_ref()
-        .map(|c| service::card::PageCursor::decode(c))
+        .map(|c| decode_pagination_cursor(c))
         .transpose()?;
 
     let (cards, next_cursor) = service::card::get_page(&client, limit, cursor).await?;
 
     let as_page = Page {
         cards,
-        next: next_cursor.map(|c| c.encode()).transpose()?,
+        next: next_cursor
+            .as_ref()
+            .map(encode_pagination_cursor)
+            .transpose()?,
     };
 
     Ok(Json(as_page).into_response())
