@@ -1,10 +1,15 @@
 use postgres_types::ToSql;
+use serde::{Deserialize, Serialize};
+use std::result::Result;
 use tokio_postgres::{Client, Error, Row};
 
 use crate::database::TzTimestamp;
 use crate::models::ygo;
 
-pub type PageCursor = i32;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PageCursor {
+    pub id: i32,
+}
 
 /// Retrieves cards with cursor-based pagination
 pub async fn get_page(
@@ -16,11 +21,13 @@ pub async fn get_page(
     let mut query = String::from("SELECT * FROM ygo_cards");
     let mut params: Vec<&(dyn ToSql + Sync)> = vec![];
     let mut idx = 1;
+    let cursor_id;
 
     // Retrieve only items after the cursor index
-    if cursor.is_some() {
+    if let Some(PageCursor { id }) = cursor {
         query.push_str(&format!(" WHERE id > ${idx}"));
-        params.push(&cursor);
+        cursor_id = id;
+        params.push(&cursor_id);
         idx += 1;
     }
 
@@ -42,7 +49,7 @@ pub async fn get_page(
 
     // Generate the next cursor
     let next_cursor = if rows.len() > limit as usize {
-        cards.last().map(|card| card.id as PageCursor)
+        cards.last().map(|card| PageCursor { id: card.id })
     } else {
         None
     };

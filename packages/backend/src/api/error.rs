@@ -28,6 +28,10 @@ pub enum ApiError {
     #[serde(serialize_with = "a_message", rename = "query_error")]
     QueryRejection(#[from] axum::extract::rejection::QueryRejection),
 
+    #[error("Cannot parse pagination cursor: {0}")]
+    #[serde(serialize_with = "a_message", rename = "query_error")]
+    InvalidPaginationCursor(String),
+
     #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "database_error")]
     Postgres(#[from] tokio_postgres::Error),
@@ -48,6 +52,7 @@ impl ApiError {
             ApiError::NotFound { .. } => StatusCode::NOT_FOUND,
             ApiError::PathRejection(_) => StatusCode::BAD_REQUEST,
             ApiError::QueryRejection(_) => StatusCode::BAD_REQUEST,
+            ApiError::InvalidPaginationCursor(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -206,6 +211,30 @@ mod tests {
                 body,
                 r#"{"error":"query_error","message":"Failed to deserialize query string: page: invalid digit found in string"}"#
             );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_invalid_pagination_cursor() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route(
+                    "/test",
+                    get(async || -> ApiResult<()> {
+                        Err(ApiError::InvalidPaginationCursor(
+                            "not a cursor".to_string(),
+                        ))
+                    }),
+                )
+                .with_state(state.as_ref().clone());
+            let request = Request::builder().uri("/test").body(Body::empty()).unwrap();
+
+            let response = router.oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            assert_eq!(body, r#"{"error":"query_error","message":"not a cursor"}"#);
         })
         .await;
     }

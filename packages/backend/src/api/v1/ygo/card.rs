@@ -1,5 +1,6 @@
 use axum::{Json, extract::State, response::IntoResponse};
 
+use crate::api::utils::{decode_pagination_cursor, encode_pagination_cursor};
 use crate::api::{ApiError, ApiResult, Path, Query};
 use crate::prelude::AppState;
 use crate::services::ygo as service;
@@ -9,13 +10,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize)]
 pub struct Pagination {
     pub limit: Option<u32>,
-    pub cursor: Option<service::card::PageCursor>,
+    pub cursor: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Page {
     pub cards: Vec<crate::models::ygo::Card>,
-    pub next: Option<service::card::PageCursor>,
+    pub next: Option<String>,
 }
 
 /// Lists yugioh cards (paginated)
@@ -26,14 +27,23 @@ pub async fn get_cards(
     let client = state.db.get().await?;
 
     let limit = pagination.limit.unwrap_or(100).min(100);
-    let cursor = pagination.cursor;
+    let cursor = pagination
+        .cursor
+        .as_ref()
+        .map(|c| decode_pagination_cursor(c))
+        .transpose()?;
 
     let (cards, next_cursor) = service::card::get_page(&client, limit, cursor).await?;
-    Ok(Json(Page {
+
+    let as_page = Page {
         cards,
-        next: next_cursor,
-    })
-    .into_response())
+        next: next_cursor
+            .as_ref()
+            .map(encode_pagination_cursor)
+            .transpose()?,
+    };
+
+    Ok(Json(as_page).into_response())
 }
 
 /// Get card by ID
