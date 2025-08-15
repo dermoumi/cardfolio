@@ -99,6 +99,30 @@ pub async fn delete_by_id(
     }
 }
 
+/// Update a card by ID
+pub async fn update(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Json(data): Json<ygo::CardData>,
+) -> ApiResult<impl IntoResponse> {
+    let client = state.db.get().await?;
+
+    // The value assigned to updated_at here is meaningless and will be ignored by the database.
+    let to_update = ygo::Card {
+        id,
+        updated_at: chrono::Utc::now(),
+        data,
+    };
+
+    let updated = service::card::save(&client, &to_update)
+        .await?
+        .ok_or(ApiError::NotFound {
+            resource: id.into(),
+        })?;
+
+    Ok(Json(updated).into_response())
+}
+
 #[cfg(test)]
 mod tests {
     use crate::models::ygo;
@@ -109,7 +133,7 @@ mod tests {
         Router,
         body::Body,
         http::{Request, StatusCode},
-        routing::{delete, get, post},
+        routing::{delete, get, post, put},
     };
 
     #[tokio::test]
@@ -311,6 +335,113 @@ mod tests {
             assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 
             let body = resp.into_body().collect().await.unwrap().to_bytes();
+            assert_eq!(body, r#"{"error":"not_found","resource":9999}"#);
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_update_card_success() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route("/ygo/cards", post(create))
+                .route("/ygo/cards/{id}", get(get_by_id).put(update))
+                .with_state(state.as_ref().clone());
+
+            // Create a card first
+            let new = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Updatable".to_string(),
+                    description: "Before".to_string(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_attribute: Some(ygo::MonsterAttribute::Light),
+                    monster_race: Some(ygo::MonsterRace::Dragon),
+                    monster_level: Some(4),
+                    monster_atk: Some(1400),
+                    monster_def: Some(1200),
+                    ..Default::default()
+                },
+            };
+            let body = serde_json::to_vec(&new).unwrap();
+            let create_req = Request::builder()
+                .method("POST")
+                .uri("/ygo/cards")
+                .header("content-type", "application/json")
+                .body(Body::from(body))
+                .unwrap();
+            let created_resp = router.clone().oneshot(create_req).await.unwrap();
+            assert_eq!(created_resp.status(), StatusCode::CREATED);
+            let created: ygo::Card = serde_json::from_slice(
+                &created_resp.into_body().collect().await.unwrap().to_bytes(),
+            )
+            .unwrap();
+
+            // Prepare update payload (CardData)
+            let mut data = created.data.clone();
+            data.name = "Updated Name".to_string();
+            data.description = "After".to_string();
+            data.monster_atk = Some(1600);
+
+            // Send PUT
+            let upd_body = serde_json::to_vec(&data).unwrap();
+            let update_req = Request::builder()
+                .method("PUT")
+                .uri(format!("/ygo/cards/{}", created.id))
+                .header("content-type", "application/json")
+                .body(Body::from(upd_body))
+                .unwrap();
+            let update_resp = router.clone().oneshot(update_req).await.unwrap();
+            assert_eq!(update_resp.status(), StatusCode::OK);
+            let updated: ygo::Card = serde_json::from_slice(
+                &update_resp.into_body().collect().await.unwrap().to_bytes(),
+            )
+            .unwrap();
+            assert_eq!(updated.id, created.id);
+            assert_eq!(updated.data.name, "Updated Name");
+            assert_eq!(updated.data.description, "After");
+            assert_eq!(updated.data.monster_atk, Some(1600));
+
+            // GET to verify
+            let get_req = Request::builder()
+                .uri(format!("/ygo/cards/{}", created.id))
+                .body(Body::empty())
+                .unwrap();
+            let get_resp = router.oneshot(get_req).await.unwrap();
+            assert_eq!(get_resp.status(), StatusCode::OK);
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn test_update_card_not_found() {
+        with_app_state(async move |state| {
+            let router = Router::new()
+                .route("/ygo/cards/{id}", put(update))
+                .with_state(state.as_ref().clone());
+
+            let payload = ygo::CardData {
+                name: "Doesn't matter".to_string(),
+                description: "Missing".to_string(),
+                kind: ygo::CardKind::Monster,
+                monster_kind: Some(ygo::MonsterKind::Normal),
+                monster_attribute: Some(ygo::MonsterAttribute::Light),
+                monster_race: Some(ygo::MonsterRace::Dragon),
+                monster_level: Some(4),
+                monster_atk: Some(1400),
+                monster_def: Some(1200),
+                ..Default::default()
+            };
+            let body = serde_json::to_vec(&payload).unwrap();
+            let request = Request::builder()
+                .method("PUT")
+                .uri("/ygo/cards/9999")
+                .header("content-type", "application/json")
+                .body(Body::from(body))
+                .unwrap();
+            let response = router.oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::NOT_FOUND);
+            let body = response.into_body().collect().await.unwrap().to_bytes();
             assert_eq!(body, r#"{"error":"not_found","resource":9999}"#);
         })
         .await
