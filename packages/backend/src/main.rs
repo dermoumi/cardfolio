@@ -33,7 +33,10 @@ fn api_v1() -> Router<AppState> {
     use api::v1::ygo;
 
     Router::new()
-        .route("/ygo/cards", get(ygo::card::get_cards))
+        .route(
+            "/ygo/cards",
+            get(ygo::card::get_cards).post(ygo::card::create),
+        )
         .route(
             "/ygo/cards/{id}",
             get(ygo::card::get_by_id).delete(ygo::card::delete_by_id),
