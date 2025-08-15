@@ -107,8 +107,7 @@ pub async fn update(
 ) -> ApiResult<impl IntoResponse> {
     let client = state.db.get().await?;
 
-    // Build a Card for the service layer. updated_at is ignored by SQL (set in DB),
-    // but the struct requires a value.
+    // The value assigned to updated_at here is meaningless and will be ignored by the database.
     let to_update = ygo::Card {
         id,
         updated_at: chrono::Utc::now(),
