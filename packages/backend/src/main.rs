@@ -122,9 +122,7 @@ async fn main() -> Result<()> {
             .finish()
             .expect("Could not create rate limiter config"),
     );
-    let rate_limiter = GovernorLayer {
-        config: rate_limiter_config,
-    };
+    let rate_limiter = GovernorLayer::new(rate_limiter_config);
 
     // Create the app
     let state = AppState {
