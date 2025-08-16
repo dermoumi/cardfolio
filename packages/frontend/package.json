@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@cardfolio/tsconfig": "workspace:",
-    "@tanstack/react-router": "^1.131.14",
-    "@tanstack/react-router-devtools": "^1.131.14",
-    "@tanstack/router-plugin": "^1.131.15",
+    "@tanstack/react-router": "^1.131.16",
+    "@tanstack/react-router-devtools": "^1.131.16",
+    "@tanstack/router-plugin": "^1.131.16",
     "react": "catalog:",
     "react-dom": "catalog:",
     "vite": "catalog:"
