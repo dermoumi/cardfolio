@@ -3,7 +3,6 @@ use std::fmt;
 use bitflags::bitflags;
 use chrono::{DateTime, NaiveDate, Utc};
 use postgres_types::{FromSql, ToSql};
-use rust_decimal::Decimal;
 use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
     de::{self, SeqAccess, Visitor},
