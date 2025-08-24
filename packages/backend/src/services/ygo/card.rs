@@ -88,10 +88,6 @@ pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::C
                 treated_as,
                 tcg_date,
                 ocg_date,
-                tcgplayer_price,
-                cardmarket_price,
-                ebay_price,
-                coolstuffinc_price,
                 monster_kind,
                 monster_attribute,
                 monster_race,
@@ -105,7 +101,7 @@ pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::C
                 spell_kind,
                 trap_kind
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
             ) RETURNING *
             "#,
             &[
@@ -117,10 +113,6 @@ pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::C
                 &card_data.treated_as,
                 &card_data.tcg_date,
                 &card_data.ocg_date,
-                &card_data.tcgplayer_price,
-                &card_data.cardmarket_price,
-                &card_data.ebay_price,
-                &card_data.coolstuffinc_price,
                 &card_data.monster_kind,
                 &card_data.monster_attribute,
                 &card_data.monster_race,
@@ -158,24 +150,20 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<Option<ygo::Card>
                 treated_as = $6,
                 tcg_date = $7,
                 ocg_date = $8,
-                tcgplayer_price = $9,
-                cardmarket_price = $10,
-                ebay_price = $11,
-                coolstuffinc_price = $12,
-                monster_kind = $13,
-                monster_attribute = $14,
-                monster_race = $15,
-                monster_subtypes = $16,
-                monster_atk = $17,
-                monster_def = $18,
-                monster_level = $19,
-                monster_pendulum_scale = $20,
-                monster_pendulum_effect = $21,
-                monster_link_arrows = $22,
-                spell_kind = $23,
-                trap_kind = $24,
+                monster_kind = $9,
+                monster_attribute = $10,
+                monster_race = $11,
+                monster_subtypes = $12,
+                monster_atk = $13,
+                monster_def = $14,
+                monster_level = $15,
+                monster_pendulum_scale = $16,
+                monster_pendulum_effect = $17,
+                monster_link_arrows = $18,
+                spell_kind = $19,
+                trap_kind = $20,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $25
+            WHERE id = $21
             RETURNING *
             "#,
             &[
@@ -187,10 +175,6 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<Option<ygo::Card>
                 &d.treated_as,
                 &d.tcg_date,
                 &d.ocg_date,
-                &d.tcgplayer_price,
-                &d.cardmarket_price,
-                &d.ebay_price,
-                &d.coolstuffinc_price,
                 &d.monster_kind,
                 &d.monster_attribute,
                 &d.monster_race,
@@ -317,10 +301,6 @@ pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>
                     treated_as,
                     tcg_date,
                     ocg_date,
-                    tcgplayer_price,
-                    cardmarket_price,
-                    ebay_price,
-                    coolstuffinc_price,
                     monster_kind,
                     monster_attribute,
                     monster_race,
@@ -336,7 +316,7 @@ pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>
                 ) VALUES (
                     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
                     $11, $12, $13, $14, $15, $16, $17, $18, $19,
-                    $20, $21, $22, $23, $24, $25
+                    $20, $21
                 )
                 ON CONFLICT (id) DO NOTHING
                 RETURNING *
@@ -351,10 +331,6 @@ pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>
                     &d.treated_as,
                     &d.tcg_date,
                     &d.ocg_date,
-                    &d.tcgplayer_price,
-                    &d.cardmarket_price,
-                    &d.ebay_price,
-                    &d.coolstuffinc_price,
                     &d.monster_kind,
                     &d.monster_attribute,
                     &d.monster_race,
@@ -415,10 +391,6 @@ impl TryFrom<&Row> for ygo::CardData {
             treated_as: value.try_get("treated_as")?,
             tcg_date: value.try_get("tcg_date")?,
             ocg_date: value.try_get("ocg_date")?,
-            tcgplayer_price: value.try_get("tcgplayer_price")?,
-            cardmarket_price: value.try_get("cardmarket_price")?,
-            ebay_price: value.try_get("ebay_price")?,
-            coolstuffinc_price: value.try_get("coolstuffinc_price")?,
             monster_kind: value.try_get("monster_kind")?,
             monster_attribute: value.try_get("monster_attribute")?,
             monster_race: value.try_get("monster_race")?,
