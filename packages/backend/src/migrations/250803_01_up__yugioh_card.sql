@@ -96,10 +96,6 @@ DO $$ BEGIN
             treated_as INTEGER REFERENCES ygo_cards (id) ON DELETE SET NULL,
             tcg_date DATE,
             ocg_date DATE,
-            tcgplayer_price DECIMAL(10, 2),
-            cardmarket_price DECIMAL(10, 2),
-            ebay_price DECIMAL(10, 2),
-            coolstuffinc_price DECIMAL(10, 2),
 
             -- Monster-related fields
             monster_kind YGO_MONSTER_KIND,
