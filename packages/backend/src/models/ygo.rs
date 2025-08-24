@@ -46,14 +46,6 @@ pub struct CardData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ocg_date: Option<NaiveDate>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tcgplayer_price: Option<Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cardmarket_price: Option<Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ebay_price: Option<Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub coolstuffinc_price: Option<Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub monster_kind: Option<MonsterKind>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub monster_attribute: Option<MonsterAttribute>,
