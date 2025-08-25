@@ -106,8 +106,8 @@ impl Migrate {
         migrations: &[Migration<'_>],
     ) -> Result<(), DatabaseError> {
         for (name, up_script, down_script) in migrations {
-            with_advisory_lock(&client, "migration_running", async move |client| {
-                with_transaction(&client, None, async |client| -> Result<(), DatabaseError> {
+            with_advisory_lock(client, "migration_running", async move |client| {
+                with_transaction(client, None, async |client| -> Result<(), DatabaseError> {
                     if !self.migration_exists(client, name).await? {
                         tracing::info!("Applying migration '{}'", name);
                         self.execute_script(client, up_script).await?;
@@ -134,9 +134,9 @@ impl Migrate {
             tracing::info!("Reverting migrations down to '{}'", last_migration_name);
 
             loop {
-                let done = with_advisory_lock(&client, "migration_running", async |client| {
+                let done = with_advisory_lock(client, "migration_running", async |client| {
                     with_transaction::<_, DatabaseError, _, _>(
-                        &client,
+                        client,
                         None,
                         async |client| -> Result<bool, DatabaseError> {
                             let last_applied_migration =

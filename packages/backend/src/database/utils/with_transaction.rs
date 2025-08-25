@@ -58,7 +58,7 @@ where
             "BEGIN".to_string()
         };
 
-        db.execute(&query, &[]).await.map_err(|e| e.into())?;
+        db.execute(&query, &[]).await?;
     }
 
     // Run the function and save the result
@@ -74,9 +74,9 @@ where
             "ROLLBACK".to_string()
         };
 
-        db.execute(&query, &[]).await.map_err(|e| e.into())?;
+        db.execute(&query, &[]).await?;
     } else if checkpoint.is_none() {
-        db.execute("COMMIT", &[]).await.map_err(|e| e.into())?;
+        db.execute("COMMIT", &[]).await?;
     }
 
     // Forward the result or panic

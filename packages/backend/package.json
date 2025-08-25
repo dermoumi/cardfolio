@@ -4,7 +4,7 @@
     "prepare": "cargo install cargo-watch",
     "dev": "cargo watch -x run",
     "build": "cargo build",
-    "lint": "cargo fmt --check && cargo clippy",
+    "lint": "cargo fmt --check && cargo clippy -- -Dwarnings",
     "test": "cargo test",
     "test:cov": "cargo llvm-cov --lcov --output-path lcov.info && cargo llvm-cov report"
   }

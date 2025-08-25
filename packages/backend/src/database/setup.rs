@@ -7,7 +7,7 @@ use tokio_postgres::{Config, NoTls};
 pub type Pool = bb8::Pool<PostgresConnectionManager<NoTls>>;
 
 /// Initialize the database connection pool
-pub async fn init<'a>(db_url: &str, pool_size: u32) -> Result<Pool, tokio_postgres::Error> {
+pub async fn init(db_url: &str, pool_size: u32) -> Result<Pool, tokio_postgres::Error> {
     let config = create_db_config(db_url)?;
 
     create_db_pool(config, pool_size).await
