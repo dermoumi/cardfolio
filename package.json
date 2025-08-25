@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
-    "@tanstack/eslint-config": "^0.3.0",
+    "@tanstack/eslint-config": "^0.3.1",
     "dprint": "^0.50.1",
     "eslint": "^9.34.0",
     "eslint-plugin-import-x": "^4.16.1",
