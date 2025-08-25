@@ -57,10 +57,40 @@ pub async fn get_page(
     Ok((cards, next_cursor))
 }
 
+/// Retrieves all cards in the database
+#[cfg(test)]
+pub async fn get_all(client: &Client) -> Result<Vec<ygo::Card>, Error> {
+    let query = "SELECT * FROM ygo_cards ORDER BY id ASC";
+    let rows = client.query(query, &[]).await?;
+
+    let cards: Vec<ygo::Card> = rows
+        .iter()
+        .map(|row| row.try_into())
+        .collect::<Result<_, _>>()?;
+
+    Ok(cards)
+}
+
 /// Retrieves a card by ID
 pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Error> {
     let query = "SELECT * FROM ygo_cards WHERE id = $1";
     let row = &client.query_opt(query, &[&id]).await?;
+
+    row.as_ref().map(|r| r.try_into()).transpose()
+}
+
+/// Retrieves a card by Konami ID
+pub async fn get_by_konami_id(client: &Client, konami_id: i32) -> Result<Option<ygo::Card>, Error> {
+    let query = "SELECT * FROM ygo_cards WHERE konami_id = $1";
+    let row = &client.query_opt(query, &[&konami_id]).await?;
+
+    row.as_ref().map(|r| r.try_into()).transpose()
+}
+
+/// Retrieves a card by password
+pub async fn get_by_password(client: &Client, password: &str) -> Result<Option<ygo::Card>, Error> {
+    let query = "SELECT * FROM ygo_cards WHERE password = $1";
+    let row = &client.query_opt(query, &[&password]).await?;
 
     row.as_ref().map(|r| r.try_into()).transpose()
 }
@@ -195,6 +225,7 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<Option<ygo::Card>
     row.as_ref().map(|r| r.try_into()).transpose()
 }
 
+#[cfg(test)]
 fn make_card(id: i32) -> ygo::Card {
     match id {
         1 => ygo::Card {
@@ -279,6 +310,7 @@ fn make_card(id: i32) -> ygo::Card {
 
 /// Seeds the database with a given number of sample Yu-Gi-Oh! cards.
 /// Used by the import HTTP handler and tests.
+#[cfg(test)]
 pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>, Error> {
     let mut cards = Vec::with_capacity(amount);
 
