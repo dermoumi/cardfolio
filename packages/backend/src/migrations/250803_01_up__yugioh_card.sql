@@ -117,4 +117,6 @@ DO $$ BEGIN
 
             CONSTRAINT ygo_cards_unique_konami_id UNIQUE (konami_id)
         );
+
+    CREATE INDEX IF NOT EXISTS ygo_cards_password_id_idx ON ygo_cards (password);
 END $$;

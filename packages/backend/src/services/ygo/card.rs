@@ -57,6 +57,20 @@ pub async fn get_page(
     Ok((cards, next_cursor))
 }
 
+/// Retrieves all cards in the database
+#[cfg(test)]
+pub async fn get_all(client: &Client) -> Result<Vec<ygo::Card>, Error> {
+    let query = "SELECT * FROM ygo_cards ORDER BY id ASC";
+    let rows = client.query(query, &[]).await?;
+
+    let cards: Vec<ygo::Card> = rows
+        .iter()
+        .map(|row| row.try_into())
+        .collect::<Result<_, _>>()?;
+
+    Ok(cards)
+}
+
 /// Retrieves a card by ID
 pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Error> {
     let query = "SELECT * FROM ygo_cards WHERE id = $1";
@@ -69,6 +83,14 @@ pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Er
 pub async fn get_by_konami_id(client: &Client, konami_id: i32) -> Result<Option<ygo::Card>, Error> {
     let query = "SELECT * FROM ygo_cards WHERE konami_id = $1";
     let row = &client.query_opt(query, &[&konami_id]).await?;
+
+    row.as_ref().map(|r| r.try_into()).transpose()
+}
+
+/// Retrieves a card by password
+pub async fn get_by_password(client: &Client, password: &str) -> Result<Option<ygo::Card>, Error> {
+    let query = "SELECT * FROM ygo_cards WHERE password = $1";
+    let row = &client.query_opt(query, &[&password]).await?;
 
     row.as_ref().map(|r| r.try_into()).transpose()
 }

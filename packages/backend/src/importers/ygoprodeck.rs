@@ -4,7 +4,6 @@ use tokio::fs;
 use tokio_postgres::Client;
 
 use crate::models::ygo::{Card, CardData};
-use crate::services::ygo::card::get_by_konami_id;
 use crate::{models::ygo, services::ygo as service};
 
 #[derive(Debug, Deserialize)]
@@ -282,6 +281,15 @@ impl YgoProDeckCard {
             &self.desc
         }
     }
+
+    fn get_password(&self) -> Option<String> {
+        // Only IDs of 8 digits are valid passwords
+        if self.id <= 99_999_999 {
+            Some(self.id.to_string())
+        } else {
+            None
+        }
+    }
 }
 
 impl TryFrom<YgoProDeckCard> for CardData {
@@ -291,7 +299,7 @@ impl TryFrom<YgoProDeckCard> for CardData {
         let name = card.name.clone();
         let description = card.get_description().to_string();
         let kind = card.get_kind();
-        let password = Some(card.id.to_string());
+        let password = card.get_password();
         let konami_id = card.misc_info.as_ref().and_then(|info| info.0.konami_id);
         let treated_as = None;
 
@@ -363,12 +371,17 @@ async fn parse_json_list(json: &str) -> anyhow::Result<impl Iterator<Item = YgoP
 async fn get_existing_card(client: &Client, card_data: &CardData) -> anyhow::Result<Option<Card>> {
     // Check by Konami ID
     if let Some(konami_id) = card_data.konami_id {
-        return Ok(get_by_konami_id(client, konami_id).await?);
+        return Ok(service::card::get_by_konami_id(client, konami_id).await?);
     }
 
-    // TODO: Fallback to card password
+    if let Some(password) = &card_data.password {
+        return Ok(service::card::get_by_password(client, password).await?);
+    }
 
-    Ok(None)
+    anyhow::bail!(
+        "Card '{}' has no Konami ID or password, cannot check for existing card",
+        card_data.name
+    );
 }
 
 /// Imports cards from a json string
@@ -378,8 +391,15 @@ async fn import_from_json_str(client: &Client, json: &str) -> anyhow::Result<(us
 
     for card in parse_json_list(json).await? {
         let card_data: CardData = card.try_into()?;
+        let existing_card = match get_existing_card(client, &card_data).await {
+            Ok(card) => card,
+            Err(err) => {
+                tracing::warn!("{}. Skipping...", err);
+                continue;
+            }
+        };
 
-        if let Some(mut card) = get_existing_card(client, &card_data).await? {
+        if let Some(mut card) = existing_card {
             card.data = card_data.clone();
             service::card::save(client, &card).await?;
             updated += 1;
@@ -407,7 +427,7 @@ pub async fn import(client: &Client) -> anyhow::Result<(usize, usize)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::ygo;
+    use crate::{models::ygo, test_utils::with_db_pool};
 
     async fn json_to_card_data(json: &str) -> anyhow::Result<Vec<CardData>> {
         parse_json_list(json)
@@ -613,68 +633,89 @@ mod tests {
     #[tokio::test]
     async fn test_effect_monster() {
         let json = r#"{"data":[{
-            "id": 15308295,
-            "name": "Abyss Actor - Comic Relief",
-            "typeline": ["Fiend", "Pendulum", "Effect"],
-            "type": "Pendulum Effect Monster",
-            "humanReadableCardType": "Pendulum Effect Monster",
+            "id": 92746535,
+            "name": "Luster Pendulum, the Dracoslayer",
+            "typeline": ["Dragon", "Pendulum", "Tuner", "Effect"],
+            "type": "Pendulum Tuner Effect Monster",
+            "humanReadableCardType": "Pendulum Tuner Effect Monster",
             "frameType": "effect_pendulum",
-            "desc": "[ Pendulum Effect ] \nYou can target 1 \"Abyss Actor\" Pendulum Monster you control and 1 monster your opponent controls; switch control of both monsters, then destroy this card. You can only use this effect of \"Abyss Actor - Comic Relief\" once per turn.\n\n[ Monster Effect ] \nYou take no battle damage from attacks involving this card. Once per turn, during your Standby Phase: Give control of this card to your opponent. Once per turn, if control of this face-up card changes: Activate this effect; the owner of this card can destroy 1 Set \"Abyss Script\" Spell in their Spell & Trap Zone.",
-            "race": "Fiend",
-            "pend_desc": "You can target 1 \"Abyss Actor\" Pendulum Monster you control and 1 monster your opponent controls; switch control of both monsters, then destroy this card. You can only use this effect of \"Abyss Actor - Comic Relief\" once per turn.",
-            "monster_desc": "You take no battle damage from attacks involving this card. Once per turn, during your Standby Phase: Give control of this card to your opponent. Once per turn, if control of this face-up card changes: Activate this effect; the owner of this card can destroy 1 Set \"Abyss Script\" Spell in their Spell & Trap Zone.",
-            "atk": 1000,
-            "def": 2000,
-            "level": 3,
-            "attribute": "DARK",
-            "archetype": "Abyss Actor",
-            "scale": 8,
-            "ygoprodeck_url": "https://ygoprodeck.com/card/abyss-actor-comic-relief-9564",
+            "desc": "[ Pendulum Effect ] \nOnce per turn, if you have a card in your other Pendulum Zone: You can destroy that card, and if you do, add 1 card from your Deck to your hand, with the same name as that card.\n\n[ Monster Effect ] \nCannot Special Summon Fusion, Synchro, or Xyz Monsters using this card as material, except \"Dracoslayer\" monsters.",
+            "race": "Dragon",
+            "pend_desc": "Once per turn, if you have a card in your other Pendulum Zone: You can destroy that card, and if you do, add 1 card from your Deck to your hand, with the same name as that card.",
+            "monster_desc": "Cannot Special Summon Fusion, Synchro, or Xyz Monsters using this card as material, except \"Dracoslayer\" monsters.",
+            "atk": 1850,
+            "def": 0,
+            "level": 4,
+            "attribute": "LIGHT",
+            "archetype": "Dracoslayer",
+            "scale": 5,
+            "ygoprodeck_url": "https://ygoprodeck.com/card/luster-pendulum-the-dracoslayer-7722",
             "card_sets": [
                 {
-                    "set_name": "Legendary Duelists: Season 2",
-                    "set_code": "LDS2-EN061",
-                    "set_rarity": "Common",
-                    "set_rarity_code": "(C)",
-                    "set_price": "1.05"
-                },
-                {
-                    "set_name": "Legendary Duelists: White Dragon Abyss",
-                    "set_code": "LED3-EN046",
+                    "set_name": "Ancient Guardians",
+                    "set_code": "ANGU-EN045",
                     "set_rarity": "Rare",
                     "set_rarity_code": "(R)",
-                    "set_price": "1.25"
+                    "set_price": "1.41"
+                },
+                {
+                    "set_name": "Clash of Rebellions",
+                    "set_code": "CORE-EN025",
+                    "set_rarity": "Super Rare",
+                    "set_rarity_code": "(SR)",
+                    "set_price": "0"
+                },
+                {
+                    "set_name": "Premium Gold: Infinite Gold",
+                    "set_code": "PGL3-EN055",
+                    "set_rarity": "Gold Rare",
+                    "set_rarity_code": "(GUR)",
+                    "set_price": "0"
+                },
+                {
+                    "set_name": "Quarter Century Stampede",
+                    "set_code": "RA04-EN252",
+                    "set_rarity": "Platinum Secret Rare",
+                    "set_rarity_code": "(PS)",
+                    "set_price": "0"
+                },
+                {
+                    "set_name": "Quarter Century Stampede",
+                    "set_code": "RA04-EN252",
+                    "set_rarity": "Quarter Century Secret Rare",
+                    "set_rarity_code": "",
+                    "set_price": "0"
                 }
             ],
             "card_images": [
                 {
-                    "id": 15308295,
-                    "image_url": "https://images.ygoprodeck.com/images/cards/15308295.jpg",
-                    "image_url_small": "https://images.ygoprodeck.com/images/cards_small/15308295.jpg",
-                    "image_url_cropped": "https://images.ygoprodeck.com/images/cards_cropped/15308295.jpg"
+                    "id": 92746535,
+                    "image_url": "https://images.ygoprodeck.com/images/cards/92746535.jpg",
+                    "image_url_small": "https://images.ygoprodeck.com/images/cards_small/92746535.jpg",
+                    "image_url_cropped": "https://images.ygoprodeck.com/images/cards_cropped/92746535.jpg"
                 }
             ],
             "card_prices": [
                 {
-                    "cardmarket_price": "0.08",
-                    "tcgplayer_price": "0.15",
+                    "cardmarket_price": "0.15",
+                    "tcgplayer_price": "0.11",
                     "ebay_price": "0.99",
-                    "amazon_price": "0.25",
-                    "coolstuffinc_price": "0.25"
+                    "amazon_price": "1.07",
+                    "coolstuffinc_price": "0.49"
                 }
             ],
             "misc_info": [
                 {
-                    "views": 75376,
-                    "viewsweek": 101,
-                    "upvotes": 5,
-                    "downvotes": 2,
-                    "formats": ["Duel Links", "Common Charity", "TCG", "OCG", "Master Duel"],
-                    "tcg_date": "2018-09-27",
-                    "ocg_date": "2018-06-09",
-                    "konami_id": 13863,
+                    "views": 261386,
+                    "viewsweek": 404,
+                    "upvotes": 6,
+                    "downvotes": 1,
+                    "formats": ["Duel Links", "TCG", "OCG", "Master Duel"],
+                    "tcg_date": "2015-08-06",
+                    "ocg_date": "2015-04-25",
+                    "konami_id": 11809,
                     "has_effect": 1,
-                    "md_rarity": "Common"
+                    "md_rarity": "Super Rare"
                 }
             ]
         }]}"#;
@@ -683,24 +724,28 @@ mod tests {
         assert_eq!(cards.len(), 1);
 
         let card = &cards[0];
-        assert_eq!(card.name, "Abyss Actor - Comic Relief");
+        assert_eq!(card.name, "Luster Pendulum, the Dracoslayer");
         assert_eq!(
             card.description,
-            "You take no battle damage from attacks involving this card. Once per turn, during your Standby Phase: Give control of this card to your opponent. Once per turn, if control of this face-up card changes: Activate this effect; the owner of this card can destroy 1 Set \"Abyss Script\" Spell in their Spell & Trap Zone."
+            "Cannot Special Summon Fusion, Synchro, or Xyz Monsters using this card as material, except \"Dracoslayer\" monsters."
         );
-        assert_eq!(card.password.as_deref(), Some("15308295"));
+        assert_eq!(card.password.as_deref(), Some("92746535"));
         assert_eq!(card.kind, ygo::CardKind::Monster);
         assert_eq!(card.monster_kind, Some(ygo::MonsterKind::Effect));
-        assert_eq!(card.monster_attribute, Some(ygo::MonsterAttribute::Dark));
-        assert_eq!(card.monster_race, Some(ygo::MonsterRace::Fiend));
-        assert_eq!(card.monster_level, Some(3));
-        assert_eq!(card.monster_atk, Some(1000));
-        assert_eq!(card.monster_def, Some(2000));
-        assert_eq!(card.monster_pendulum_scale, Some(8));
+        assert_eq!(card.monster_attribute, Some(ygo::MonsterAttribute::Light));
+        assert_eq!(card.monster_race, Some(ygo::MonsterRace::Dragon));
+        assert_eq!(card.monster_level, Some(4));
+        assert_eq!(card.monster_atk, Some(1850));
+        assert_eq!(card.monster_def, Some(0));
+        assert_eq!(card.monster_pendulum_scale, Some(5));
+        assert_eq!(
+            card.monster_subtypes,
+            Some(vec![ygo::MonsterSubtype::Tuner])
+        );
         assert_eq!(
             card.monster_pendulum_effect.as_deref(),
             Some(
-                "You can target 1 \"Abyss Actor\" Pendulum Monster you control and 1 monster your opponent controls; switch control of both monsters, then destroy this card. You can only use this effect of \"Abyss Actor - Comic Relief\" once per turn."
+                "Once per turn, if you have a card in your other Pendulum Zone: You can destroy that card, and if you do, add 1 card from your Deck to your hand, with the same name as that card."
             )
         );
         assert_eq!(card.monster_link_arrows, None);
@@ -1165,5 +1210,362 @@ mod tests {
         assert_eq!(card.password.as_deref(), Some("41420027"));
         assert_eq!(card.kind, ygo::CardKind::Trap);
         assert_eq!(card.trap_kind, Some(ygo::TrapKind::Counter));
+    }
+
+    #[tokio::test]
+    async fn test_import_json() {
+        with_db_pool(async move |db_pool| {
+            let json = r#"{"data":[{
+                "id": 46533533,
+                "name": "Dipity",
+                "typeline": ["Fiend", "Normal"],
+                "type": "Normal Monster",
+                "humanReadableCardType": "Normal Monster",
+                "frameType": "normal",
+                "desc": "''A cute little thing who lives in a glass bottle and is said to bring good luck to the one who makes a contract with it. The lid must never be opened, no matter what happens...''",
+                "race": "Fiend",
+                "atk": 0,
+                "def": 0,
+                "level": 4,
+                "attribute": "LIGHT",
+                "ygoprodeck_url": "https://ygoprodeck.com/card/dipity-14840",
+                "card_sets": [
+                    {
+                        "set_name": "Alliance Insight",
+                        "set_code": "ALIN-EN097",
+                        "set_rarity": "Common",
+                        "set_rarity_code": "(C)",
+                        "set_price": "0"
+                    }
+                ],
+                "card_images": [
+                    {
+                        "id": 46533533,
+                        "image_url": "https://images.ygoprodeck.com/images/cards/46533533.jpg",
+                        "image_url_small": "https://images.ygoprodeck.com/images/cards_small/46533533.jpg",
+                        "image_url_cropped": "https://images.ygoprodeck.com/images/cards_cropped/46533533.jpg"
+                    }
+                ],
+                "card_prices": [
+                    {
+                        "cardmarket_price": "0.11",
+                        "tcgplayer_price": "0.11",
+                        "ebay_price": "0.00",
+                        "amazon_price": "0.00",
+                        "coolstuffinc_price": "0.00"
+                    }
+                ],
+                "misc_info": [
+                    {
+                        "beta_name": "Pity",
+                        "views": 13534,
+                        "viewsweek": 505,
+                        "upvotes": 0,
+                        "downvotes": 0,
+                        "formats": ["Common Charity", "TCG", "OCG", "Master Duel"],
+                        "tcg_date": "2025-05-01",
+                        "ocg_date": "2024-04-01",
+                        "konami_id": 20274,
+                        "has_effect": 1,
+                        "md_rarity": "Super Rare"
+                    }
+                ]
+            }]}"#;
+
+            let client = db_pool.get().await.expect("Could not get DB client");
+            let (inserted, updated) = import_from_json_str(&client, json)
+                .await
+                .expect("Could not import cards from JSON");
+
+            assert_eq!(inserted, 1);
+            assert_eq!(updated, 0);
+
+            let card = service::card::get_by_konami_id(&client, 20274)
+                .await
+                .expect("Could not get card by Konami ID")
+                .expect("Card not found");
+
+            assert_eq!(card.data.name, "Dipity");
+            assert_eq!(card.data.kind, ygo::CardKind::Monster);
+            assert_eq!(card.data.monster_race, Some(ygo::MonsterRace::Fiend));
+            assert_eq!(
+                card.data.monster_attribute,
+                Some(ygo::MonsterAttribute::Light)
+            );
+            assert_eq!(card.data.monster_level, Some(4));
+            assert_eq!(card.data.monster_atk, Some(0));
+            assert_eq!(card.data.monster_def, Some(0));
+        }).await
+    }
+
+    #[tokio::test]
+    async fn test_import_json_overrides_by_konami_id() {
+        with_db_pool(async move |db_pool| {
+            let json = r#"{"data":[{
+                "id": 46533533,
+                "name": "Dipity",
+                "typeline": ["Fiend", "Normal"],
+                "type": "Normal Monster",
+                "humanReadableCardType": "Normal Monster",
+                "frameType": "normal",
+                "desc": "''A cute little thing who lives in a glass bottle and is said to bring good luck to the one who makes a contract with it. The lid must never be opened, no matter what happens...''",
+                "race": "Fiend",
+                "atk": 0,
+                "def": 0,
+                "level": 4,
+                "attribute": "LIGHT",
+                "ygoprodeck_url": "https://ygoprodeck.com/card/dipity-14840",
+                "card_sets": [
+                    {
+                        "set_name": "Alliance Insight",
+                        "set_code": "ALIN-EN097",
+                        "set_rarity": "Common",
+                        "set_rarity_code": "(C)",
+                        "set_price": "0"
+                    }
+                ],
+                "card_images": [
+                    {
+                        "id": 46533533,
+                        "image_url": "https://images.ygoprodeck.com/images/cards/46533533.jpg",
+                        "image_url_small": "https://images.ygoprodeck.com/images/cards_small/46533533.jpg",
+                        "image_url_cropped": "https://images.ygoprodeck.com/images/cards_cropped/46533533.jpg"
+                    }
+                ],
+                "card_prices": [
+                    {
+                        "cardmarket_price": "0.11",
+                        "tcgplayer_price": "0.11",
+                        "ebay_price": "0.00",
+                        "amazon_price": "0.00",
+                        "coolstuffinc_price": "0.00"
+                    }
+                ],
+                "misc_info": [
+                    {
+                        "beta_name": "Pity",
+                        "views": 13534,
+                        "viewsweek": 505,
+                        "upvotes": 0,
+                        "downvotes": 0,
+                        "formats": ["Common Charity", "TCG", "OCG", "Master Duel"],
+                        "tcg_date": "2025-05-01",
+                        "ocg_date": "2024-04-01",
+                        "konami_id": 20274,
+                        "has_effect": 1,
+                        "md_rarity": "Super Rare"
+                    }
+                ]
+            }]}"#;
+
+            let client = db_pool.get().await.expect("Could not get DB client");
+
+            let existing_card = ygo::NewCard {
+                data: CardData {
+                    name: "Dipity Old".to_string(),
+                    konami_id: Some(20274),
+                    ..Default::default()
+                }
+            };
+            service::card::save_new(&client, &existing_card)
+                .await
+                .expect("Could not save existing card");
+
+            let (inserted, updated) = import_from_json_str(&client, json)
+                .await
+                .expect("Could not import cards from JSON");
+
+            assert_eq!(inserted, 0);
+            assert_eq!(updated, 1);
+
+            let card = service::card::get_by_konami_id(&client, 20274)
+                .await
+                .expect("Could not get card by Konami ID")
+                .expect("Card not found");
+
+            assert_eq!(card.data.name, "Dipity");
+            assert_eq!(card.data.kind, ygo::CardKind::Monster);
+            assert_eq!(card.data.monster_race, Some(ygo::MonsterRace::Fiend));
+            assert_eq!(
+                card.data.monster_attribute,
+                Some(ygo::MonsterAttribute::Light)
+            );
+            assert_eq!(card.data.monster_level, Some(4));
+            assert_eq!(card.data.monster_atk, Some(0));
+            assert_eq!(card.data.monster_def, Some(0));
+        }).await
+    }
+
+    #[tokio::test]
+    async fn test_import_json_overrides_by_password() {
+        with_db_pool(async move |db_pool| {
+            let json = r#"{"data":[{
+                "id": 46533533,
+                "name": "Dipity",
+                "typeline": ["Fiend", "Normal"],
+                "type": "Normal Monster",
+                "humanReadableCardType": "Normal Monster",
+                "frameType": "normal",
+                "desc": "''A cute little thing who lives in a glass bottle and is said to bring good luck to the one who makes a contract with it. The lid must never be opened, no matter what happens...''",
+                "race": "Fiend",
+                "atk": 0,
+                "def": 0,
+                "level": 4,
+                "attribute": "LIGHT",
+                "ygoprodeck_url": "https://ygoprodeck.com/card/dipity-14840",
+                "card_sets": [
+                    {
+                        "set_name": "Alliance Insight",
+                        "set_code": "ALIN-EN097",
+                        "set_rarity": "Common",
+                        "set_rarity_code": "(C)",
+                        "set_price": "0"
+                    }
+                ],
+                "card_images": [
+                    {
+                        "id": 46533533,
+                        "image_url": "https://images.ygoprodeck.com/images/cards/46533533.jpg",
+                        "image_url_small": "https://images.ygoprodeck.com/images/cards_small/46533533.jpg",
+                        "image_url_cropped": "https://images.ygoprodeck.com/images/cards_cropped/46533533.jpg"
+                    }
+                ],
+                "card_prices": [
+                    {
+                        "cardmarket_price": "0.11",
+                        "tcgplayer_price": "0.11",
+                        "ebay_price": "0.00",
+                        "amazon_price": "0.00",
+                        "coolstuffinc_price": "0.00"
+                    }
+                ],
+                "misc_info": [
+                    {
+                        "beta_name": "Pity",
+                        "views": 13534,
+                        "viewsweek": 505,
+                        "upvotes": 0,
+                        "downvotes": 0,
+                        "formats": ["Common Charity", "TCG", "OCG", "Master Duel"],
+                        "tcg_date": "2025-05-01",
+                        "ocg_date": "2024-04-01",
+                        "has_effect": 1,
+                        "md_rarity": "Super Rare"
+                    }
+                ]
+            }]}"#;
+
+            let client = db_pool.get().await.expect("Could not get DB client");
+
+            let existing_card = ygo::NewCard {
+                data: CardData {
+                    name: "Dipity Old".to_string(),
+                    password: Some("46533533".to_string()),
+                    ..Default::default()
+                }
+            };
+            service::card::save_new(&client, &existing_card)
+                .await
+                .expect("Could not save existing card");
+
+            let (inserted, updated) = import_from_json_str(&client, json)
+                .await
+                .expect("Could not import cards from JSON");
+
+            assert_eq!(inserted, 0);
+            assert_eq!(updated, 1);
+
+            let card = service::card::get_by_password(&client, "46533533")
+                .await
+                .expect("Could not get card by password")
+                .expect("Card not found");
+
+            assert_eq!(card.data.name, "Dipity");
+            assert_eq!(card.data.kind, ygo::CardKind::Monster);
+            assert_eq!(card.data.monster_race, Some(ygo::MonsterRace::Fiend));
+            assert_eq!(
+                card.data.monster_attribute,
+                Some(ygo::MonsterAttribute::Light)
+            );
+            assert_eq!(card.data.monster_level, Some(4));
+            assert_eq!(card.data.monster_atk, Some(0));
+            assert_eq!(card.data.monster_def, Some(0));
+        }).await
+    }
+
+    #[tokio::test]
+    async fn test_import_does_not_insert_if_konami_id_and_password_are_missing() {
+        with_db_pool(async move |db_pool| {
+            let json = r#"{"data":[{
+                "id": 146533533,
+                "name": "Dipity",
+                "typeline": ["Fiend", "Normal"],
+                "type": "Normal Monster",
+                "humanReadableCardType": "Normal Monster",
+                "frameType": "normal",
+                "desc": "''A cute little thing who lives in a glass bottle and is said to bring good luck to the one who makes a contract with it. The lid must never be opened, no matter what happens...''",
+                "race": "Fiend",
+                "atk": 0,
+                "def": 0,
+                "level": 4,
+                "attribute": "LIGHT",
+                "ygoprodeck_url": "https://ygoprodeck.com/card/dipity-14840",
+                "card_sets": [
+                    {
+                        "set_name": "Alliance Insight",
+                        "set_code": "ALIN-EN097",
+                        "set_rarity": "Common",
+                        "set_rarity_code": "(C)",
+                        "set_price": "0"
+                    }
+                ],
+                "card_images": [
+                    {
+                        "id": 46533533,
+                        "image_url": "https://images.ygoprodeck.com/images/cards/46533533.jpg",
+                        "image_url_small": "https://images.ygoprodeck.com/images/cards_small/46533533.jpg",
+                        "image_url_cropped": "https://images.ygoprodeck.com/images/cards_cropped/46533533.jpg"
+                    }
+                ],
+                "card_prices": [
+                    {
+                        "cardmarket_price": "0.11",
+                        "tcgplayer_price": "0.11",
+                        "ebay_price": "0.00",
+                        "amazon_price": "0.00",
+                        "coolstuffinc_price": "0.00"
+                    }
+                ],
+                "misc_info": [
+                    {
+                        "beta_name": "Pity",
+                        "views": 13534,
+                        "viewsweek": 505,
+                        "upvotes": 0,
+                        "downvotes": 0,
+                        "formats": ["Common Charity", "TCG", "OCG", "Master Duel"],
+                        "tcg_date": "2025-05-01",
+                        "ocg_date": "2024-04-01",
+                        "has_effect": 1,
+                        "md_rarity": "Super Rare"
+                    }
+                ]
+            }]}"#;
+
+            let client = db_pool.get().await.expect("Could not get DB client");
+
+            let (inserted, updated) = import_from_json_str(&client, json)
+                .await
+                .expect("Could not import cards from JSON");
+
+            assert_eq!(inserted, 0);
+            assert_eq!(updated, 0);
+
+            let cards = service::card::get_all(&client)
+                .await
+                .expect("Could not get cards");
+
+            assert_eq!(cards.len(), 0);
+        }).await
     }
 }
