@@ -1,11 +1,14 @@
 import js from "@eslint/js";
 import { tanstackConfig } from "@tanstack/eslint-config";
 import pluginImportX from "eslint-plugin-import-x";
+import pnpmPlugin from "eslint-plugin-pnpm";
 import * as postCssModules from "eslint-plugin-postcss-modules";
 import * as reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
+import jsoncParser from "jsonc-eslint-parser";
 import * as tseslint from "typescript-eslint";
+import yamlParser from "yaml-eslint-parser";
 
 export default tseslint.config(
   ...tanstackConfig,
@@ -83,8 +86,29 @@ export default tseslint.config(
   },
   {
     files: ["package.json", "**/package.json"],
+    languageOptions: {
+      parser: jsoncParser,
+    },
+    plugins: {
+      pnpm: pnpmPlugin,
+    },
     rules: {
       "pnpm/json-enforce-catalog": "off",
+      "pnpm/json-valid-catalog": "error",
+      "pnpm/json-prefer-workspace-settings": "error",
+    },
+  },
+  {
+    files: ["pnpm-workspace.yaml"],
+    languageOptions: {
+      parser: yamlParser,
+    },
+    plugins: {
+      pnpm: pnpmPlugin,
+    },
+    rules: {
+      "pnpm/yaml-no-unused-catalog-item": "error",
+      "pnpm/yaml-no-duplicate-catalog-item": "error",
     },
   },
 );

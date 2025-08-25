@@ -14,16 +14,14 @@ where
 {
     // Acquire the advisory lock
     db.execute("SELECT pg_advisory_lock(hashtext($1))", &[&lock_id])
-        .await
-        .map_err(|e| e.into())?;
+        .await?;
 
     // Run the function and save the result
     let result = panic::AssertUnwindSafe(f(db)).catch_unwind().await;
 
     // Release the advisory lock
     db.execute("SELECT pg_advisory_unlock(hashtext($1))", &[&lock_id])
-        .await
-        .map_err(|e| e.into())?;
+        .await?;
 
     // Forward the result or panic
     match result {
