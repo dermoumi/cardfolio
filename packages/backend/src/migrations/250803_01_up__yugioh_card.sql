@@ -90,7 +90,6 @@ DO $$ BEGIN
             name TEXT NOT NULL,
             description TEXT NOT NULL,
             kind YGO_CARD_KIND NOT NULL,
-            tags TEXT[] DEFAULT ARRAY[]::TEXT[] NOT NULL,
             password TEXT,
             konami_id INTEGER,
             treated_as INTEGER REFERENCES ygo_cards (id) ON DELETE SET NULL,
@@ -118,5 +117,11 @@ DO $$ BEGIN
             CONSTRAINT ygo_cards_unique_konami_id UNIQUE (konami_id)
         );
 
-    CREATE INDEX IF NOT EXISTS ygo_cards_password_id_idx ON ygo_cards (password);
+    CREATE INDEX IF NOT EXISTS ygo_cards_name_idx ON ygo_cards (name);
+    CREATE INDEX IF NOT EXISTS ygo_cards_monster_atk_idx ON ygo_cards (monster_atk);
+    CREATE INDEX IF NOT EXISTS ygo_cards_monster_def_idx ON ygo_cards (monster_def);
+    CREATE INDEX IF NOT EXISTS ygo_cards_monster_level_idx ON ygo_cards (monster_level);
+    CREATE INDEX IF NOT EXISTS ygo_cards_password_idx ON ygo_cards (password);
+    CREATE INDEX IF NOT EXISTS ygo_cards_tcg_date_idx ON ygo_cards (tcg_date);
+    CREATE INDEX IF NOT EXISTS ygo_cards_ocg_date_idx ON ygo_cards (ocg_date);
 END $$;
