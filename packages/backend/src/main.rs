@@ -19,6 +19,7 @@ use tower_http::{
 
 mod api;
 mod database;
+mod importers;
 mod migrations;
 mod models;
 mod prelude;

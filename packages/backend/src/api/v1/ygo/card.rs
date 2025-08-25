@@ -2,6 +2,7 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
 use crate::api::utils::{decode_pagination_cursor, encode_pagination_cursor};
 use crate::api::{ApiError, ApiResult, Path, Query};
+use crate::importers;
 use crate::models::ygo;
 use crate::prelude::AppState;
 use crate::services::ygo as service;
@@ -67,9 +68,9 @@ pub async fn get_by_id(
 pub async fn import(State(state): State<AppState>) -> ApiResult<impl IntoResponse> {
     let client = state.db.get().await?;
 
-    let cards = service::card::seed_cards(&client, 80).await?;
+    let result = importers::ygoprodeck::import(&client).await?;
 
-    Ok(Json(cards).into_response())
+    Ok(Json(result).into_response())
 }
 
 /// Create a new card
