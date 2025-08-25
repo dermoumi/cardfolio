@@ -65,6 +65,14 @@ pub async fn get_by_id(client: &Client, id: i32) -> Result<Option<ygo::Card>, Er
     row.as_ref().map(|r| r.try_into()).transpose()
 }
 
+/// Retrieves a card by Konami ID
+pub async fn get_by_konami_id(client: &Client, konami_id: i32) -> Result<Option<ygo::Card>, Error> {
+    let query = "SELECT * FROM ygo_cards WHERE konami_id = $1";
+    let row = &client.query_opt(query, &[&konami_id]).await?;
+
+    row.as_ref().map(|r| r.try_into()).transpose()
+}
+
 /// Deletes a card by ID. Returns true if a row was deleted, false otherwise.
 pub async fn delete_by_id(client: &Client, id: i32) -> Result<bool, Error> {
     let affected = client
