@@ -1,6 +1,5 @@
 use anyhow::Context;
 use serde::Deserialize;
-use tokio::fs;
 use tokio_postgres::Client;
 
 use crate::models::ygo::{Card, CardData};
@@ -15,8 +14,6 @@ struct YgoProDeckList {
 struct YgoProDeckCard {
     id: i64,
     name: String,
-    // #[serde(rename = "type")]
-    // type_name: String,
     #[serde(rename = "frameType")]
     frame_type: String,
     desc: String,
@@ -417,9 +414,9 @@ async fn import_from_json_str(client: &Client, json: &str) -> anyhow::Result<(us
 
 /// Imports YgoProDeck cards into the database
 pub async fn import(client: &Client) -> anyhow::Result<(usize, usize)> {
-    let json = fs::read_to_string("run/ygocarddeck.json")
-        .await
-        .with_context(|| "Failed to read run/ygocarddeck.json")?;
+    const ENDPOINT: &str = "https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes&sort=new";
+
+    let json = reqwest::get(ENDPOINT).await?.text().await?;
 
     import_from_json_str(client, &json).await
 }
