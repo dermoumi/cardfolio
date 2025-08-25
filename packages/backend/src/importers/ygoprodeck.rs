@@ -249,7 +249,7 @@ impl YgoProDeckCard {
 
     fn is_monster(&self) -> bool {
         match self.frame_type.as_str() {
-            "spell" | "trap" => return false, // Not a monster card
+            "spell" | "trap" => false, // Not a monster card
             _ => true,
         }
     }

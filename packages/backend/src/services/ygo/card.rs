@@ -225,6 +225,7 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<Option<ygo::Card>
     row.as_ref().map(|r| r.try_into()).transpose()
 }
 
+#[cfg(test)]
 fn make_card(id: i32) -> ygo::Card {
     match id {
         1 => ygo::Card {
@@ -309,6 +310,7 @@ fn make_card(id: i32) -> ygo::Card {
 
 /// Seeds the database with a given number of sample Yu-Gi-Oh! cards.
 /// Used by the import HTTP handler and tests.
+#[cfg(test)]
 pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>, Error> {
     let mut cards = Vec::with_capacity(amount);
 
