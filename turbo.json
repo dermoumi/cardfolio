@@ -16,14 +16,12 @@
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
         "!src/**/*.test.{ts,tsx}",
-        "migrations/**/*",
         "package.json",
         "Cargo.toml",
         "tsconfig.json",
         "tsconfig.*.json",
         "vite.config.ts",
-        "tsup.config.ts",
-        "$TURBO_ROOT$/libs/tsconfig/**/*"
+        "$TURBO_ROOT$/packages/tsconfig/**/*"
       ],
       "env": ["CARDFOLIO_*"],
       "outputs": ["dist/**/*", "$TURBO_ROOT$/target/**/*"]
@@ -34,16 +32,13 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "migrations/**/*",
-        "test_assets/**/*",
         "vitest.config.ts",
         "package.json",
         "Cargo.toml",
         "tsconfig.json",
         "tsconfig.*.json",
         "vite.config.ts",
-        "tsup.config.ts",
-        "$TURBO_ROOT$/libs/tsconfig/**/*"
+        "$TURBO_ROOT$/packages/tsconfig/**/*"
       ]
     },
     "test:cov": {
@@ -52,8 +47,6 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "migrations/**/*",
-        "test_assets/**/*",
         "vitest.config.ts",
         "package.json",
         "Cargo.toml",
@@ -61,7 +54,7 @@
         "tsconfig.*.json",
         "vite.config.ts",
         "tsup.config.ts",
-        "$TURBO_ROOT$/libs/tsconfig/**/*"
+        "$TURBO_ROOT$/packages/tsconfig/**/*"
       ],
       "outputs": ["lcov.info"]
     },
@@ -71,18 +64,15 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "migrations/**/*",
-        "test_assets/**/*",
         "vitest.config.ts",
         "package.json",
         "Cargo.toml",
         "tsconfig.json",
         "tsconfig.*.json",
         "vite.config.ts",
-        "tsup.config.ts",
-        "$TURBO_ROOT$/libs/tsconfig/**/*",
-        "eslint.config.js",
-        "$TURBO_ROOT$/libs/eslint-config/**/*"
+        "$TURBO_ROOT$/dprint.jsonc",
+        "$TURBO_ROOT$/eslint.config.js",
+        "$TURBO_ROOT$/packages/tsconfig/**/*"
       ]
     },
     "lint:fix": {
@@ -91,18 +81,15 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "migrations/**/*",
-        "test_assets/**/*",
         "vitest.config.ts",
         "package.json",
         "Cargo.toml",
         "tsconfig.json",
         "tsconfig.*.json",
         "vite.config.ts",
-        "tsup.config.ts",
-        "$TURBO_ROOT$/libs/tsconfig/**/*",
-        "eslint.config.js",
-        "$TURBO_ROOT$/libs/eslint-config/**/*"
+        "$TURBO_ROOT$/dprint.jsonc",
+        "$TURBO_ROOT$/eslint.config.js",
+        "$TURBO_ROOT$/packages/tsconfig/**/*"
       ],
       "outputs": ["src/**/*"]
     }

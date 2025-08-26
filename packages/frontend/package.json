@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "tsc && eslint"
+    "lint": "tsc && dprint check && eslint"
   },
   "dependencies": {
     "@cardfolio/tsconfig": "workspace:",
