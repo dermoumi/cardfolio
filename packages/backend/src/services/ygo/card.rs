@@ -10,20 +10,132 @@ pub struct PageCursor {
     pub id: i32,
 }
 
+#[derive(Debug, Default, Deserialize)]
+pub struct Filter {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    #[serde(default)]
+    pub kind: Option<ygo::CardKind>,
+    #[serde(default)]
+    pub attribute: Vec<ygo::MonsterAttribute>,
+    #[serde(default)]
+    pub race: Vec<ygo::MonsterRace>,
+    #[serde(default)]
+    pub subtype: Vec<ygo::MonsterSubtype>,
+    pub atk_min: Option<i16>,
+    pub atk_max: Option<i16>,
+    pub def_min: Option<i16>,
+    pub def_max: Option<i16>,
+    pub level_min: Option<i16>,
+    pub level_max: Option<i16>,
+    #[serde(default)]
+    pub spell: Vec<ygo::SpellKind>,
+    #[serde(default)]
+    pub trap: Vec<ygo::TrapKind>,
+}
+
 /// Retrieves cards with cursor-based pagination
 pub async fn get_page(
     client: &Client,
+    filter: Option<Filter>,
     limit: u32,
     cursor: Option<PageCursor>,
 ) -> Result<(Vec<ygo::Card>, Option<PageCursor>), Error> {
     // Tiny query builder
     let mut query = String::from("SELECT * FROM ygo_cards");
     let mut params = QueryParams::new();
+    let mut where_queries: Vec<String> = Vec::new();
+
+    if let Some(filter) = filter {
+        // Filter by name
+        if let Some(name) = filter.name {
+            let idx = params.push(format!("%{}%", name));
+            where_queries.push(format!("name ILIKE ${idx}"));
+        }
+
+        // Filter by description
+        if let Some(description) = filter.description {
+            let idx = params.push(format!("%{}%", description));
+            where_queries.push(format!("description ILIKE ${idx}"));
+        }
+
+        // Filter by kind
+        if let Some(kind) = filter.kind {
+            let idx = params.push(kind);
+            where_queries.push(format!("kind = ${idx}"));
+        }
+
+        // Filter by attribute
+        if !filter.attribute.is_empty() {
+            let idx = params.push(filter.attribute);
+            where_queries.push(format!("monster_attribute = ANY(${idx})"));
+        }
+
+        // Filter by race
+        if !filter.race.is_empty() {
+            let idx = params.push(filter.race);
+            where_queries.push(format!("monster_race = ANY(${idx})"));
+        }
+
+        // Filter by subtype
+        if !filter.subtype.is_empty() {
+            let idx = params.push(filter.subtype);
+            where_queries.push(format!("monster_subtypes @> ${idx}"));
+        }
+
+        // Filter by attack points
+        if let Some(atk_min) = filter.atk_min {
+            let idx = params.push(atk_min);
+            where_queries.push(format!("monster_atk >= ${idx}"));
+        }
+        if let Some(atk_max) = filter.atk_max {
+            let idx = params.push(atk_max);
+            where_queries.push(format!("monster_atk <= ${idx}"));
+        }
+
+        // Filter by defense points
+        if let Some(def_min) = filter.def_min {
+            let idx = params.push(def_min);
+            where_queries.push(format!("monster_def >= ${idx}"));
+        }
+        if let Some(def_max) = filter.def_max {
+            let idx = params.push(def_max);
+            where_queries.push(format!("monster_def <= ${idx}"));
+        }
+
+        // Filter by level
+        if let Some(level_min) = filter.level_min {
+            let idx = params.push(level_min);
+            where_queries.push(format!("monster_level >= ${idx}"));
+        }
+        if let Some(level_max) = filter.level_max {
+            let idx = params.push(level_max);
+            where_queries.push(format!("monster_level <= ${idx}"));
+        }
+
+        // Filter by spell kind
+        if !filter.spell.is_empty() {
+            let idx = params.push(filter.spell);
+            where_queries.push(format!("spell_kind = ANY(${idx})"));
+        }
+
+        // Filter by trap kind
+        if !filter.trap.is_empty() {
+            let idx = params.push(filter.trap);
+            where_queries.push(format!("trap_kind = ANY(${idx})"));
+        }
+    }
 
     // Retrieve only items after the cursor index
     if let Some(PageCursor { id }) = cursor {
         let idx = params.push(id);
-        query.push_str(&format!(" WHERE id > ${idx}"));
+        where_queries.push(format!("id > ${idx}"));
+    }
+
+    // Build the where queries
+    if !where_queries.is_empty() {
+        query.push_str(" WHERE ");
+        query.push_str(&where_queries.join(" AND "));
     }
 
     // Retrieve one extra item to check if there's still another page
@@ -446,17 +558,17 @@ mod tests {
             let _ = seed_cards(&client, 15).await.expect("seed");
 
             // Get first page (limit 5)
-            let (page1, next1) = get_page(&client, 5, None).await.expect("page1");
+            let (page1, next1) = get_page(&client, None, 5, None).await.expect("page1");
             assert_eq!(page1.len(), 5);
             assert!(next1.is_some());
 
             // Get second page
-            let (page2, next2) = get_page(&client, 5, next1).await.expect("page2");
+            let (page2, next2) = get_page(&client, None, 5, next1).await.expect("page2");
             assert_eq!(page2.len(), 5);
             assert!(next2.is_some());
 
             // Get third page (should have 5 or less)
-            let (page3, next3) = get_page(&client, 5, next2).await.expect("page3");
+            let (page3, next3) = get_page(&client, None, 5, next2).await.expect("page3");
             assert_eq!(page3.len(), 5);
             assert!(next3.is_none());
         })
@@ -468,13 +580,13 @@ mod tests {
         with_db_pool(async move |db| {
             let client = db.get().await.expect("db");
             // No cards in DB
-            let (empty, next) = get_page(&client, 10, None).await.expect("empty");
+            let (empty, next) = get_page(&client, None, 10, None).await.expect("empty");
             assert!(empty.is_empty());
             assert!(next.is_none());
 
             // Seed exactly 3 cards
             let _ = seed_cards(&client, 3).await.expect("seed");
-            let (all, next) = get_page(&client, 10, None).await.expect("all");
+            let (all, next) = get_page(&client, None, 10, None).await.expect("all");
             assert_eq!(all.len(), 3);
             assert!(next.is_none());
         })
@@ -558,6 +670,656 @@ mod tests {
                 assert_eq!(fetched.data.description, "After");
                 assert_eq!(fetched.data.monster_atk, Some(1600));
             }
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_name() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Blue-Eyes White Dragon".into(),
+                    description: "legendary dragon".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Dark Magician".into(),
+                    description: "ultimate wizard".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.name = Some("blue-eyes".into());
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.name.to_lowercase().contains("blue"))
+            );
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_description() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Alpha".into(),
+                    description: "Powerful engine of destruction".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Beta".into(),
+                    description: "Gentle creature".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.description = Some("engine of destruction".into());
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.description.to_lowercase().contains("engine"))
+            );
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_kind() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Mystical Space Typhoon".into(),
+                    description: "Destroy 1 spell/trap".into(),
+                    kind: ygo::CardKind::Spell,
+                    spell_kind: Some(ygo::SpellKind::QuickPlay),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Generic Monster".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.kind = Some(ygo::CardKind::Spell);
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(cards.iter().all(|c| c.data.kind == ygo::CardKind::Spell));
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_attribute() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Light Monster".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_attribute: Some(ygo::MonsterAttribute::Light),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Dark Monster".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_attribute: Some(ygo::MonsterAttribute::Dark),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.attribute = vec![ygo::MonsterAttribute::Light];
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_attribute == Some(ygo::MonsterAttribute::Light))
+            );
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_race() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Dragon".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_race: Some(ygo::MonsterRace::Dragon),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Warrior".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_race: Some(ygo::MonsterRace::Warrior),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.race = vec![ygo::MonsterRace::Dragon];
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_race == Some(ygo::MonsterRace::Dragon))
+            );
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_subtype() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Flip Monster".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Effect),
+                    monster_subtypes: Some(vec![ygo::MonsterSubtype::Flip]),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Tuner Monster".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Effect),
+                    monster_subtypes: Some(vec![ygo::MonsterSubtype::Tuner]),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.subtype = vec![ygo::MonsterSubtype::Flip];
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(cards.iter().all(|c| {
+                c.data
+                    .monster_subtypes
+                    .as_ref()
+                    .map(|v| v.contains(&ygo::MonsterSubtype::Flip))
+                    .unwrap_or(false)
+            }));
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_multiple_subtypes() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Tuner Flip Monster".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Effect),
+                    monster_subtypes: Some(vec![
+                        ygo::MonsterSubtype::Tuner,
+                        ygo::MonsterSubtype::Flip,
+                    ]),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Tuner Monster".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Effect),
+                    monster_subtypes: Some(vec![ygo::MonsterSubtype::Tuner]),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.subtype = vec![ygo::MonsterSubtype::Tuner, ygo::MonsterSubtype::Flip];
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(cards.iter().all(|c| {
+                c.data
+                    .monster_subtypes
+                    .as_ref()
+                    .map(|v| {
+                        v.contains(&ygo::MonsterSubtype::Flip)
+                            && v.contains(&ygo::MonsterSubtype::Tuner)
+                    })
+                    .unwrap_or(false)
+            }));
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_atk_min() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let low = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Low ATK".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_atk: Some(1000),
+                    ..Default::default()
+                },
+            };
+            let high = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "High ATK".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_atk: Some(2500),
+                    ..Default::default()
+                },
+            };
+            let _ = save_new(&client, &low).await.unwrap();
+            let c_ok = save_new(&client, &high).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.atk_min = Some(2000);
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_atk.unwrap_or_default() >= 2000)
+            );
+            assert!(
+                !cards
+                    .iter()
+                    .any(|c| c.data.monster_atk.unwrap_or_default() < 2000)
+            );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_atk_max() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let low = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Low ATK".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_atk: Some(1200),
+                    ..Default::default()
+                },
+            };
+            let high = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "High ATK".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_atk: Some(2800),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &low).await.unwrap();
+            let _ = save_new(&client, &high).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.atk_max = Some(2000);
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_atk.unwrap_or_default() <= 2000)
+            );
+            assert!(
+                !cards
+                    .iter()
+                    .any(|c| c.data.monster_atk.unwrap_or_default() > 2000)
+            );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_def_min() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let low = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Low DEF".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_def: Some(800),
+                    ..Default::default()
+                },
+            };
+            let high = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "High DEF".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_def: Some(2500),
+                    ..Default::default()
+                },
+            };
+            let _ = save_new(&client, &low).await.unwrap();
+            let c_ok = save_new(&client, &high).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.def_min = Some(2000);
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_def.unwrap_or_default() >= 2000)
+            );
+            assert!(
+                !cards
+                    .iter()
+                    .any(|c| c.data.monster_def.unwrap_or_default() < 2000)
+            );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_def_max() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let low = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Low DEF".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_def: Some(1000),
+                    ..Default::default()
+                },
+            };
+            let high = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "High DEF".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_def: Some(3000),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &low).await.unwrap();
+            let _ = save_new(&client, &high).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.def_max = Some(2000);
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_def.unwrap_or_default() <= 2000)
+            );
+            assert!(
+                !cards
+                    .iter()
+                    .any(|c| c.data.monster_def.unwrap_or_default() > 2000)
+            );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_level_min() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let low = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Low LV".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_level: Some(2),
+                    ..Default::default()
+                },
+            };
+            let high = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "High LV".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_level: Some(7),
+                    ..Default::default()
+                },
+            };
+            let _ = save_new(&client, &low).await.unwrap();
+            let c_ok = save_new(&client, &high).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.level_min = Some(5);
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_level.unwrap_or_default() >= 5)
+            );
+            assert!(
+                !cards
+                    .iter()
+                    .any(|c| c.data.monster_level.unwrap_or_default() < 5)
+            );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_level_max() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let low = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Low LV".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_level: Some(3),
+                    ..Default::default()
+                },
+            };
+            let high = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "High LV".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_level: Some(8),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &low).await.unwrap();
+            let _ = save_new(&client, &high).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.level_max = Some(4);
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.monster_level.unwrap_or_default() <= 4)
+            );
+            assert!(
+                !cards
+                    .iter()
+                    .any(|c| c.data.monster_level.unwrap_or_default() > 4)
+            );
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_spell_kind() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Quick-Play".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Spell,
+                    spell_kind: Some(ygo::SpellKind::QuickPlay),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Field Spell".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Spell,
+                    spell_kind: Some(ygo::SpellKind::Field),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.spell = vec![ygo::SpellKind::QuickPlay];
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.spell_kind == Some(ygo::SpellKind::QuickPlay))
+            );
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_filter_by_trap_kind() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let c_ok = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Normal Trap".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Trap,
+                    trap_kind: Some(ygo::TrapKind::Normal),
+                    ..Default::default()
+                },
+            };
+            let c_bad = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Counter Trap".into(),
+                    description: "".into(),
+                    kind: ygo::CardKind::Trap,
+                    trap_kind: Some(ygo::TrapKind::Counter),
+                    ..Default::default()
+                },
+            };
+            let c_ok = save_new(&client, &c_ok).await.unwrap();
+            let c_bad = save_new(&client, &c_bad).await.unwrap();
+
+            let mut filter = Filter::default();
+            filter.trap = vec![ygo::TrapKind::Normal];
+            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            assert!(cards.iter().any(|c| c.id == c_ok.id));
+            assert!(
+                cards
+                    .iter()
+                    .all(|c| c.data.trap_kind == Some(ygo::TrapKind::Normal))
+            );
+            assert!(!cards.iter().any(|c| c.id == c_bad.id));
         })
         .await;
     }
