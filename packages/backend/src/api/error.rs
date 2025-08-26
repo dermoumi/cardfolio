@@ -26,7 +26,7 @@ pub enum ApiError {
 
     #[error(transparent)]
     #[serde(serialize_with = "a_message", rename = "query_error")]
-    QueryRejection(#[from] axum::extract::rejection::QueryRejection),
+    QueryRejection(#[from] serde_path_to_error::Error<serde_html_form::de::Error>),
 
     #[error("Cannot parse pagination cursor: {0}")]
     #[serde(serialize_with = "a_message", rename = "query_error")]
@@ -209,7 +209,7 @@ mod tests {
             let body = response.into_body().collect().await.unwrap().to_bytes();
             assert_eq!(
                 body,
-                r#"{"error":"query_error","message":"Failed to deserialize query string: page: invalid digit found in string"}"#
+                r#"{"error":"query_error","message":"page: invalid digit found in string"}"#
             );
         })
         .await;

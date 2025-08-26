@@ -39,13 +39,16 @@ where
 
     async fn from_request_parts(
         parts: &mut axum::http::request::Parts,
-        state: &S,
+        _state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let value = axum::extract::Query::<T>::from_request_parts(parts, state)
-            .await
+        let query = parts.uri.query().unwrap_or_default();
+
+        let deserializer =
+            serde_html_form::Deserializer::new(form_urlencoded::parse(query.as_bytes()));
+        let value = serde_path_to_error::deserialize(deserializer)
             .map_err(Self::Rejection::QueryRejection)?;
 
-        Ok(Self(value.0))
+        Ok(Self(value))
     }
 }
 
