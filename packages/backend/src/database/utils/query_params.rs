@@ -6,7 +6,7 @@ pub struct QueryParams {
 }
 
 impl QueryParams {
-    /// Creates a new instance of `DbQueryParams`.
+    /// Creates a new instance of `QueryParams`.
     pub fn new() -> Self {
         Self { params: vec![] }
     }
