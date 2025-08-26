@@ -10,20 +10,132 @@ pub struct PageCursor {
     pub id: i32,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Filter {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    #[serde(default)]
+    pub kind: Option<ygo::CardKind>,
+    #[serde(default)]
+    pub attribute: Vec<ygo::MonsterAttribute>,
+    #[serde(default)]
+    pub race: Vec<ygo::MonsterRace>,
+    #[serde(default)]
+    pub subtype: Vec<ygo::MonsterSubtype>,
+    pub atk_min: Option<i32>,
+    pub atk_max: Option<i32>,
+    pub def_min: Option<i32>,
+    pub def_max: Option<i32>,
+    pub level_min: Option<i32>,
+    pub level_max: Option<i32>,
+    #[serde(default)]
+    pub spell: Vec<ygo::SpellKind>,
+    #[serde(default)]
+    pub trap: Vec<ygo::TrapKind>,
+}
+
 /// Retrieves cards with cursor-based pagination
 pub async fn get_page(
     client: &Client,
+    filter: Option<Filter>,
     limit: u32,
     cursor: Option<PageCursor>,
 ) -> Result<(Vec<ygo::Card>, Option<PageCursor>), Error> {
     // Tiny query builder
     let mut query = String::from("SELECT * FROM ygo_cards");
     let mut params = QueryParams::new();
+    let mut where_queries: Vec<String> = Vec::new();
+
+    if let Some(filter) = filter {
+        // Filter by name
+        if let Some(name) = filter.name {
+            let idx = params.push(format!("%{}%", name));
+            where_queries.push(format!("name ILIKE ${idx}"));
+        }
+
+        // Filter by description
+        if let Some(description) = filter.description {
+            let idx = params.push(format!("%{}%", description));
+            where_queries.push(format!("description ILIKE ${idx}"));
+        }
+
+        // Filter by kind
+        if let Some(kind) = filter.kind {
+            let idx = params.push(kind);
+            where_queries.push(format!("kind = ${idx}"));
+        }
+
+        // Filter by attribute
+        if !filter.attribute.is_empty() {
+            let idx = params.push(filter.attribute);
+            where_queries.push(format!("monster_attribute = ANY(${idx})"));
+        }
+
+        // Filter by race
+        if !filter.race.is_empty() {
+            let idx = params.push(filter.race);
+            where_queries.push(format!("monster_race = ANY(${idx})"));
+        }
+
+        // Filter by subtype
+        if !filter.subtype.is_empty() {
+            let idx = params.push(filter.subtype);
+            where_queries.push(format!("monster_subtypes = ANY(${idx})"));
+        }
+
+        // Filter by attack points
+        if let Some(atk_min) = filter.atk_min {
+            let idx = params.push(atk_min);
+            where_queries.push(format!("monster_atk >= ${idx}"));
+        }
+        if let Some(atk_max) = filter.atk_max {
+            let idx = params.push(atk_max);
+            where_queries.push(format!("monster_atk <= ${idx}"));
+        }
+
+        // Filter by defense points
+        if let Some(def_min) = filter.def_min {
+            let idx = params.push(def_min);
+            where_queries.push(format!("monster_def >= ${idx}"));
+        }
+        if let Some(def_max) = filter.def_max {
+            let idx = params.push(def_max);
+            where_queries.push(format!("monster_def <= ${idx}"));
+        }
+
+        // Filter by level
+        if let Some(level_min) = filter.level_min {
+            let idx = params.push(level_min);
+            where_queries.push(format!("monster_level >= ${idx}"));
+        }
+        if let Some(level_max) = filter.level_max {
+            let idx = params.push(level_max);
+            where_queries.push(format!("monster_level <= ${idx}"));
+        }
+
+        // Filter by spell kind
+        if !filter.spell.is_empty() {
+            let idx = params.push(filter.spell);
+            where_queries.push(format!("spell_kind = ANY(${idx})"));
+        }
+
+        // Filter by trap kind
+        if !filter.trap.is_empty() {
+            let idx = params.push(filter.trap);
+            where_queries.push(format!("trap_kind = ANY(${idx})"));
+        }
+    }
 
     // Retrieve only items after the cursor index
     if let Some(PageCursor { id }) = cursor {
         let idx = params.push(id);
-        query.push_str(&format!(" WHERE id > ${idx}"));
+        where_queries.push(format!("id > ${idx}"));
+    }
+
+    // Build the where queries
+    if !where_queries.is_empty() {
+        query.push_str(" WHERE ");
+        query.push_str(&where_queries.join(" AND "));
     }
 
     // Retrieve one extra item to check if there's still another page
@@ -446,17 +558,17 @@ mod tests {
             let _ = seed_cards(&client, 15).await.expect("seed");
 
             // Get first page (limit 5)
-            let (page1, next1) = get_page(&client, 5, None).await.expect("page1");
+            let (page1, next1) = get_page(&client, None, 5, None).await.expect("page1");
             assert_eq!(page1.len(), 5);
             assert!(next1.is_some());
 
             // Get second page
-            let (page2, next2) = get_page(&client, 5, next1).await.expect("page2");
+            let (page2, next2) = get_page(&client, None, 5, next1).await.expect("page2");
             assert_eq!(page2.len(), 5);
             assert!(next2.is_some());
 
             // Get third page (should have 5 or less)
-            let (page3, next3) = get_page(&client, 5, next2).await.expect("page3");
+            let (page3, next3) = get_page(&client, None, 5, next2).await.expect("page3");
             assert_eq!(page3.len(), 5);
             assert!(next3.is_none());
         })
@@ -468,13 +580,13 @@ mod tests {
         with_db_pool(async move |db| {
             let client = db.get().await.expect("db");
             // No cards in DB
-            let (empty, next) = get_page(&client, 10, None).await.expect("empty");
+            let (empty, next) = get_page(&client, None, 10, None).await.expect("empty");
             assert!(empty.is_empty());
             assert!(next.is_none());
 
             // Seed exactly 3 cards
             let _ = seed_cards(&client, 3).await.expect("seed");
-            let (all, next) = get_page(&client, 10, None).await.expect("all");
+            let (all, next) = get_page(&client, None, 10, None).await.expect("all");
             assert_eq!(all.len(), 3);
             assert!(next.is_none());
         })
