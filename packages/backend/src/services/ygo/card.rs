@@ -1,9 +1,8 @@
-use postgres_types::ToSql;
 use serde::{Deserialize, Serialize};
 use std::result::Result;
 use tokio_postgres::{Client, Error, Row};
 
-use crate::database::TzTimestamp;
+use crate::database::{QueryParams, TzTimestamp};
 use crate::models::ygo;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -19,26 +18,21 @@ pub async fn get_page(
 ) -> Result<(Vec<ygo::Card>, Option<PageCursor>), Error> {
     // Tiny query builder
     let mut query = String::from("SELECT * FROM ygo_cards");
-    let mut params: Vec<&(dyn ToSql + Sync)> = vec![];
-    let mut idx = 1;
-    let cursor_id;
+    let mut params = QueryParams::new();
 
     // Retrieve only items after the cursor index
     if let Some(PageCursor { id }) = cursor {
+        let idx = params.push(id);
         query.push_str(&format!(" WHERE id > ${idx}"));
-        cursor_id = id;
-        params.push(&cursor_id);
-        idx += 1;
     }
 
     // Retrieve one extra item to check if there's still another page
     let limit_plus = (limit + 1) as i64;
+    let idx = params.push(limit_plus);
     query.push_str(&format!(" ORDER BY id ASC LIMIT ${idx}"));
-    params.push(&limit_plus);
-    // idx += 1;
 
     // Make the query
-    let rows = client.query(&query, &params).await?;
+    let rows = client.query(&query, &params.as_refs()).await?;
 
     // Retrieve the cards
     let cards: Vec<ygo::Card> = rows
