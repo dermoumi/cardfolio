@@ -10,8 +10,10 @@
     "**/.pnpm-store",
     "**/*-lock.json",
     "**/dist",
-    "pnpm-lock.yaml",
     "**/target",
+    "**/*.gen.ts",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
   ],
   "plugins": [
     "https://plugins.dprint.dev/typescript-0.93.4.wasm",
