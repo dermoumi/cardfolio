@@ -231,7 +231,7 @@ mod tests {
             let body = response.into_body().collect().await.unwrap().to_bytes();
             assert_eq!(
                 body,
-                r#"{"error":"query_error","message":"Failed to deserialize query string: limit: invalid digit found in string"}"#
+                r#"{"error":"query_error","message":"limit: invalid digit found in string"}"#
             );
         })
         .await
