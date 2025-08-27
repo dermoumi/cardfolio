@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use std::result::Result;
 use tokio_postgres::{Client, Error, Row};
@@ -8,6 +9,43 @@ use crate::models::ygo;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PageCursor {
     pub id: i32,
+    pub sorting_value: Option<SortingCursor>,
+}
+
+#[derive(Debug, Default, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum SortingField {
+    #[default]
+    Id,
+    Name,
+    Atk,
+    Def,
+    Level,
+    TcgDate,
+    OcgDate,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SortingDirection {
+    #[default]
+    Asc,
+    Desc,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct Sort {
+    #[serde(default)]
+    pub sort: SortingField,
+    #[serde(default)]
+    pub dir: SortingDirection,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum SortingCursor {
+    Name(String),
+    Int(i16),
+    Date(NaiveDate),
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -38,6 +76,7 @@ pub struct Filter {
 pub async fn get_page(
     client: &Client,
     filter: Option<Filter>,
+    sort: Option<Sort>,
     limit: u32,
     cursor: Option<PageCursor>,
 ) -> Result<(Vec<ygo::Card>, Option<PageCursor>), Error> {
@@ -126,10 +165,38 @@ pub async fn get_page(
         }
     }
 
+    let sort = sort.unwrap_or_default();
+    let (sort_dir, sort_comparator) = match sort.dir {
+        SortingDirection::Asc => ("ASC", ">"),
+        SortingDirection::Desc => ("DESC", "<"),
+    };
+    let sorting_field = match sort.sort {
+        SortingField::Id => "id",
+        SortingField::Name => "name",
+        SortingField::Atk => "monster_atk",
+        SortingField::Def => "monster_def",
+        SortingField::Level => "monster_level",
+        SortingField::TcgDate => "tcg_date",
+        SortingField::OcgDate => "ocg_date",
+    };
+
     // Retrieve only items after the cursor index
-    if let Some(PageCursor { id }) = cursor {
-        let idx = params.push(id);
-        where_queries.push(format!("id > ${idx}"));
+    if let Some(PageCursor { id, sorting_value }) = cursor {
+        let idx_id = params.push(id);
+
+        if let Some(value) = sorting_value
+            && sort.sort != SortingField::Id
+        {
+            let idx = match value {
+                SortingCursor::Name(name) => params.push(name),
+                SortingCursor::Int(int) => params.push(int),
+                SortingCursor::Date(date) => params.push(date),
+            };
+
+            where_queries.push(format!("{sorting_field} {sort_comparator} ${idx} OR ({sorting_field} = ${idx} AND id {sort_comparator} ${idx_id})"));
+        } else {
+            where_queries.push(format!("id > ${idx_id}"));
+        }
     }
 
     // Build the where queries
@@ -138,10 +205,18 @@ pub async fn get_page(
         query.push_str(&where_queries.join(" AND "));
     }
 
+    // Sort by both the sorting field and ID
+    if sort.sort == SortingField::Id {
+        query.push_str(&format!(" ORDER BY id {sort_dir}"));
+    } else {
+        query.push_str(&format!(
+            " ORDER BY {sorting_field} {sort_dir}, id {sort_dir}"
+        ));
+    }
+
     // Retrieve one extra item to check if there's still another page
-    let limit_plus = (limit + 1) as i64;
-    let idx = params.push(limit_plus);
-    query.push_str(&format!(" ORDER BY id ASC LIMIT ${idx}"));
+    let idx = params.push((limit + 1) as i64);
+    query.push_str(&format!(" LIMIT ${idx}"));
 
     // Make the query
     let rows = client.query(&query, &params.as_refs()).await?;
@@ -155,7 +230,22 @@ pub async fn get_page(
 
     // Generate the next cursor
     let next_cursor = if rows.len() > limit as usize {
-        cards.last().map(|card| PageCursor { id: card.id })
+        cards.last().map(move |card| {
+            let sorting_value = match sort.sort {
+                SortingField::Id => None,
+                SortingField::Name => Some(SortingCursor::Name(card.data.name.clone())),
+                SortingField::Atk => card.data.monster_atk.map(SortingCursor::Int),
+                SortingField::Def => card.data.monster_def.map(SortingCursor::Int),
+                SortingField::Level => card.data.monster_level.map(SortingCursor::Int),
+                SortingField::TcgDate => card.data.tcg_date.map(SortingCursor::Date),
+                SortingField::OcgDate => card.data.ocg_date.map(SortingCursor::Date),
+            };
+
+            PageCursor {
+                id: card.id,
+                sorting_value,
+            }
+        })
     } else {
         None
     };
@@ -558,17 +648,21 @@ mod tests {
             let _ = seed_cards(&client, 15).await.expect("seed");
 
             // Get first page (limit 5)
-            let (page1, next1) = get_page(&client, None, 5, None).await.expect("page1");
+            let (page1, next1) = get_page(&client, None, None, 5, None).await.expect("page1");
             assert_eq!(page1.len(), 5);
             assert!(next1.is_some());
 
             // Get second page
-            let (page2, next2) = get_page(&client, None, 5, next1).await.expect("page2");
+            let (page2, next2) = get_page(&client, None, None, 5, next1)
+                .await
+                .expect("page2");
             assert_eq!(page2.len(), 5);
             assert!(next2.is_some());
 
             // Get third page (should have 5 or less)
-            let (page3, next3) = get_page(&client, None, 5, next2).await.expect("page3");
+            let (page3, next3) = get_page(&client, None, None, 5, next2)
+                .await
+                .expect("page3");
             assert_eq!(page3.len(), 5);
             assert!(next3.is_none());
         })
@@ -580,13 +674,15 @@ mod tests {
         with_db_pool(async move |db| {
             let client = db.get().await.expect("db");
             // No cards in DB
-            let (empty, next) = get_page(&client, None, 10, None).await.expect("empty");
+            let (empty, next) = get_page(&client, None, None, 10, None)
+                .await
+                .expect("empty");
             assert!(empty.is_empty());
             assert!(next.is_none());
 
             // Seed exactly 3 cards
             let _ = seed_cards(&client, 3).await.expect("seed");
-            let (all, next) = get_page(&client, None, 10, None).await.expect("all");
+            let (all, next) = get_page(&client, None, None, 10, None).await.expect("all");
             assert_eq!(all.len(), 3);
             assert!(next.is_none());
         })
@@ -702,7 +798,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.name = Some("blue-eyes".into());
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -742,7 +840,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.description = Some("engine of destruction".into());
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -782,7 +882,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.kind = Some(ygo::CardKind::Spell);
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(cards.iter().all(|c| c.data.kind == ygo::CardKind::Spell));
             assert!(!cards.iter().any(|c| c.id == c_bad.id));
@@ -820,7 +922,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.attribute = vec![ygo::MonsterAttribute::Light];
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -862,7 +966,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.race = vec![ygo::MonsterRace::Dragon];
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -904,7 +1010,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.subtype = vec![ygo::MonsterSubtype::Flip];
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(cards.iter().all(|c| {
                 c.data
@@ -951,7 +1059,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.subtype = vec![ygo::MonsterSubtype::Tuner, ygo::MonsterSubtype::Flip];
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(cards.iter().all(|c| {
                 c.data
@@ -998,7 +1108,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.atk_min = Some(2000);
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -1044,7 +1156,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.atk_max = Some(2000);
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -1090,7 +1204,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.def_min = Some(2000);
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -1136,7 +1252,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.def_max = Some(2000);
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -1182,7 +1300,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.level_min = Some(5);
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -1228,7 +1348,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.level_max = Some(4);
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -1272,7 +1394,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.spell = vec![ygo::SpellKind::QuickPlay];
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
@@ -1312,7 +1436,9 @@ mod tests {
 
             let mut filter = Filter::default();
             filter.trap = vec![ygo::TrapKind::Normal];
-            let (cards, _) = get_page(&client, Some(filter), 50, None).await.unwrap();
+            let (cards, _) = get_page(&client, Some(filter), None, 50, None)
+                .await
+                .unwrap();
             assert!(cards.iter().any(|c| c.id == c_ok.id));
             assert!(
                 cards
