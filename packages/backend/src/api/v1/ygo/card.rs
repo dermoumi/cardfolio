@@ -26,6 +26,7 @@ pub async fn get_cards(
     State(state): State<AppState>,
     Query(pagination): Query<Pagination>,
     Query(filter): Query<service::card::Filter>,
+    Query(sort): Query<service::card::Sort>,
 ) -> ApiResult<impl IntoResponse> {
     let client = state.db.get().await?;
 
@@ -37,7 +38,7 @@ pub async fn get_cards(
         .transpose()?;
 
     let (cards, next_cursor) =
-        service::card::get_page(&client, Some(filter), limit, cursor).await?;
+        service::card::get_page(&client, Some(filter), Some(sort), limit, cursor).await?;
 
     let as_page = Page {
         cards,
