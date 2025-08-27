@@ -182,20 +182,20 @@ pub async fn get_page(
 
     // Retrieve only items after the cursor index
     if let Some(PageCursor { id, sorting_value }) = cursor {
-        let idx_id = params.push(id);
+        let id_idx = params.push(id);
 
         if let Some(value) = sorting_value
             && sort.sort != SortingField::Id
         {
-            let idx = match value {
+            let value_idx = match value {
                 SortingCursor::Name(name) => params.push(name),
                 SortingCursor::Int(int) => params.push(int),
                 SortingCursor::Date(date) => params.push(date),
             };
 
-            where_queries.push(format!("{sorting_field} {sort_comparator} ${idx} OR ({sorting_field} = ${idx} AND id {sort_comparator} ${idx_id})"));
+            where_queries.push(format!("{sorting_field} {sort_comparator} ${value_idx} OR ({sorting_field} = ${value_idx} AND id {sort_comparator} ${id_idx})"));
         } else {
-            where_queries.push(format!("id > ${idx_id}"));
+            where_queries.push(format!("id > ${id_idx}"));
         }
     }
 
@@ -1446,6 +1446,398 @@ mod tests {
                     .all(|c| c.data.trap_kind == Some(ygo::TrapKind::Normal))
             );
             assert!(!cards.iter().any(|c| c.id == c_bad.id));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_sort_by_name_asc() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            // Unordered: Charlie, Alice, Bob
+            let a = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Charlie".into(),
+                    kind: ygo::CardKind::Spell,
+                    ..Default::default()
+                },
+            };
+            let b = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Alice".into(),
+                    kind: ygo::CardKind::Spell,
+                    ..Default::default()
+                },
+            };
+            let c = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Bob".into(),
+                    kind: ygo::CardKind::Spell,
+                    ..Default::default()
+                },
+            };
+
+            let _ = save_new(&client, &a).await.unwrap();
+            let _ = save_new(&client, &b).await.unwrap();
+            let _ = save_new(&client, &c).await.unwrap();
+
+            let filter = Filter::default();
+            let sort = Sort {
+                sort: SortingField::Name,
+                dir: SortingDirection::Asc,
+            };
+
+            let (cards, next) = get_page(&client, Some(filter), Some(sort), 10, None)
+                .await
+                .unwrap();
+
+            assert_eq!(cards.len(), 3);
+            assert!(next.is_none());
+            let names: Vec<_> = cards.iter().map(|c| c.data.name.as_str()).collect();
+            assert_eq!(names, vec!["Alice", "Bob", "Charlie"]);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_sort_by_atk_asc() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let a = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "A".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_atk: Some(300),
+                    ..Default::default()
+                },
+            };
+            let b = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "B".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_atk: Some(100),
+                    ..Default::default()
+                },
+            };
+            let c = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "C".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_atk: Some(200),
+                    ..Default::default()
+                },
+            };
+
+            let _ = save_new(&client, &a).await.unwrap();
+            let _ = save_new(&client, &b).await.unwrap();
+            let _ = save_new(&client, &c).await.unwrap();
+
+            let filter = Filter::default();
+            let sort = Sort {
+                sort: SortingField::Atk,
+                dir: SortingDirection::Asc,
+            };
+
+            let (cards, _) = get_page(&client, Some(filter), Some(sort), 10, None)
+                .await
+                .unwrap();
+
+            let atks: Vec<i16> = cards.iter().map(|c| c.data.monster_atk.unwrap()).collect();
+            assert_eq!(atks, vec![100, 200, 300]);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_sort_by_def_asc() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let a = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "A".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_def: Some(900),
+                    ..Default::default()
+                },
+            };
+            let b = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "B".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_def: Some(100),
+                    ..Default::default()
+                },
+            };
+            let c = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "C".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_def: Some(500),
+                    ..Default::default()
+                },
+            };
+
+            let _ = save_new(&client, &a).await.unwrap();
+            let _ = save_new(&client, &b).await.unwrap();
+            let _ = save_new(&client, &c).await.unwrap();
+
+            let filter = Filter::default();
+            let sort = Sort {
+                sort: SortingField::Def,
+                dir: SortingDirection::Asc,
+            };
+
+            let (cards, _) = get_page(&client, Some(filter), Some(sort), 10, None)
+                .await
+                .unwrap();
+
+            let defs: Vec<i16> = cards.iter().map(|c| c.data.monster_def.unwrap()).collect();
+            assert_eq!(defs, vec![100, 500, 900]);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_sort_by_level_asc() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let a = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "A".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_level: Some(6),
+                    ..Default::default()
+                },
+            };
+            let b = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "B".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_level: Some(2),
+                    ..Default::default()
+                },
+            };
+            let c = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "C".into(),
+                    kind: ygo::CardKind::Monster,
+                    monster_kind: Some(ygo::MonsterKind::Normal),
+                    monster_level: Some(4),
+                    ..Default::default()
+                },
+            };
+
+            let _ = save_new(&client, &a).await.unwrap();
+            let _ = save_new(&client, &b).await.unwrap();
+            let _ = save_new(&client, &c).await.unwrap();
+
+            let filter = Filter::default();
+            let sort = Sort {
+                sort: SortingField::Level,
+                dir: SortingDirection::Asc,
+            };
+
+            let (cards, _) = get_page(&client, Some(filter), Some(sort), 10, None)
+                .await
+                .unwrap();
+
+            let levels: Vec<i16> = cards
+                .iter()
+                .map(|c| c.data.monster_level.unwrap())
+                .collect();
+            assert_eq!(levels, vec![2, 4, 6]);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_sort_by_tcg_date_asc() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let d1 = chrono::NaiveDate::from_ymd_opt(2020, 5, 1).unwrap();
+            let d2 = chrono::NaiveDate::from_ymd_opt(2018, 1, 10).unwrap();
+            let d3 = chrono::NaiveDate::from_ymd_opt(2019, 12, 15).unwrap();
+
+            let a = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "A".into(),
+                    kind: ygo::CardKind::Monster,
+                    tcg_date: Some(d1),
+                    ..Default::default()
+                },
+            };
+            let b = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "B".into(),
+                    kind: ygo::CardKind::Monster,
+                    tcg_date: Some(d2),
+                    ..Default::default()
+                },
+            };
+            let c = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "C".into(),
+                    kind: ygo::CardKind::Monster,
+                    tcg_date: Some(d3),
+                    ..Default::default()
+                },
+            };
+
+            let _ = save_new(&client, &a).await.unwrap();
+            let _ = save_new(&client, &b).await.unwrap();
+            let _ = save_new(&client, &c).await.unwrap();
+
+            let filter = Filter::default();
+            let sort = Sort {
+                sort: SortingField::TcgDate,
+                dir: SortingDirection::Asc,
+            };
+
+            let (cards, _) = get_page(&client, Some(filter), Some(sort), 10, None)
+                .await
+                .unwrap();
+
+            let dates: Vec<chrono::NaiveDate> =
+                cards.iter().map(|c| c.data.tcg_date.unwrap()).collect();
+            assert_eq!(dates, vec![d2, d3, d1]);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_sort_by_ocg_date_asc() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            let d1 = chrono::NaiveDate::from_ymd_opt(2021, 7, 20).unwrap();
+            let d2 = chrono::NaiveDate::from_ymd_opt(2020, 3, 5).unwrap();
+            let d3 = chrono::NaiveDate::from_ymd_opt(2020, 11, 30).unwrap();
+
+            let a = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "A".into(),
+                    kind: ygo::CardKind::Monster,
+                    ocg_date: Some(d1),
+                    ..Default::default()
+                },
+            };
+            let b = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "B".into(),
+                    kind: ygo::CardKind::Monster,
+                    ocg_date: Some(d2),
+                    ..Default::default()
+                },
+            };
+            let c = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "C".into(),
+                    kind: ygo::CardKind::Monster,
+                    ocg_date: Some(d3),
+                    ..Default::default()
+                },
+            };
+
+            let _ = save_new(&client, &a).await.unwrap();
+            let _ = save_new(&client, &b).await.unwrap();
+            let _ = save_new(&client, &c).await.unwrap();
+
+            let filter = Filter::default();
+            let sort = Sort {
+                sort: SortingField::OcgDate,
+                dir: SortingDirection::Asc,
+            };
+
+            let (cards, _) = get_page(&client, Some(filter), Some(sort), 10, None)
+                .await
+                .unwrap();
+
+            let dates: Vec<chrono::NaiveDate> =
+                cards.iter().map(|c| c.data.ocg_date.unwrap()).collect();
+            assert_eq!(dates, vec![d2, d3, d1]);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_pagination_cursor_three_items_two_per_page() {
+        with_db_pool(async move |db| {
+            let client = db.get().await.expect("db");
+
+            // Insert 3 items, unordered by name: Charlie, Alice, Bob
+            let a = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Charlie".into(),
+                    kind: ygo::CardKind::Spell,
+                    ..Default::default()
+                },
+            };
+            let b = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Alice".into(),
+                    kind: ygo::CardKind::Spell,
+                    ..Default::default()
+                },
+            };
+            let c = ygo::NewCard {
+                data: ygo::CardData {
+                    name: "Bob".into(),
+                    kind: ygo::CardKind::Spell,
+                    ..Default::default()
+                },
+            };
+
+            let _ = save_new(&client, &a).await.unwrap();
+            let _ = save_new(&client, &b).await.unwrap();
+            let _ = save_new(&client, &c).await.unwrap();
+
+            // Page 1: limit 2, sorted by name ASC -> [Alice, Bob]
+            let (p1, next) = get_page(
+                &client,
+                None,
+                Some(Sort {
+                    sort: SortingField::Name,
+                    dir: SortingDirection::Asc,
+                }),
+                2,
+                None,
+            )
+            .await
+            .unwrap();
+            assert_eq!(p1.len(), 2);
+            let names1: Vec<_> = p1.iter().map(|c| c.data.name.as_str()).collect();
+            assert_eq!(names1, vec!["Alice", "Bob"]);
+            assert!(next.is_some());
+
+            // Page 2 using cursor -> [Charlie]
+            let (p2, next2) = get_page(
+                &client,
+                None,
+                Some(Sort {
+                    sort: SortingField::Name,
+                    dir: SortingDirection::Asc,
+                }),
+                2,
+                next,
+            )
+            .await
+            .unwrap();
+            assert_eq!(p2.len(), 1);
+            assert_eq!(p2[0].data.name, "Charlie");
+            assert!(next2.is_none());
         })
         .await;
     }
