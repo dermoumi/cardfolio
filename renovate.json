@@ -1,18 +1,30 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "labels": ["dependencies"],
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
   "assigneesFromCodeOwners": true,
   "rangeStrategy": "bump",
   "packageRules": [
     {
       "description": "Only widen peerDependencies and engines",
-      "matchDepTypes": ["peerDependencies", "engines"],
-      "rangeStrategy": "widen"
+      "matchDepTypes": [
+        "peerDependencies"
+      ],
+      "rangeStrategy": "widen",
+      "automerge": true
     },
     {
       "description": "Allow automerge for minor and patch updates",
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
       "automerge": true
     }
   ]
