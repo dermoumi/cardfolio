@@ -13,7 +13,7 @@ axum = { version = "0.8.4", features = ["multipart"] }
 base64 = "0.22.1"
 bb8 = "0.9.0"
 bb8-postgres = "0.9.0"
-bitflags = "2.9.3"
+bitflags = "2.9.4"
 chrono = { version = "0.4.41", features = ["serde"] }
 form_urlencoded = "1.2.2"
 futures-util = "0.3.31"
