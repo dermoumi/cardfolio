@@ -12,7 +12,7 @@ struct YgoProDeckList {
 
 #[derive(Debug, Deserialize)]
 struct YgoProDeckCard {
-    id: i64,
+    id: i32,
     name: String,
     #[serde(rename = "frameType")]
     frame_type: String,
@@ -309,6 +309,8 @@ impl TryFrom<YgoProDeckCard> for CardData {
             .as_ref()
             .and_then(|info| YgoProDeckCard::parse_date_opt(&info.0.ocg_date));
 
+        let ygoprodeck_id = Some(card.id);
+
         // Monster-specific fields
         let (monster_kind, monster_subtypes) = card.get_monster_subtypes();
         let monster_attribute = card.get_monster_attribute();
@@ -350,6 +352,8 @@ impl TryFrom<YgoProDeckCard> for CardData {
 
             spell_kind,
             trap_kind,
+
+            ygoprodeck_id,
         };
 
         Ok(card)
@@ -615,6 +619,8 @@ mod tests {
             "''A new Elemental HERO has arrived from Neo-Space! When he initiates a Contact Fusion with a Neo-Spacian his unknown powers are unleashed.''"
         );
         assert_eq!(card.password.as_deref(), Some("89943723"));
+        assert_eq!(card.konami_id, Some(6653));
+        assert_eq!(card.ygoprodeck_id, Some(89943723));
         assert_eq!(card.kind, ygo::CardKind::Monster);
         assert_eq!(card.monster_kind, Some(ygo::MonsterKind::Normal));
         assert_eq!(card.monster_attribute, Some(ygo::MonsterAttribute::Light));
@@ -727,6 +733,8 @@ mod tests {
             "Cannot Special Summon Fusion, Synchro, or Xyz Monsters using this card as material, except \"Dracoslayer\" monsters."
         );
         assert_eq!(card.password.as_deref(), Some("92746535"));
+        assert_eq!(card.konami_id, Some(11809));
+        assert_eq!(card.ygoprodeck_id, Some(92746535));
         assert_eq!(card.kind, ygo::CardKind::Monster);
         assert_eq!(card.monster_kind, Some(ygo::MonsterKind::Effect));
         assert_eq!(card.monster_attribute, Some(ygo::MonsterAttribute::Light));

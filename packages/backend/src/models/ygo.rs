@@ -68,6 +68,8 @@ pub struct CardData {
     pub spell_kind: Option<SpellKind>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub trap_kind: Option<TrapKind>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ygoprodeck_id: Option<i32>,
 }
 
 /// Card kinds (Monster, Spell, Trap)

@@ -325,9 +325,10 @@ pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::C
                 monster_pendulum_effect,
                 monster_link_arrows,
                 spell_kind,
-                trap_kind
+                trap_kind,
+                ygoprodeck_id
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
             ) RETURNING *
             "#,
             &[
@@ -351,6 +352,7 @@ pub async fn save_new(client: &Client, new_card: &ygo::NewCard) -> Result<ygo::C
                 &card_data.monster_link_arrows,
                 &card_data.spell_kind,
                 &card_data.trap_kind,
+                &card_data.ygoprodeck_id
             ],
         )
         .await?;
@@ -388,8 +390,9 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<Option<ygo::Card>
                 monster_link_arrows = $18,
                 spell_kind = $19,
                 trap_kind = $20,
+                ygoprodeck_id = $21,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $21
+            WHERE id = $22
             RETURNING *
             "#,
             &[
@@ -413,6 +416,7 @@ pub async fn save(client: &Client, card: &ygo::Card) -> Result<Option<ygo::Card>
                 &d.monster_link_arrows,
                 &d.spell_kind,
                 &d.trap_kind,
+                &d.ygoprodeck_id,
                 &id,
             ],
         )
@@ -540,11 +544,12 @@ pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>
                     monster_pendulum_effect,
                     monster_link_arrows,
                     spell_kind,
-                    trap_kind
+                    trap_kind,
+                    ygoprodeck_id
                 ) VALUES (
                     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
                     $11, $12, $13, $14, $15, $16, $17, $18, $19,
-                    $20, $21
+                    $20, $21, $22
                 )
                 ON CONFLICT (id) DO NOTHING
                 RETURNING *
@@ -571,6 +576,7 @@ pub async fn seed_cards(client: &Client, amount: usize) -> Result<Vec<ygo::Card>
                     &d.monster_link_arrows,
                     &d.spell_kind,
                     &d.trap_kind,
+                    &d.ygoprodeck_id,
                 ],
             )
             .await?;
@@ -631,6 +637,7 @@ impl TryFrom<&Row> for ygo::CardData {
             monster_link_arrows: value.try_get("monster_link_arrows")?,
             spell_kind: value.try_get("spell_kind")?,
             trap_kind: value.try_get("trap_kind")?,
+            ygoprodeck_id: value.try_get("ygoprodeck_id")?,
         })
     }
 }
