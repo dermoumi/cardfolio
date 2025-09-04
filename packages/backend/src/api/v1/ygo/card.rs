@@ -88,11 +88,11 @@ pub async fn get_image_by_id(
 
     let image_data;
     if card_image_path.exists() {
-        tracing::debug!("Serving cached image for card ID {}", id);
+        tracing::debug!("Serving cached image for card ID {id}");
 
         image_data = tokio::fs::read(card_image_path).await?;
     } else {
-        tracing::debug!("Fetching image from ygoprodeck for card ID {}", id);
+        tracing::debug!("Fetching image from ygoprodeck for card ID {id}");
 
         let card = service::card::get_by_id(&client, id)
             .await?
@@ -100,9 +100,10 @@ pub async fn get_image_by_id(
                 resource: id.into(),
             })?;
 
-        let ygoprodeck_id = card.data.ygoprodeck_id.ok_or(ApiError::NotFound {
-            resource: format!("Card ID {} has no ygoprodeck ID", id).into(),
-        })?;
+        let ygoprodeck_id = card
+            .data
+            .ygoprodeck_id
+            .ok_or(anyhow::anyhow!("Card {id} has no ygoprodeck ID"))?;
 
         // Retrieve card art from ygopro deck
         image_data = importers::ygoprodeck::get_card_image(ygoprodeck_id, &size).await?;
