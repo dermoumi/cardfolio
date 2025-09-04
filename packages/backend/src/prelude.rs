@@ -30,7 +30,6 @@ pub struct AppConfig {
 
     // Local directories
     pub frontend_dir: String,
-    #[allow(dead_code)] // TODO: Remove this
     pub content_dir: String,
 }
 
@@ -70,7 +69,6 @@ impl AppConfig {
         Path::new(&self.frontend_dir)
     }
 
-    #[allow(dead_code)] // TODO: Remove this
     pub fn get_content_path(&self) -> &Path {
         Path::new(&self.content_dir)
     }

@@ -1,8 +1,11 @@
+use std::path::PathBuf;
+
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
 use crate::api::utils::{decode_pagination_cursor, encode_pagination_cursor};
 use crate::api::{ApiError, ApiResult, Path, Query};
 use crate::importers;
+use crate::importers::ygoprodeck::CardImageSize;
 use crate::models::ygo;
 use crate::prelude::AppState;
 use crate::services::ygo as service;
@@ -65,6 +68,68 @@ pub async fn get_by_id(
         })?;
 
     Ok(Json(card).into_response())
+}
+
+/// Card art size query
+#[derive(Debug, Deserialize)]
+pub struct CardImageOptionsQuery {
+    pub size: Option<CardImageSize>,
+}
+
+/// Get card image by ID
+pub async fn get_image_by_id(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Query(options): Query<CardImageOptionsQuery>,
+) -> ApiResult<impl IntoResponse> {
+    let client = state.db.get().await?;
+    let size = options.size.unwrap_or(CardImageSize::Small);
+    let card_image_path = get_card_image_path(&state, id, &size).await;
+
+    let image_data;
+    if card_image_path.exists() {
+        tracing::debug!("Serving cached image for card ID {}", id);
+
+        image_data = tokio::fs::read(card_image_path).await?;
+    } else {
+        tracing::debug!("Fetching image from ygoprodeck for card ID {}", id);
+
+        let card = service::card::get_by_id(&client, id)
+            .await?
+            .ok_or(ApiError::NotFound {
+                resource: id.into(),
+            })?;
+
+        let ygoprodeck_id = card.data.ygoprodeck_id.ok_or(ApiError::NotFound {
+            resource: format!("Card ID {} has no ygoprodeck ID", id).into(),
+        })?;
+
+        // Retrieve card art from ygopro deck
+        image_data = importers::ygoprodeck::get_card_image(ygoprodeck_id, &size).await?;
+
+        // Save the image to local cache
+        if let Some(parent) = card_image_path.parent() {
+            tokio::fs::create_dir_all(parent).await?;
+            tokio::fs::write(card_image_path, &image_data).await?;
+        }
+    }
+
+    // Serve it as an image
+    Ok((StatusCode::OK, [("content-type", "image/jpeg")], image_data).into_response())
+}
+
+/// Utility to get the card's image path
+pub async fn get_card_image_path(state: &AppState, card_id: i32, size: &CardImageSize) -> PathBuf {
+    let size_suffix = match size {
+        CardImageSize::Small => "",
+        CardImageSize::Full => "_full",
+        CardImageSize::ArtOnly => "_cropped",
+    };
+
+    state
+        .config
+        .get_content_path()
+        .join(format!("card/{card_id}{size_suffix}.jpg"))
 }
 
 /// Import yugioh cards

@@ -1,5 +1,5 @@
 use anyhow::Context;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio_postgres::Client;
 
 use crate::models::ygo::{Card, CardData};
@@ -423,6 +423,39 @@ pub async fn import(client: &Client) -> anyhow::Result<(usize, usize)> {
     let json = reqwest::get(ENDPOINT).await?.text().await?;
 
     import_from_json_str(client, &json).await
+}
+
+/// Card art size variant
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CardImageSize {
+    #[serde(rename = "small")]
+    Small,
+    #[serde(rename = "full")]
+    Full,
+    #[serde(rename = "art")]
+    ArtOnly,
+}
+
+/// Retrieve card image from ygoprodeck
+pub async fn get_card_image(ygoprodeck_id: i32, size: &CardImageSize) -> anyhow::Result<Vec<u8>> {
+    let card_image_size = match size {
+        CardImageSize::Small => "cards_small",
+        CardImageSize::Full => "cards",
+        CardImageSize::ArtOnly => "cards_cropped",
+    };
+
+    let url = format!(
+        "https://images.ygoprodeck.com/images/{}/{}.jpg",
+        card_image_size, ygoprodeck_id,
+    );
+    let response = reqwest::get(&url).await?;
+
+    if response.status().is_success() {
+        let bytes = response.bytes().await?;
+        Ok(bytes.to_vec())
+    } else {
+        Err(anyhow::anyhow!("Failed to retrieve card image"))
+    }
 }
 
 #[cfg(test)]

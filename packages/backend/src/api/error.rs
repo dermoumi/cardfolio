@@ -42,6 +42,10 @@ pub enum ApiError {
 
     #[error(transparent)]
     #[serde(serialize_with = "no_content", rename = "internal_error")]
+    Image(#[from] std::io::Error),
+
+    #[error(transparent)]
+    #[serde(serialize_with = "no_content", rename = "internal_error")]
     Anyhow(#[from] anyhow::Error),
 }
 

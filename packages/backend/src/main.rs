@@ -44,6 +44,7 @@ fn api_v1() -> Router<AppState> {
                 .put(ygo::card::update)
                 .delete(ygo::card::delete_by_id),
         )
+        .route("/ygo/cards/{id}/image", get(ygo::card::get_image_by_id))
         .route("/ygo/cards/import", post(ygo::card::import))
 }
 
