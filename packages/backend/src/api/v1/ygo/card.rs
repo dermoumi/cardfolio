@@ -107,11 +107,13 @@ pub async fn get_image_by_id(
         // Retrieve card art from ygopro deck
         image_data = importers::ygoprodeck::get_card_image(ygoprodeck_id, &size).await?;
 
-        // Save the image to local cache
+        // Make sure the parent directory exists
         if let Some(parent) = card_image_path.parent() {
             tokio::fs::create_dir_all(parent).await?;
-            tokio::fs::write(card_image_path, &image_data).await?;
         }
+
+        // Save the image to local cache
+        tokio::fs::write(card_image_path, &image_data).await?;
     }
 
     // Serve it as an image
