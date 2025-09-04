@@ -30,6 +30,8 @@ pub struct AppConfig {
 
     // Local directories
     pub frontend_dir: String,
+    #[allow(dead_code)] // TODO: Remove this
+    pub content_dir: String,
 }
 
 impl AppConfig {
@@ -51,17 +53,26 @@ impl AppConfig {
 
         let frontend_dir = env::var("CARDFOLIO_FRONTEND_DIR").unwrap_or("frontend/".to_string());
 
+        let content_dir = env::var("CARDFOLIO_CONTENT_DIR").unwrap_or("run/content/".to_string());
+        std::fs::create_dir_all(&content_dir)?;
+
         Ok(Self {
             log_level,
             port,
             db_url,
             db_pool_size,
             frontend_dir,
+            content_dir,
         })
     }
 
     pub fn get_frontend_path(&self) -> &Path {
         Path::new(&self.frontend_dir)
+    }
+
+    #[allow(dead_code)] // TODO: Remove this
+    pub fn get_content_path(&self) -> &Path {
+        Path::new(&self.content_dir)
     }
 }
 
@@ -118,6 +129,24 @@ mod tests {
                 let config = AppConfig::from_env().unwrap();
                 let path = config.get_frontend_path();
                 assert_eq!(path, Path::new("frontend/"));
+            },
+        );
+    }
+
+    #[test]
+    fn test_app_config_get_content_path() {
+        with_vars(
+            [
+                ("CARDFOLIO_CONTENT_DIR", Some("../../run/test/content/")),
+                ("CARDFOLIO_DB", Some("postgres://localhost:5432/cardfolio")),
+            ],
+            || {
+                let config = AppConfig::from_env().unwrap();
+                let path = config.get_content_path();
+                assert_eq!(path, Path::new("../../run/test/content/"));
+
+                // Ensure the content directory exists
+                assert!(path.exists());
             },
         );
     }
