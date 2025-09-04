@@ -69,7 +69,8 @@ where
             port: "8000".to_string(),
             db_url: env::var("CARDFOLIO_DB_TEST").expect("CARDFOLIO_DB_TEST must be set"),
             db_pool_size: 1,
-            frontend_dir: "frontend/".to_string(),
+            frontend_dir: "../frontend/dist/".to_string(),
+            content_dir: "../../run/test/content/".to_string(),
         };
 
         let db = db_pool.deref().clone();

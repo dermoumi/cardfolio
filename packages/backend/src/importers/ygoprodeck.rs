@@ -1,5 +1,5 @@
 use anyhow::Context;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio_postgres::Client;
 
 use crate::models::ygo::{Card, CardData};
@@ -423,6 +423,43 @@ pub async fn import(client: &Client) -> anyhow::Result<(usize, usize)> {
     let json = reqwest::get(ENDPOINT).await?.text().await?;
 
     import_from_json_str(client, &json).await
+}
+
+/// Card art size variant
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CardImageSize {
+    #[serde(rename = "small")]
+    Small,
+    #[serde(rename = "full")]
+    Full,
+    #[serde(rename = "art")]
+    ArtOnly,
+}
+
+/// Utility to build the card image ygoprodeck url
+fn get_card_image_url(ygoprodeck_id: i32, size: &CardImageSize) -> String {
+    let size_suffix = match size {
+        CardImageSize::Small => "_small",
+        CardImageSize::ArtOnly => "_cropped",
+        _ => "",
+    };
+
+    const BASE_URL: &str = "https://images.ygoprodeck.com/images";
+    format!("{BASE_URL}/cards{size_suffix}/{ygoprodeck_id}.jpg")
+}
+
+/// Retrieve card image from ygoprodeck
+pub async fn get_card_image(ygoprodeck_id: i32, size: &CardImageSize) -> anyhow::Result<Vec<u8>> {
+    let url = get_card_image_url(ygoprodeck_id, size);
+    let response = reqwest::get(&url).await?;
+
+    let status = response.status();
+    if !status.is_success() {
+        anyhow::bail!("Failed to retrieve card image from {url}: HTTP {status}")
+    }
+
+    let bytes = response.bytes().await?;
+    Ok(bytes.to_vec())
 }
 
 #[cfg(test)]
@@ -1572,5 +1609,21 @@ mod tests {
 
             assert_eq!(cards.len(), 0);
         }).await
+    }
+
+    #[test]
+    fn test_get_card_image_url() {
+        assert_eq!(
+            get_card_image_url(12345678, &CardImageSize::Full),
+            "https://images.ygoprodeck.com/images/cards/12345678.jpg"
+        );
+        assert_eq!(
+            get_card_image_url(42, &CardImageSize::Small),
+            "https://images.ygoprodeck.com/images/cards_small/42.jpg"
+        );
+        assert_eq!(
+            get_card_image_url(144, &CardImageSize::ArtOnly),
+            "https://images.ygoprodeck.com/images/cards_cropped/144.jpg"
+        );
     }
 }
