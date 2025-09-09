@@ -1,0 +1,10 @@
+.filter-bar {
+  flex: 0 0 auto;
+  background-color: #fff;
+  display: flex;
+  align-items: stretch;
+
+  & > * {
+    flex: 1;
+  }
+}

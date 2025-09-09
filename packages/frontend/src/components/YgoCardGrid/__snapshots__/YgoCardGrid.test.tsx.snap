@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`YgoCardGrid > matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="_ygoCardGrid_898a22"
+  >
+    <div
+      class="_ygoCardItem_b4a956"
+    >
+      <img
+        alt="7 Colored Fish"
+        src="/api/v1/ygo/cards/15/image"
+      />
+    </div>
+    <div
+      class="_ygoCardItem_b4a956"
+    >
+      <img
+        alt="1st Movement Solo"
+        src="/api/v1/ygo/cards/10/image"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;

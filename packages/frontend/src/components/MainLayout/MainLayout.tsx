@@ -3,8 +3,9 @@ import type { FC, PropsWithChildren } from "react";
 import { Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import Header from "../Header";
 import styles from "./MainLayout.module.css";
+
+import Header from "@/components/Header";
 
 export type MainLayoutProps = PropsWithChildren;
 

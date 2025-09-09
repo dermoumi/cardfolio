@@ -49,6 +49,7 @@ pub enum SortingCursor {
 }
 
 #[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Filter {
     pub name: Option<String>,
     pub description: Option<String>,
