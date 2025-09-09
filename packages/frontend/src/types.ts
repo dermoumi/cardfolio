@@ -147,4 +147,19 @@ export type YgoCard = YgoCardMonster | YgoCardSpell | YgoCardTrap;
 /**
  * Filters that can be applied when querying for Yu-Gi-Oh! cards.
  */
-export type YgoCardFilters = Record<string, string>;
+export type YgoCardFilters = {
+  name?: string;
+  description?: string;
+  kind?: YgoCardKind;
+  attribute?: Array<YgoMonsterAttribute>;
+  race?: Array<YgoMonsterRace>;
+  subtype?: Array<YgoMonsterSubtype>;
+  atkMin?: number;
+  atkMax?: number;
+  defMin?: number;
+  defMax?: number;
+  levelMin?: number;
+  levelMax?: number;
+  spellKind?: Array<YgoSpellKind>;
+  trapKind?: Array<YgoTrapKind>;
+};
