@@ -1,8 +1,5 @@
 import type { YgoCard, YgoCardFilters } from "@/types";
-import type {
-  InfiniteData,
-  UseInfiniteQueryResult,
-} from "node_modules/@tanstack/react-query/build/legacy";
+import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 
