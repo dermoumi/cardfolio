@@ -62,20 +62,12 @@ fn app(state: AppState) -> Router {
             .expect("Could not create rate limiter"),
     );
 
-    let image_rate_limiter = GovernorLayer::new(
-        GovernorConfigBuilder::default()
-            .per_second(1)
-            .burst_size(500)
-            .finish()
-            .expect("Could not create card image rate limiter"),
-    );
-
     // API v1
     Router::new()
         .nest("/api/v1", api_v1().layer(rate_limiter))
         .route(
             "/api/v1/ygo/cards/{id}/image",
-            get(api::v1::ygo::card::get_image_by_id).layer(image_rate_limiter),
+            get(api::v1::ygo::card::get_image_by_id),
         )
         .fallback_service(frontend)
         .with_state(state)

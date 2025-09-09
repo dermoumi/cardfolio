@@ -18,3 +18,8 @@ export type YgoCard = {
   spellKind?: "normal" | "field" | "equip" | "quick-play" | "ritual";
   trapKind?: "normal" | "continuous" | "counter";
 };
+
+/**
+ * Filters that can be applied when querying for Yu-Gi-Oh! cards.
+ */
+export type YgoCardFilters = Record<string, string>;

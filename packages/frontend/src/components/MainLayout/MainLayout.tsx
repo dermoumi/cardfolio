@@ -10,13 +10,15 @@ export type MainLayoutProps = PropsWithChildren;
 
 const MainLayout: FC<MainLayoutProps> = () => {
   return (
-    <div className={styles.mainLayout}>
-      <Header />
-      <main className={styles.content}>
-        <Outlet />
-      </main>
+    <>
+      <div className={styles.mainLayout}>
+        <Header />
+        <main className={styles.content}>
+          <Outlet />
+        </main>
+      </div>
       <TanStackRouterDevtools position="top-right" />
-    </div>
+    </>
   );
 };
 

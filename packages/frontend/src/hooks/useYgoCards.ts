@@ -1,4 +1,4 @@
-import type { YgoCard } from "@/types";
+import type { YgoCard, YgoCardFilters } from "@/types";
 import type {
   InfiniteData,
   UseInfiniteQueryResult,
@@ -10,8 +10,6 @@ type YgoCardResponse = {
   cards: Array<YgoCard>;
   next: string | null;
 };
-
-type YgoCardFilters = Record<string, string>;
 
 export function useYgoCards(
   filters: YgoCardFilters,
