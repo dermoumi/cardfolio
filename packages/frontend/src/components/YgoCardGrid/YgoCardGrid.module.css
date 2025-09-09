@@ -1,0 +1,7 @@
+.ygo-card-grid {
+  --max-card-width: 80px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--max-card-width), 1fr));
+  gap: 0.2rem;
+}
