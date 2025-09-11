@@ -6,10 +6,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage",
     "lint": "tsc && dprint check && eslint"
   },
   "dependencies": {
-    "@cardfolio/tsconfig": "workspace:",
+    "@cardfolio/tsconfig": "workspace:^",
+    "@tanstack/react-query": "^5.87.1",
     "@tanstack/react-router": "^1.131.36",
     "@tanstack/react-router-devtools": "^1.131.36",
     "@tanstack/router-plugin": "^1.131.36",
@@ -24,6 +27,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
     "jsdom": "catalog:",
     "vitest": "catalog:"
   }

@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::net::SocketAddr;
 
 use anyhow::{Ok, Result};
 use axum::{
@@ -44,7 +44,6 @@ fn api_v1() -> Router<AppState> {
                 .put(ygo::card::update)
                 .delete(ygo::card::delete_by_id),
         )
-        .route("/ygo/cards/{id}/image", get(ygo::card::get_image_by_id))
         .route("/ygo/cards/import", post(ygo::card::import))
 }
 
@@ -54,9 +53,22 @@ fn app(state: AppState) -> Router {
     let frontend =
         ServeDir::new(frontend_path).fallback(ServeFile::new(frontend_path.join("index.html")));
 
+    // Limit request rate
+    let rate_limiter = GovernorLayer::new(
+        GovernorConfigBuilder::default()
+            .per_second(1)
+            .burst_size(50)
+            .finish()
+            .expect("Could not create rate limiter"),
+    );
+
     // API v1
     Router::new()
-        .nest("/api/v1", api_v1())
+        .nest("/api/v1", api_v1().layer(rate_limiter))
+        .route(
+            "/api/v1/ygo/cards/{id}/image",
+            get(api::v1::ygo::card::get_image_by_id),
+        )
         .fallback_service(frontend)
         .with_state(state)
 }
@@ -120,17 +132,6 @@ async fn main() -> Result<()> {
     let size_limit_bytes = 1024 * 1024; // 1 MB
     let request_size = RequestBodyLimitLayer::new(size_limit_bytes);
 
-    // Limit request rate
-    let requests_per_second = 50;
-    let rate_limiter_config = Arc::new(
-        GovernorConfigBuilder::default()
-            .per_second(1)
-            .burst_size(requests_per_second)
-            .finish()
-            .expect("Could not create rate limiter config"),
-    );
-    let rate_limiter = GovernorLayer::new(rate_limiter_config);
-
     // Create the app
     let state = AppState {
         config: config.clone(),
@@ -139,8 +140,7 @@ async fn main() -> Result<()> {
     let app = app(state)
         .layer(trace)
         .layer(compression)
-        .layer(request_size)
-        .layer(rate_limiter);
+        .layer(request_size);
 
     // Normalize path layer to trim trailing slashes
     let app = NormalizePathLayer::trim_trailing_slash().layer(app);

@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`YgoCardListFilter > matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="_filterBar_4db3c9"
+  >
+    <input
+      placeholder="Search cards..."
+      type="search"
+      value="test"
+    />
+  </div>
+</DocumentFragment>
+`;
