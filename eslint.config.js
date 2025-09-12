@@ -21,7 +21,12 @@ export default tseslint.config(
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        project: ["**/tsconfig.json", "**/tsconfig.*.json"],
+        projectService: true,
+        project: [
+          "./packages/*/tsconfig.json",
+          "./packages/*/tsconfig.*.json",
+          "!./packages/tsconfig/tsconfig.*.json",
+        ],
       },
     },
     plugins: {
