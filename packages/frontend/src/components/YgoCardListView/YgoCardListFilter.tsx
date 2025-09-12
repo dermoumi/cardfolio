@@ -1,9 +1,9 @@
 import type { YgoCardFilters } from "@/types";
 import type { FC } from "react";
 
+import { TextInput } from "@cardfolio/ui";
 import { useCallback } from "react";
 
-import TextInput from "../TextInput";
 import styles from "./YgoCardListFilter.module.css";
 
 export type YgoCardListFilterProps = {
