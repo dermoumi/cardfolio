@@ -27,7 +27,7 @@ function ScoresPage() {
 
         return [player, score, wins, losses, draws] as const;
       },
-    ).sort(([, scoreA], [, scoreB]) => scoreB.localeCompare(scoreA)), [tournament]);
+    ).sort(([, scoreA], [, scoreB]) => scoreB - scoreA), [tournament]);
 
   return (
     <div>
@@ -36,7 +36,7 @@ function ScoresPage() {
         {scores.map(([player, score, wins, losses, draws]) => {
           return (
             <li key={player.id}>
-              <span style={{ fontFamily: "monospace" }}>{score}</span>
+              <span style={{ fontFamily: "monospace" }}>{score.toString().padStart(11, "0")}</span>
               <span>{player.name}</span>
               <span>
                 ({wins}-{losses}-{draws})

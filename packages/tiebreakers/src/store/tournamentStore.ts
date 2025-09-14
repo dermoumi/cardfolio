@@ -8,7 +8,7 @@ const DEFAULT_WIN_POINTS = 3;
 const DEFAULT_DRAW_POINTS = 1;
 const DEFAULT_LOSS_POINTS = 0;
 
-type PlayerScore = string;
+type PlayerScore = number;
 
 export type Player = {
   id: ID;
@@ -174,12 +174,10 @@ export function calculatePlayerScore(tournament: Tournament, player: Player): Pl
   const roundsLost = getPlayerRoundsLost(tournament, player);
   const sumSqRoundsLost = roundsLost.reduce((sum, rounds) => sum + rounds * rounds, 0);
 
-  const scoreValue = matchPoints * 1_000_000_000
+  return matchPoints * 1_000_000_000
     + Math.min(Math.round(oppMWP * 1000), 999) * 1_000_000
     + Math.min(Math.round(oppOppsMWP * 1000), 999) * 1_000
     + Math.min(sumSqRoundsLost, 999);
-
-  return scoreValue.toString().padStart(11, "0");
 }
 
 function shuffleArray<T>(array: Array<T>): Array<T> {
@@ -195,11 +193,9 @@ function shuffleArray<T>(array: Array<T>): Array<T> {
 // Helper to sort players by their score in descending order
 function sortPlayersByScore(tournament: Tournament): Array<Player> {
   // We shuffle to add a tiny degree of randomness to players with the same score
-  return shuffleArray(tournament.players).sort((a, b) => {
-    const scoreA = calculatePlayerScore(tournament, a);
-    const scoreB = calculatePlayerScore(tournament, b);
-    return scoreB.localeCompare(scoreA);
-  });
+  return shuffleArray(tournament.players).sort((a, b) =>
+    calculatePlayerScore(tournament, b) - calculatePlayerScore(tournament, a)
+  );
 }
 
 // Sorts players by their score string in descending order
