@@ -245,6 +245,12 @@ const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament }) =
         >
           Draw
         </Button>
+        <Button
+          disabled={!match.result}
+          onClick={() => addResult(tournament.id, round.id, match.id, null)}
+        >
+          Clear
+        </Button>
         <div>{resultMessage}</div>
       </div>
     </div>

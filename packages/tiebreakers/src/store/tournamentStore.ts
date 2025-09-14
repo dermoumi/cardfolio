@@ -52,7 +52,7 @@ type Store = {
   removePlayer: (tournamentId: ID, playerId: ID) => void;
   startTournament: (tournamentId: ID) => void;
 
-  addResult: (tournamentId: ID, roundId: ID, matchId: ID, result: Result) => void;
+  addResult: (tournamentId: ID, roundId: ID, matchId: ID, result: Result | null) => void;
   nextRound: (tournamentId: ID) => void;
   topCut: (tournamentId: ID, cutTo: number) => void;
 };
@@ -402,15 +402,15 @@ export const useTournamentStore = create<Store>()(
         }));
       },
 
-      addResult: (tournamentId: ID, roundId: ID, matchId: ID, result: Result) => {
+      addResult: (tournamentId: ID, roundId: ID, matchId: ID, result: Result | null) => {
         set((state) => ({
           tournaments: state.tournaments.map((tournament) => {
             if (tournament.id === tournamentId) {
               const updatedRounds = tournament.rounds.map((round) => {
                 if (round.id === roundId) {
                   const updatedMatches = round.matches.map((match) => {
-                    if (match.id === matchId && !match.result) {
-                      return { ...match, result };
+                    if (match.id === matchId) {
+                      return { ...match, result: result ?? undefined };
                     }
                     return match;
                   });
