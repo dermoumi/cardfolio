@@ -174,11 +174,12 @@ export function calculatePlayerScore(tournament: Tournament, player: Player): Pl
   const roundsLost = getPlayerRoundsLost(tournament, player);
   const sumSqRoundsLost = roundsLost.reduce((sum, rounds) => sum + rounds * rounds, 0);
 
-  const AA = matchPoints.toString().padStart(2, "0");
-  const BBB = Math.min(Math.round(oppMWP * 1000), 999).toString().padStart(3, "0");
-  const CCC = Math.min(Math.round(oppOppsMWP * 1000), 999).toString().padStart(3, "0");
-  const DDD = Math.min(sumSqRoundsLost, 999).toString().padStart(3, "0");
-  return `${AA}${BBB}${CCC}${DDD}`;
+  const scoreValue = matchPoints * 1_000_000_000
+    + Math.min(Math.round(oppMWP * 1000), 999) * 1_000_000
+    + Math.min(Math.round(oppOppsMWP * 1000), 999) * 1_000
+    + Math.min(sumSqRoundsLost, 999);
+
+  return scoreValue.toString().padStart(11, "0");
 }
 
 function shuffleArray<T>(array: Array<T>): Array<T> {
@@ -191,16 +192,21 @@ function shuffleArray<T>(array: Array<T>): Array<T> {
   return arr;
 }
 
+// Helper to sort players by their score in descending order
+function sortPlayersByScore(tournament: Tournament): Array<Player> {
+  // We shuffle to add a tiny degree of randomness to players with the same score
+  return shuffleArray(tournament.players).sort((a, b) => {
+    const scoreA = calculatePlayerScore(tournament, a);
+    const scoreB = calculatePlayerScore(tournament, b);
+    return scoreB.localeCompare(scoreA);
+  });
+}
+
 // Sorts players by their score string in descending order
 // pair adjancent, avoid rematches if possible by searching forward
 // If odd number of players, last player gets a bye
 function generateSwissPairings(tournament: Tournament): Array<Match> {
-  const playersByScore = shuffleArray(tournament.players).sort((a, b) => {
-    const scoreA = calculatePlayerScore(tournament, a);
-    const scoreB = calculatePlayerScore(tournament, b);
-
-    return scoreB.localeCompare(scoreA);
-  });
+  const playersByScore = sortPlayersByScore(tournament);
 
   const matches: Array<Match> = [];
   const pairedPlayerIds = new Set<ID>();
@@ -259,6 +265,40 @@ function generateSwissPairings(tournament: Tournament): Array<Match> {
   return matches;
 }
 
+// Helper to get the effective current round for a tournament
+function getCurrentRound(tournament: Tournament): number | undefined {
+  return tournament.currentRound ?? getLastRoundIndex(tournament);
+}
+
+// Helper to find a tournament by ID
+function findTournament(tournaments: Array<Tournament>, tournamentId: ID): Tournament | undefined {
+  return tournaments.find(t => t.id === tournamentId);
+}
+
+// Helper to get last round index
+function getLastRoundIndex({ rounds }: Tournament): number | undefined {
+  return rounds.length > 0 ? rounds.length - 1 : undefined;
+}
+
+// Type guards for tournament status
+function isInProgressStatus(tournament: Tournament): boolean {
+  return tournament.status === "in-progress";
+}
+
+// Generic helper function to update an item in an array by ID
+function updateById<T extends { id: ID; }>(
+  items: Array<T>,
+  id: ID,
+  updater: (item: T) => T,
+): Array<T> {
+  return items.map((item) => {
+    if (item.id === id) {
+      return updater(item);
+    }
+    return item;
+  });
+}
+
 export const useTournamentStore = create<Store>()(
   persist(
     (set, get) => ({
@@ -274,232 +314,180 @@ export const useTournamentStore = create<Store>()(
           drawPoints: DEFAULT_DRAW_POINTS,
           lossPoints: DEFAULT_LOSS_POINTS,
         };
-        set((state) => ({
-          tournaments: [...state.tournaments, newTournament],
+        set(({ tournaments, ...state }) => ({
+          ...state,
+          tournaments: [...tournaments, newTournament],
         }));
         return newTournament.id;
       },
       removeTournament: (tournamentId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.filter(t => t.id !== tournamentId),
+        set(({ tournaments, ...state }) => ({
+          ...state,
+          tournaments: tournaments.filter(t => t.id !== tournamentId),
         }));
       },
       viewFirstRound: (tournamentId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              return {
-                ...tournament,
-                currentRound: tournament.rounds.length > 0 ? 0 : undefined,
-              };
-            }
-            return tournament;
-          }),
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, (tournament) => ({
+            ...tournament,
+            currentRound: tournament.rounds.length > 0 ? 0 : undefined,
+          })),
         }));
       },
       viewLastRound: (tournamentId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              return {
-                ...tournament,
-                currentRound: tournament.rounds.length > 0
-                  ? tournament.rounds.length - 1
-                  : undefined,
-              };
-            }
-            return tournament;
-          }),
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, (tournament) => ({
+            ...tournament,
+            currentRound: getLastRoundIndex(tournament),
+          })),
         }));
       },
       viewPrevRound: (tournamentId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              const current = tournament.currentRound
-                ?? (tournament.rounds.length > 0 ? tournament.rounds.length - 1 : undefined);
-              if (current === undefined || current <= 0) return tournament;
-              return {
-                ...tournament,
-                currentRound: current - 1,
-              };
-            }
-            return tournament;
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, (tournament) => {
+            const current = getCurrentRound(tournament);
+
+            if (current === undefined || current <= 0) return tournament;
+
+            return {
+              ...tournament,
+              currentRound: current - 1,
+            };
           }),
         }));
       },
       viewNextRound: (tournamentId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              const current = tournament.currentRound
-                ?? (tournament.rounds.length > 0 ? tournament.rounds.length - 1 : undefined);
-              if (current === undefined || current >= tournament.rounds.length - 1) {
-                return tournament;
-              }
-              return {
-                ...tournament,
-                currentRound: current + 1,
-              };
-            }
-            return tournament;
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, (tournament) => {
+            const current = getCurrentRound(tournament);
+
+            if (current === undefined || current >= tournament.rounds.length - 1) return tournament;
+
+            return {
+              ...tournament,
+              currentRound: current + 1,
+            };
           }),
         }));
       },
       isViewingFirstRound: (tournamentId: ID) => {
-        const tournament = get().tournaments.find(t => t.id === tournamentId);
+        const tournament = findTournament(get().tournaments, tournamentId);
         if (!tournament) return false;
-        const current = tournament.currentRound
-          ?? (tournament.rounds.length > 0 ? tournament.rounds.length - 1 : undefined);
+
+        const current = getCurrentRound(tournament);
         return current === 0;
       },
       isViewingLastRound: (tournamentId: ID) => {
-        const tournament = get().tournaments.find(t => t.id === tournamentId);
+        const tournament = findTournament(get().tournaments, tournamentId);
         if (!tournament) return false;
-        const current = tournament.currentRound
-          ?? (tournament.rounds.length > 0 ? tournament.rounds.length - 1 : undefined);
-        return current
-          === (tournament.rounds.length > 0 ? tournament.rounds.length - 1 : undefined);
+
+        const current = getCurrentRound(tournament);
+        return current === getLastRoundIndex(tournament);
       },
       addPlayer: (tournamentId: ID, playerName: string) => {
         const newPlayer: Player = {
           id: uuid(),
           name: playerName,
         };
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              return {
-                ...tournament,
-                players: [...tournament.players, newPlayer],
-              };
-            }
-            return tournament;
-          }),
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, ({ players, ...tournament }) => ({
+            ...tournament,
+            players: [...players, newPlayer],
+          })),
         }));
         return newPlayer.id;
       },
       renamePlayer: (tournamentId: ID, playerId: ID, newName: string) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              return {
-                ...tournament,
-                players: tournament.players.map((player) => {
-                  if (player.id === playerId) {
-                    return { ...player, name: newName };
-                  }
-                  return player;
-                }),
-              };
-            }
-            return tournament;
-          }),
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, ({ players, ...tournament }) => ({
+            ...tournament,
+            players: updateById(players, playerId, (player) => ({
+              ...player,
+              name: newName,
+            })),
+          })),
         }));
       },
       removePlayer: (tournamentId: ID, playerId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              return {
-                ...tournament,
-                players: tournament.players.filter((p) => p.id !== playerId),
-              };
-            }
-            return tournament;
-          }),
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, ({ players, ...tournament }) => ({
+            ...tournament,
+            players: players.filter((p) => p.id !== playerId),
+          })),
         }));
       },
 
       startTournament: (tournamentId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId && tournament.status === "setup") {
-              const firstRoundMatches = generateSwissPairings(tournament);
-              const firstRound: Round = {
-                id: uuid(),
-                number: 1,
-                matches: firstRoundMatches,
-              };
-              return {
-                ...tournament,
-                rounds: [firstRound],
-                currentRound: 0,
-                status: "in-progress",
-              };
-            }
-            return tournament;
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, (tournament) => {
+            if (tournament.status !== "setup") return tournament;
+
+            const firstRoundMatches = generateSwissPairings(tournament);
+            const firstRound: Round = {
+              id: uuid(),
+              number: 1,
+              matches: firstRoundMatches,
+            };
+            return {
+              ...tournament,
+              rounds: [firstRound],
+              currentRound: 0,
+              status: "in-progress" as const,
+            };
           }),
         }));
       },
 
       addResult: (tournamentId: ID, roundId: ID, matchId: ID, result: Result | null) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId) {
-              const updatedRounds = tournament.rounds.map((round) => {
-                if (round.id === roundId) {
-                  const updatedMatches = round.matches.map((match) => {
-                    if (match.id === matchId) {
-                      return { ...match, result: result ?? undefined };
-                    }
-                    return match;
-                  });
-                  return { ...round, matches: updatedMatches };
-                }
-                return round;
-              });
-
-              return {
-                ...tournament,
-                rounds: updatedRounds,
-              };
-            }
-            return tournament;
-          }),
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, ({ rounds, ...tournament }) => ({
+            ...tournament,
+            rounds: updateById(rounds, roundId, ({ matches, ...round }) => ({
+              ...round,
+              matches: updateById(matches, matchId, (match) => ({
+                ...match,
+                result: result ?? undefined,
+              })),
+            })),
+          })),
         }));
       },
       nextRound: (tournamentId: ID) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId && tournament.status === "in-progress") {
-              const newRoundNumber = tournament.rounds.length + 1;
-              const newRoundMatches = generateSwissPairings(tournament);
-              const newRound: Round = {
-                id: uuid(),
-                number: newRoundNumber,
-                matches: newRoundMatches,
-              };
-              return {
-                ...tournament,
-                rounds: [...tournament.rounds, newRound],
-                currentRound: tournament.rounds.length,
-              };
-            }
-            return tournament;
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, (tournament) => {
+            if (!isInProgressStatus(tournament)) return tournament;
+
+            const { rounds } = tournament;
+
+            const newRound: Round = {
+              id: uuid(),
+              number: rounds.length + 1,
+              matches: generateSwissPairings(tournament),
+            };
+
+            return {
+              ...tournament,
+              rounds: [...rounds, newRound],
+              currentRound: rounds.length,
+            };
           }),
         }));
       },
       topCut: (tournamentId: ID, cutTo: number) => {
-        set((state) => ({
-          tournaments: state.tournaments.map((tournament) => {
-            if (tournament.id === tournamentId && tournament.status === "in-progress") {
-              const playersByScore = [...tournament.players].sort((a, b) => {
-                const scoreA = calculatePlayerScore(tournament, a);
-                const scoreB = calculatePlayerScore(tournament, b);
-                if (scoreA > scoreB) return -1;
-                if (scoreA < scoreB) return 1;
-                return 0;
-              });
-              const topPlayers = playersByScore.slice(0, cutTo);
-              return {
-                ...tournament,
-                players: topPlayers,
-                rounds: [],
-                status: "top-cut",
-              };
-            }
-            return tournament;
+        // TODO: Handle actual top cut logic
+        set(({ tournaments }) => ({
+          tournaments: updateById(tournaments, tournamentId, (tournament) => {
+            if (!isInProgressStatus(tournament)) return tournament;
+
+            const playersByScore = sortPlayersByScore(tournament);
+
+            const topPlayers = playersByScore.slice(0, cutTo);
+            return {
+              ...tournament,
+              players: topPlayers,
+              rounds: [],
+              status: "top-cut",
+            };
           }),
         }));
       },
