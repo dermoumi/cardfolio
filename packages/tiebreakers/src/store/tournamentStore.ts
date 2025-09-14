@@ -4,6 +4,10 @@ import { persist } from "zustand/middleware";
 export type ID = string;
 export type Result = "A" | "B" | "draw";
 
+const DEFAULT_WIN_POINTS = 3;
+const DEFAULT_DRAW_POINTS = 1;
+const DEFAULT_LOSS_POINTS = 0;
+
 type PlayerScore = string;
 
 export type Player = {
@@ -31,6 +35,11 @@ export type Tournament = {
   rounds: Array<Round>;
   currentRound?: number;
   status: "setup" | "in-progress" | "top-cut" | "finished";
+
+  // Settings
+  winPoints: number;
+  drawPoints: number;
+  lossPoints: number;
 };
 
 type Store = {
@@ -61,23 +70,30 @@ function uuid() {
   return crypto.randomUUID();
 }
 
-function getPlayerMatchWins(tournament: Tournament, player: Player): number {
-  const matches = tournament.rounds.flatMap((round) => round.matches);
+export function getPlayerWinsLossesDraws(
+  tournament: Tournament,
+  player: Player,
+): { wins: number; losses: number; draws: number; } {
+  const [wins, losses, draws] = tournament.rounds
+    .flatMap((round) => round.matches)
+    .reduce(
+      ([w, l, d], { playerA, playerB, result }) => {
+        if (playerA === player.id) {
+          if (result === "A") w++;
+          else if (result === "B") l++;
+          else if (result === "draw") d++;
+        } else if (playerB === player.id) {
+          if (result === "B") w++;
+          else if (result === "A") l++;
+          else if (result === "draw") d++;
+        }
 
-  return matches.reduce((count, { result, playerA, playerB }) => {
-    if ((result === "A") && playerA === player.id) return count + 1;
-    if (result === "B" && playerB === player.id) return count + 1;
-    return count;
-  }, 0);
-}
+        return [w, l, d];
+      },
+      [0, 0, 0],
+    );
 
-function getPlayerMatchDraws(tournament: Tournament, player: Player): number {
-  const matches = tournament.rounds.flatMap((round) => round.matches);
-
-  return matches.reduce((count, { result, playerA, playerB }) => {
-    if (result === "draw" && (playerA === player.id || playerB === player.id)) return count + 1;
-    return count;
-  }, 0);
+  return { wins, losses, draws };
 }
 
 function getPlayerOpponentsIds(tournament: Tournament, player: Player): Array<ID> {
@@ -112,68 +128,78 @@ function getPlayerRoundsLost(tournament: Tournament, player: Player): Array<numb
   return roundsLost;
 }
 
-export function calculatePlayerScore(tournament: Tournament, player: Player): PlayerScore {
+function getTotalPossiblePoints({ rounds, winPoints = DEFAULT_WIN_POINTS }: Tournament): number {
+  return rounds.length * winPoints;
+}
+
+function getMatchPoints(tournament: Tournament, player: Player): number {
+  const { wins, draws, losses } = getPlayerWinsLossesDraws(tournament, player);
+  const {
+    winPoints = DEFAULT_WIN_POINTS,
+    drawPoints = DEFAULT_DRAW_POINTS,
+    lossPoints = DEFAULT_LOSS_POINTS,
+  } = tournament;
+  return wins * winPoints + draws * drawPoints + losses * lossPoints;
+}
+
+function getMWP(tournament: Tournament, player: Player): number {
+  const totalPossiblePoints = getTotalPossiblePoints(tournament);
+  if (totalPossiblePoints === 0) return 0;
+
+  const matchPoints = getMatchPoints(tournament, player);
+  return matchPoints / totalPossiblePoints;
+}
+
+function getOppMWP(tournament: Tournament, player: Player): number {
   const opponents = getPlayerOpponents(tournament, player);
+  if (opponents.length === 0) return 0;
 
-  const wins = getPlayerMatchWins(tournament, player);
-  const draws = getPlayerMatchDraws(tournament, player);
-  const matchPoints = wins * 3 + draws;
+  const totalMwp = opponents.reduce((sum, opponent) => sum + getMWP(tournament, opponent), 0);
+  return totalMwp / opponents.length;
+}
 
-  const opponentsMatchWinPercentage = opponents.length
-    ? opponents.reduce((sum, opponent) => {
-      const opponentWins = getPlayerMatchWins(tournament, opponent);
-      const opponentDraws = getPlayerMatchDraws(tournament, opponent);
-      const opponentMatchPoints = opponentWins * 3 + opponentDraws;
-      const totalPossiblePoints = tournament.rounds.length * 3;
-      return sum + (opponentMatchPoints / totalPossiblePoints);
-    }, 0) / opponents.length
-    : 0;
+function getOppsOppMWP(tournament: Tournament, player: Player): number {
+  const opponents = getPlayerOpponents(tournament, player);
+  if (opponents.length === 0) return 0;
 
-  const opponentsOpponentsMatchWinPercentage = opponents.length
-    ? opponents.reduce((sum, opponent) => {
-      const opponentOpponents = getPlayerOpponents(tournament, opponent);
-      const opponentOpponentsMwp = opponentOpponents.length
-        ? opponentOpponents.reduce((oppSum, oppOpponent) => {
-          const opponentWins = getPlayerMatchWins(tournament, oppOpponent);
-          const opponentDraws = getPlayerMatchDraws(tournament, oppOpponent);
-          const oppOpponentMatchPoints = opponentWins * 3 + opponentDraws;
-          const totalPossiblePoints = tournament.rounds.length * 3;
-          return oppSum + (oppOpponentMatchPoints / totalPossiblePoints);
-        }, 0) / opponentOpponents.length
-        : 0;
-      return sum + opponentOpponentsMwp;
-    }, 0) / opponents.length
-    : 0;
+  const totalOowp = opponents.reduce((sum, opponent) => sum + getOppMWP(tournament, opponent), 0);
+  return totalOowp / opponents.length;
+}
 
+export function calculatePlayerScore(tournament: Tournament, player: Player): PlayerScore {
+  const matchPoints = getMatchPoints(tournament, player);
+
+  const oppMWP = getOppMWP(tournament, player);
+  const oppOppsMWP = getOppsOppMWP(tournament, player);
   const roundsLost = getPlayerRoundsLost(tournament, player);
   const sumSqRoundsLost = roundsLost.reduce((sum, rounds) => sum + rounds * rounds, 0);
 
-  // Format AABBBCCCDDD where:
-  // AA = match points, zero-padded to 2 digits
-  // BBB = opponents' match win percentage, capped at 999, zero-padded to 3 digits
-  // CCC = opponents' opponents' match win percentage, capped at 999, zero-padded to 3 digits
-  // DDD = sum of squares of rounds lost, capped at 999, zero-padded to 3 digits
-  return (
-    String(matchPoints).padStart(2, "0")
-    + String(Math.min(Math.round(opponentsMatchWinPercentage * 1000), 999)).padStart(3, "0")
-    + String(Math.min(Math.round(opponentsOpponentsMatchWinPercentage * 1000), 999)).padStart(
-      3,
-      "0",
-    )
-    + String(Math.min(sumSqRoundsLost, 999)).padStart(3, "0")
-  );
+  const AA = matchPoints.toString().padStart(2, "0");
+  const BBB = Math.min(Math.round(oppMWP * 1000), 999).toString().padStart(3, "0");
+  const CCC = Math.min(Math.round(oppOppsMWP * 1000), 999).toString().padStart(3, "0");
+  const DDD = Math.min(sumSqRoundsLost, 999).toString().padStart(3, "0");
+  return `${AA}${BBB}${CCC}${DDD}`;
+}
+
+function shuffleArray<T>(array: Array<T>): Array<T> {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+  }
+  return arr;
 }
 
 // Sorts players by their score string in descending order
 // pair adjancent, avoid rematches if possible by searching forward
 // If odd number of players, last player gets a bye
-function generateSwitchPairings(tournament: Tournament): Array<Match> {
-  const playersByScore = [...tournament.players].sort((a, b) => {
+function generateSwissPairings(tournament: Tournament): Array<Match> {
+  const playersByScore = shuffleArray(tournament.players).sort((a, b) => {
     const scoreA = calculatePlayerScore(tournament, a);
     const scoreB = calculatePlayerScore(tournament, b);
-    if (scoreA > scoreB) return -1;
-    if (scoreA < scoreB) return 1;
-    return 0;
+
+    return scoreB.localeCompare(scoreA);
   });
 
   const matches: Array<Match> = [];
@@ -184,25 +210,27 @@ function generateSwitchPairings(tournament: Tournament): Array<Match> {
     if (!playerA) continue;
     if (pairedPlayerIds.has(playerA.id)) continue;
 
+    const opponents = getPlayerOpponentsIds(tournament, playerA);
+
     let playerB: Player | undefined;
+
+    // Try to find an opponent
     for (let j = i + 1; j < playersByScore.length; j++) {
-      const potentialOpponent = playersByScore[j];
-      if (!potentialOpponent) continue;
-      const opponents = getPlayerOpponentsIds(tournament, playerA);
-      if (
-        !pairedPlayerIds.has(potentialOpponent.id)
-        && !opponents.includes(potentialOpponent.id)
-      ) {
-        playerB = potentialOpponent;
+      const potentialOpp = playersByScore[j];
+      if (!potentialOpp) continue;
+
+      if (!pairedPlayerIds.has(potentialOpp.id) && !opponents.includes(potentialOpp.id)) {
+        playerB = potentialOpp;
         break;
       }
     }
 
+    // If no opponent found without rematch, just take the next available player
     if (!playerB) {
-      // If no opponent found without rematch, just take the next available player
       for (let j = i + 1; j < playersByScore.length; j++) {
         const potentialOpponent = playersByScore[j];
         if (!potentialOpponent) continue;
+
         if (!pairedPlayerIds.has(potentialOpponent.id)) {
           playerB = potentialOpponent;
           break;
@@ -242,6 +270,9 @@ export const useTournamentStore = create<Store>()(
           players: [],
           rounds: [],
           status: "setup",
+          winPoints: DEFAULT_WIN_POINTS,
+          drawPoints: DEFAULT_DRAW_POINTS,
+          lossPoints: DEFAULT_LOSS_POINTS,
         };
         set((state) => ({
           tournaments: [...state.tournaments, newTournament],
@@ -384,7 +415,7 @@ export const useTournamentStore = create<Store>()(
         set((state) => ({
           tournaments: state.tournaments.map((tournament) => {
             if (tournament.id === tournamentId && tournament.status === "setup") {
-              const firstRoundMatches = generateSwitchPairings(tournament);
+              const firstRoundMatches = generateSwissPairings(tournament);
               const firstRound: Round = {
                 id: uuid(),
                 number: 1,
@@ -433,7 +464,7 @@ export const useTournamentStore = create<Store>()(
           tournaments: state.tournaments.map((tournament) => {
             if (tournament.id === tournamentId && tournament.status === "in-progress") {
               const newRoundNumber = tournament.rounds.length + 1;
-              const newRoundMatches = generateSwitchPairings(tournament);
+              const newRoundMatches = generateSwissPairings(tournament);
               const newRound: Round = {
                 id: uuid(),
                 number: newRoundNumber,
@@ -473,8 +504,6 @@ export const useTournamentStore = create<Store>()(
         }));
       },
     }),
-    {
-      name: "tiebreakers-storage", // name of the item in the storage (must be unique)
-    },
+    { name: "tiebreakers-storage" },
   ),
 );
