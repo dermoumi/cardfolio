@@ -8,7 +8,7 @@ name = "cardfolio"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.99"
+anyhow = "1.0.100"
 axum = { version = "0.8.4", features = ["multipart"] }
 base64 = "0.22.1"
 bb8 = "0.9.0"
