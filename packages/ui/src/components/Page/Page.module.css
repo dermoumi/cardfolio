@@ -1,0 +1,20 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  gap: var(--space-sm);
+  position: relative;
+}
+
+.page-header {
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.page-title {
+  height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

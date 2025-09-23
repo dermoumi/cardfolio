@@ -1,4 +1,4 @@
-import { Button, TextInput } from "@cardfolio/ui";
+import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
@@ -21,36 +21,46 @@ function App() {
   }, [name, createTournament, navigate]);
 
   return (
-    <div>
-      <h1>Tournaments</h1>
-      <form>
-        <TextInput
-          value={name}
-          onChange={(value) => setName(value)}
-          placeholder="Tournament Name"
-        />
-        <Button onClick={handleCreateTournament}>Add tournament</Button>
-      </form>
-      <ul>
-        {tournaments.map((t) => (
-          <li key={t.id}>
-            <Route.Link to={`/tournament/${t.id}/`}>{t.name}</Route.Link> (
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (!window.confirm(`Delete tournament "${t.name}"? This cannot be undone.`)) {
-                  return;
-                }
-                removeTournament(t.id);
-              }}
-            >
-              delete
-            </a>
-            )
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Page title="Tournaments">
+      <Page.Content>
+        <Stack>
+          <Surface>
+            <form onSubmit={handleCreateTournament}>
+              <Stack horizontal gap="small">
+                <Stack.Stretch>
+                  <TextInput
+                    name="name"
+                    value={name}
+                    onChange={(value) => setName(value)}
+                    placeholder="Tournament Name"
+                  />
+                </Stack.Stretch>
+                <Button type="submit">Add tournament</Button>
+              </Stack>
+            </form>
+          </Surface>
+          <ListView>
+            {tournaments.map((t) => (
+              <ListView.Item key={t.id}>
+                <Route.Link to={`/tournament/${t.id}/`}>{t.name}</Route.Link> (
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!window.confirm(`Delete tournament "${t.name}"? This cannot be undone.`)) {
+                      return;
+                    }
+                    removeTournament(t.id);
+                  }}
+                >
+                  delete
+                </a>
+                )
+              </ListView.Item>
+            ))}
+          </ListView>
+        </Stack>
+      </Page.Content>
+    </Page>
   );
 }

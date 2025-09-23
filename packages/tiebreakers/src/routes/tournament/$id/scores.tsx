@@ -1,3 +1,4 @@
+import { ListView, Page, Stack } from "@cardfolio/ui";
 import Button from "@cardfolio/ui/src/components/Button/Button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -30,28 +31,33 @@ function ScoresPage() {
     ).sort(([, scoreA], [, scoreB]) => scoreB - scoreA), [tournament]);
 
   return (
-    <div>
-      <h2>Scores for {tournament.name}</h2>
-      <ol>
-        {scores.map(([player, score, wins, losses, draws]) => {
-          return (
-            <li key={player.id}>
-              <span style={{ fontFamily: "monospace" }}>{score.toString().padStart(11, "0")}</span>
-              <span>{player.name}</span>
-              <span>
-                ({wins}-{losses}-{draws})
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-      <Button
-        onClick={() => {
-          navigate({ to: `/tournament/${tournament.id}/` });
-        }}
-      >
-        Back to matches
-      </Button>
-    </div>
+    <Page title={`Tourney ${tournament.name}`}>
+      <Page.Toolbar>
+        <Button
+          onClick={() => {
+            navigate({ to: `/tournament/${tournament.id}/` });
+          }}
+        >
+          Back to matches
+        </Button>
+      </Page.Toolbar>
+      <Page.Content>
+        <h3>Player scores</h3>
+        <ListView>
+          {scores.map(([player, score, wins, losses, draws]) => {
+            return (
+              <ListView.Item key={player.id}>
+                <Stack horizontal>
+                  <code>{score.toString().padStart(11, "0")}</code>
+                  <Stack.Stretch>
+                    {player.name} ({wins}-{losses}-{draws})
+                  </Stack.Stretch>
+                </Stack>
+              </ListView.Item>
+            );
+          })}
+        </ListView>
+      </Page.Content>
+    </Page>
   );
 }

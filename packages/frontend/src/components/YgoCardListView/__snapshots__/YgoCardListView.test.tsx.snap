@@ -9,6 +9,7 @@ exports[`YgoCardListView > matches snapshot 1`] = `
       class="_filterBar_4db3c9"
     >
       <input
+        name="card-name"
         placeholder="Search cards..."
         type="search"
         value="test"

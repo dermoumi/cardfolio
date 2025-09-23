@@ -1,10 +1,11 @@
-import type { Match, Round, Tournament } from "@/store/tournamentStore";
+import type { Round, Tournament } from "@/store/tournamentStore";
 import type { FC } from "react";
 
-import { Button, TextInput } from "@cardfolio/ui";
-import { createFileRoute } from "@tanstack/react-router";
+import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 
+import MatchComponent from "@/components/MatchComponent";
 import { useTournamentStore } from "@/store/tournamentStore";
 
 export const Route = createFileRoute("/tournament/$id/")({
@@ -17,13 +18,10 @@ function TournamentPage() {
   if (!tournament) return <div>Tournament not found</div>;
 
   return (
-    <div>
-      <h2>
-        Tourney {tournament.name}
-      </h2>
+    <Page title={`Tourney ${tournament.name}`}>
       {tournament.status === "setup" && <Setup tournament={tournament} />}
       {tournament.status === "in-progress" && <MatchesView tournament={tournament} />}
-    </div>
+    </Page>
   );
 }
 
@@ -32,6 +30,7 @@ type SetupProps = {
 };
 
 const Setup: FC<SetupProps> = ({ tournament }) => {
+  const navigate = useNavigate();
   const addPlayer = useTournamentStore((state) => state.addPlayer);
   const removePlayer = useTournamentStore((state) => state.removePlayer);
   const renamePlayer = useTournamentStore((state) => state.renamePlayer);
@@ -51,43 +50,72 @@ const Setup: FC<SetupProps> = ({ tournament }) => {
     startTournament(tournament.id);
   };
 
-  return (
-    <div>
-      <h3>Player list</h3>
-      <ul>
-        {tournament.players.map((player) => (
-          <li key={player.id}>
-            <TextInput
-              placeholder="Player name"
-              value={player.name}
-              onChange={(name) => renamePlayer(tournament.id, player.id, name)}
-            />
-            <Button
-              disabled={tournament.status !== "setup"}
-              onClick={() => {
-                if (
-                  tournament.status !== "setup"
-                  || !window.confirm(`Remove player "${player.name}"?`)
-                ) return;
+  const handleGoBack = useCallback(() => {
+    navigate({ to: `/` });
+  }, []);
 
-                removePlayer(tournament.id, player.id);
-              }}
-            >
-              Remove
-            </Button>
-          </li>
-        ))}
-        <li>
-          <TextInput placeholder="Player name" value={playerName} onChange={setPlayerName} />
-          <Button disabled={!playerName || tournament.status !== "setup"} onClick={handleAddPlayer}>
-            Add
-          </Button>
-        </li>
-      </ul>
-      <Button disabled={tournament.players.length <= 2} onClick={handleStartTournament}>
-        Start tournament
-      </Button>
-    </div>
+  return (
+    <>
+      <Page.Toolbar>
+        <Button onClick={handleGoBack}>Back</Button>
+        <Page.ToolbarSpacer />
+        <Button disabled={tournament.players.length <= 2} onClick={handleStartTournament}>
+          Start tournament
+        </Button>
+      </Page.Toolbar>
+      <Page.Content>
+        <h3>Players</h3>
+        <Surface>
+          <form onSubmit={handleAddPlayer}>
+            <Stack horizontal gap="small">
+              <Stack.Stretch>
+                <TextInput
+                  name="new-player-name"
+                  placeholder="Add a player..."
+                  value={playerName}
+                  onChange={setPlayerName}
+                />
+              </Stack.Stretch>
+              <Button
+                disabled={!playerName || tournament.status !== "setup"}
+                type="submit"
+              >
+                Add
+              </Button>
+            </Stack>
+          </form>
+        </Surface>
+        <Surface variant="transparent">
+          <Stack gap="small">
+            {tournament.players.map((player) => (
+              <Stack horizontal gap="small" key={player.id}>
+                <Stack.Stretch>
+                  <TextInput
+                    name={`player-${player.id}-name`}
+                    placeholder="Player name"
+                    value={player.name}
+                    onChange={(name) => renamePlayer(tournament.id, player.id, name)}
+                  />
+                </Stack.Stretch>
+                <Button
+                  disabled={tournament.status !== "setup"}
+                  onClick={() => {
+                    if (
+                      tournament.status !== "setup"
+                      || !window.confirm(`Remove player "${player.name}"?`)
+                    ) return;
+
+                    removePlayer(tournament.id, player.id);
+                  }}
+                >
+                  Remove
+                </Button>
+              </Stack>
+            ))}
+          </Stack>
+        </Surface>
+      </Page.Content>
+    </>
   );
 };
 
@@ -138,37 +166,15 @@ const RoundComponent: FC<RoundComponentProps> = (
     navigate({ to: `/tournament/${tournament.id}/scores` });
   }, [navigate, tournament.id]);
 
+  const handleGoBack = useCallback(() => {
+    navigate({ to: `/` });
+  }, [navigate]);
+
   return (
-    <div>
-      <h3>Round {round.number}</h3>
-      <div>
-        <Button
-          disabled={isViewingFirstRound(tournament.id)}
-          onClick={() => viewPrevRound(tournament.id)}
-        >
-          Previous Round
-        </Button>
-        <Button
-          disabled={isViewingLastRound(tournament.id)}
-          onClick={() => viewNextRound(tournament.id)}
-        >
-          Next Round
-        </Button>
-        <Button
-          disabled={isViewingLastRound(tournament.id)}
-          onClick={() => viewLastRound(tournament.id)}
-        >
-          Last Round
-        </Button>
-      </div>
-      <ol>
-        {round.matches.map((match) => (
-          <li key={match.id}>
-            <MatchComponent match={match} round={round} tournament={tournament} />
-          </li>
-        ))}
-      </ol>
-      <div>
+    <>
+      <Page.Toolbar>
+        <Button onClick={handleGoBack}>Back</Button>
+        <Page.ToolbarSpacer />
         <Button onClick={handleShowScores}>
           Player scores
         </Button>
@@ -176,83 +182,45 @@ const RoundComponent: FC<RoundComponentProps> = (
           disabled={!allMatchesCompleted || !isViewingLastRound(tournament.id)}
           onClick={handleEndRound}
         >
-          End Round
+          End round
         </Button>
-      </div>
-    </div>
-  );
-};
-
-type MatchComponentProps = {
-  tournament: Tournament;
-  round: Round;
-  match: Match;
-};
-
-const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament }) => {
-  const addResult = useTournamentStore((state) => state.addResult);
-
-  const playerA = useMemo(() => tournament.players.find((p) => p.id === match.playerA), [
-    match.playerA,
-    tournament.players,
-  ]);
-
-  const playerB = useMemo(() => tournament.players.find((p) => p.id === match.playerB), [
-    match.playerB,
-    tournament.players,
-  ]);
-
-  const playerAStatus = useMemo(() => {
-    if (match.result === "A") return "winner";
-    if (match.result === "B") return "loser";
-    if (match.result === "draw") return "draw";
-    return "Pending";
-  }, [match.result]);
-
-  const playerBStatus = useMemo(() => {
-    if (match.result === "B") return "winner";
-    if (match.result === "A") return "loser";
-    if (match.result === "draw") return "draw";
-    return "Pending";
-  }, [match.result]);
-
-  const resultMessage = useMemo(() => {
-    if (!match.result) return "Match Pending";
-    if (match.result === "draw") return "Draw";
-    const winner = match.result === "A" ? playerA?.name : playerB?.name;
-    return `Winner: ${winner}`;
-  }, [match.result, playerA?.name, playerB?.name]);
-
-  return (
-    <div>
-      <div>
-        <div className={playerAStatus}>{playerA?.name}</div>
-        <div className={playerBStatus}>{playerB?.name || "???"}</div>
-      </div>
-      <div>
-        <Button onClick={() => addResult(tournament.id, round.id, match.id, "A")}>
-          {playerA?.name} wins
-        </Button>
-        <Button
-          disabled={!playerB}
-          onClick={() => addResult(tournament.id, round.id, match.id, "B")}
-        >
-          {playerB?.name || "???"} wins
-        </Button>
-        <Button
-          disabled={!playerB}
-          onClick={() => addResult(tournament.id, round.id, match.id, "draw")}
-        >
-          Draw
-        </Button>
-        <Button
-          disabled={!match.result}
-          onClick={() => addResult(tournament.id, round.id, match.id, null)}
-        >
-          Clear
-        </Button>
-        <div>{resultMessage}</div>
-      </div>
-    </div>
+      </Page.Toolbar>
+      <Page.Content>
+        <Stack>
+          <Stack horizontal gap="small">
+            <Button
+              disabled={isViewingFirstRound(tournament.id)}
+              onClick={() => viewPrevRound(tournament.id)}
+            >
+              ←
+            </Button>
+            <Stack.Stretch>
+              <h3>Round {round.number}</h3>
+            </Stack.Stretch>
+            <Button
+              disabled={isViewingLastRound(tournament.id)}
+              onClick={() => viewNextRound(tournament.id)}
+            >
+              →
+            </Button>
+            <Button
+              disabled={isViewingLastRound(tournament.id)}
+              onClick={() => viewLastRound(tournament.id)}
+            >
+              ⇥
+            </Button>
+          </Stack>
+          <ListView>
+            {round.matches.map((match) => (
+              <ListView.Item key={match.id}>
+                <MatchComponent match={match} round={round} tournament={tournament} />
+              </ListView.Item>
+            ))}
+          </ListView>
+          <div>
+          </div>
+        </Stack>
+      </Page.Content>
+    </>
   );
 };

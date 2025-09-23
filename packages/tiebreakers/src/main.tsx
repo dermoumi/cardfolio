@@ -3,11 +3,10 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
-// Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 
-// Import the main application component
-import "./styles.css";
+import "@cardfolio/ui";
+import "./main.css";
 
 // Create a new router instance
 const router = createRouter({
@@ -29,6 +28,9 @@ declare module "@tanstack/react-router" {
 
 // Setup react-query client
 const queryClient = new QueryClient();
+
+// Set initial theme to light
+document.body.dataset.theme = "light";
 
 // Render the app
 const rootElement = document.getElementById("app");

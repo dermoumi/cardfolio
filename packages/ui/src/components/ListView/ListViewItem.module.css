@@ -1,0 +1,7 @@
+.list-view-item {
+  padding-top: var(--space-sm);
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
