@@ -59,58 +59,56 @@ const Setup: FC<SetupProps> = ({ tournament }) => {
           Start tournament
         </Button>
       </Page.Toolbar>
-      <Page.Content>
-        <h3>Players</h3>
-        <Surface>
-          <form onSubmit={handleAddPlayer}>
-            <Stack horizontal gap="small">
+      <h3>Players</h3>
+      <Surface>
+        <form onSubmit={handleAddPlayer}>
+          <Stack horizontal gap="small">
+            <Stack.Stretch>
+              <TextInput
+                name="new-player-name"
+                placeholder="Add a player..."
+                value={playerName}
+                onChange={setPlayerName}
+              />
+            </Stack.Stretch>
+            <Button
+              disabled={!playerName || tournament.status !== "setup"}
+              type="submit"
+            >
+              Add
+            </Button>
+          </Stack>
+        </form>
+      </Surface>
+      <Surface variant="transparent">
+        <Stack gap="small">
+          {tournament.players.map((player) => (
+            <Stack horizontal gap="small" key={player.id}>
               <Stack.Stretch>
                 <TextInput
-                  name="new-player-name"
-                  placeholder="Add a player..."
-                  value={playerName}
-                  onChange={setPlayerName}
+                  name={`player-${player.id}-name`}
+                  placeholder="Player name"
+                  value={player.name}
+                  onChange={(name) => renamePlayer(tournament.id, player.id, name)}
                 />
               </Stack.Stretch>
               <Button
-                disabled={!playerName || tournament.status !== "setup"}
-                type="submit"
+                disabled={tournament.status !== "setup"}
+                onClick={() => {
+                  if (
+                    tournament.status !== "setup"
+                    || !window.confirm(`Remove player "${player.name}"?`)
+                  ) return;
+
+                  removePlayer(tournament.id, player.id);
+                }}
               >
-                Add
+                Remove
               </Button>
             </Stack>
-          </form>
-        </Surface>
-        <Surface variant="transparent">
-          <Stack gap="small">
-            {tournament.players.map((player) => (
-              <Stack horizontal gap="small" key={player.id}>
-                <Stack.Stretch>
-                  <TextInput
-                    name={`player-${player.id}-name`}
-                    placeholder="Player name"
-                    value={player.name}
-                    onChange={(name) => renamePlayer(tournament.id, player.id, name)}
-                  />
-                </Stack.Stretch>
-                <Button
-                  disabled={tournament.status !== "setup"}
-                  onClick={() => {
-                    if (
-                      tournament.status !== "setup"
-                      || !window.confirm(`Remove player "${player.name}"?`)
-                    ) return;
-
-                    removePlayer(tournament.id, player.id);
-                  }}
-                >
-                  Remove
-                </Button>
-              </Stack>
-            ))}
-          </Stack>
-        </Surface>
-      </Page.Content>
+          ))}
+        </Stack>
+      </Surface>
     </>
   );
 };
@@ -177,47 +175,45 @@ const RoundComponent: FC<RoundComponentProps> = (
           End round
         </Button>
       </Page.Toolbar>
-      <Page.Content>
-        <Stack>
-          <Stack horizontal gap="small">
-            <Button
-              disabled={isViewingFirstRound(tournament.id)}
-              onClick={() => viewPrevRound(tournament.id)}
-            >
-              ←
-            </Button>
-            <Stack.Stretch>
-              <h3>Round {round.number}</h3>
-            </Stack.Stretch>
-            <Button
-              disabled={isViewingLastRound(tournament.id)}
-              onClick={() => viewNextRound(tournament.id)}
-            >
-              →
-            </Button>
-            <Button
-              disabled={isViewingLastRound(tournament.id)}
-              onClick={() => viewLastRound(tournament.id)}
-            >
-              ⇥
-            </Button>
-          </Stack>
-          <ListView>
-            {round.matches.map((match, index) => (
-              <ListView.Item key={match.id}>
-                <MatchComponent
-                  match={match}
-                  round={round}
-                  tournament={tournament}
-                  table={index + 1}
-                />
-              </ListView.Item>
-            ))}
-          </ListView>
-          <div>
-          </div>
+      <Stack>
+        <Stack horizontal gap="small">
+          <Button
+            disabled={isViewingFirstRound(tournament.id)}
+            onClick={() => viewPrevRound(tournament.id)}
+          >
+            ←
+          </Button>
+          <Stack.Stretch>
+            <h3>Round {round.number}</h3>
+          </Stack.Stretch>
+          <Button
+            disabled={isViewingLastRound(tournament.id)}
+            onClick={() => viewNextRound(tournament.id)}
+          >
+            →
+          </Button>
+          <Button
+            disabled={isViewingLastRound(tournament.id)}
+            onClick={() => viewLastRound(tournament.id)}
+          >
+            ⇥
+          </Button>
         </Stack>
-      </Page.Content>
+        <ListView>
+          {round.matches.map((match, index) => (
+            <ListView.Item key={match.id}>
+              <MatchComponent
+                match={match}
+                round={round}
+                tournament={tournament}
+                table={index + 1}
+              />
+            </ListView.Item>
+          ))}
+        </ListView>
+        <div>
+        </div>
+      </Stack>
     </>
   );
 };

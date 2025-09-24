@@ -33,23 +33,21 @@ function ScoresPage() {
       <Page.Toolbar>
         <Page.BackButton from={Route.fullPath} to="/" />
       </Page.Toolbar>
-      <Page.Content>
-        <h3>Player scores</h3>
-        <ListView>
-          {scores.map(([player, score, wins, losses, draws]) => {
-            return (
-              <ListView.Item key={player.id}>
-                <Stack horizontal>
-                  <code>{score.toString().padStart(11, "0")}</code>
-                  <Stack.Stretch>
-                    {player.name} ({wins}-{losses}-{draws})
-                  </Stack.Stretch>
-                </Stack>
-              </ListView.Item>
-            );
-          })}
-        </ListView>
-      </Page.Content>
+      <h3>Player scores</h3>
+      <ListView>
+        {scores.map(([player, score, wins, losses, draws]) => {
+          return (
+            <ListView.Item key={player.id}>
+              <Stack horizontal>
+                <code>{score.toString().padStart(11, "0")}</code>
+                <Stack.Stretch>
+                  {player.name} ({wins}-{losses}-{draws})
+                </Stack.Stretch>
+              </Stack>
+            </ListView.Item>
+          );
+        })}
+      </ListView>
     </Page>
   );
 }
