@@ -248,6 +248,9 @@ importers:
       '@cardfolio/tsconfig':
         specifier: workspace:^
         version: link:../tsconfig
+      '@tanstack/react-router':
+        specifier: ^1.131.41
+        version: 1.131.50(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.0(@testing-library/dom@10.4.1)(@types/react-dom@19.1.9(@types/react@19.1.13))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)

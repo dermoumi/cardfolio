@@ -1,5 +1,4 @@
 import { ListView, Page, Stack } from "@cardfolio/ui";
-import Button from "@cardfolio/ui/src/components/Button/Button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 
@@ -15,7 +14,6 @@ export const Route = createFileRoute("/tournament/$id/scores")({
 
 function ScoresPage() {
   const { id } = Route.useParams();
-  const navigate = Route.useNavigate();
 
   const tournament = useTournamentStore((state) => state.tournaments.find((t) => t.id === id));
   if (!tournament) return <div>Tournament not found</div>;
@@ -33,13 +31,7 @@ function ScoresPage() {
   return (
     <Page title={`Tourney ${tournament.name}`}>
       <Page.Toolbar>
-        <Button
-          onClick={() => {
-            navigate({ to: `/tournament/${tournament.id}/` });
-          }}
-        >
-          Back to matches
-        </Button>
+        <Page.BackButton from={Route.fullPath} to="/" />
       </Page.Toolbar>
       <Page.Content>
         <h3>Player scores</h3>

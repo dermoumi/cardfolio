@@ -1,5 +1,6 @@
 import type { FC, PropsWithChildren } from "react";
 
+import BackButton from "./BackButton";
 import styles from "./Page.module.css";
 import PageContent from "./PageContent";
 import PageToolbar from "./PageToolbar";
@@ -13,6 +14,7 @@ type PageComponent = FC<PageProps> & {
   Content: typeof PageContent;
   Toolbar: typeof PageToolbar;
   ToolbarSpacer: typeof PageToolbar;
+  BackButton: typeof BackButton;
 };
 
 const Page: PageComponent = ({ title, children }) => {
@@ -31,5 +33,6 @@ const Page: PageComponent = ({ title, children }) => {
 Page.Content = PageContent;
 Page.Toolbar = PageToolbar;
 Page.ToolbarSpacer = PageToolbarSpacer;
+Page.BackButton = BackButton;
 
 export default Page;

@@ -2,7 +2,7 @@ import type { Round, Tournament } from "@/store/tournamentStore";
 import type { FC, FormEvent } from "react";
 
 import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 
 import MatchComponent from "@/components/MatchComponent";
@@ -30,7 +30,6 @@ type SetupProps = {
 };
 
 const Setup: FC<SetupProps> = ({ tournament }) => {
-  const navigate = useNavigate();
   const addPlayer = useTournamentStore((state) => state.addPlayer);
   const removePlayer = useTournamentStore((state) => state.removePlayer);
   const renamePlayer = useTournamentStore((state) => state.renamePlayer);
@@ -51,14 +50,10 @@ const Setup: FC<SetupProps> = ({ tournament }) => {
     startTournament(tournament.id);
   };
 
-  const handleGoBack = useCallback(() => {
-    navigate({ to: `/` });
-  }, []);
-
   return (
     <>
       <Page.Toolbar>
-        <Button onClick={handleGoBack}>Back</Button>
+        <Page.BackButton from={Route.fullPath} to="/" />
         <Page.ToolbarSpacer />
         <Button disabled={tournament.players.length <= 2} onClick={handleStartTournament}>
           Start tournament
@@ -167,14 +162,10 @@ const RoundComponent: FC<RoundComponentProps> = (
     navigate({ to: `/tournament/${tournament.id}/scores` });
   }, [navigate, tournament.id]);
 
-  const handleGoBack = useCallback(() => {
-    navigate({ to: `/` });
-  }, [navigate]);
-
   return (
     <>
       <Page.Toolbar>
-        <Button onClick={handleGoBack}>Back</Button>
+        <Page.BackButton from={Route.fullPath} to="/" />
         <Page.ToolbarSpacer />
         <Button onClick={handleShowScores}>
           Player scores

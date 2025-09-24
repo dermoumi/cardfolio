@@ -12,10 +12,12 @@
     "classnames": "^2.5.1"
   },
   "peerDependencies": {
+    "@tanstack/react-router": "^1.131.41",
     "react": "catalog:"
   },
   "devDependencies": {
     "@cardfolio/tsconfig": "workspace:^",
+    "@tanstack/react-router": "^1.131.41",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
