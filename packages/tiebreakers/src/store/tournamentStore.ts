@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -65,10 +66,6 @@ type Store = {
   nextRound: (tournamentId: ID) => void;
   topCut: (tournamentId: ID, cutTo: number) => void;
 };
-
-function uuid() {
-  return crypto.randomUUID();
-}
 
 export function getPlayerWinsLossesDraws(
   tournament: Tournament,
@@ -242,7 +239,7 @@ function generateSwissPairings(tournament: Tournament): Array<Match> {
 
     if (playerB) {
       matches.push({
-        id: uuid(),
+        id: nanoid(),
         playerA: playerA.id,
         playerB: playerB.id,
       });
@@ -251,7 +248,7 @@ function generateSwissPairings(tournament: Tournament): Array<Match> {
     } else {
       // Bye
       matches.push({
-        id: uuid(),
+        id: nanoid(),
         playerA: playerA.id,
       });
       pairedPlayerIds.add(playerA.id);
@@ -301,7 +298,7 @@ export const useTournamentStore = create<Store>()(
       tournaments: [],
       createTournament: (name: string) => {
         const newTournament: Tournament = {
-          id: uuid(),
+          id: nanoid(),
           name,
           players: [],
           rounds: [],
@@ -382,7 +379,7 @@ export const useTournamentStore = create<Store>()(
       },
       addPlayer: (tournamentId: ID, playerName: string) => {
         const newPlayer: Player = {
-          id: uuid(),
+          id: nanoid(),
           name: playerName,
         };
         set(({ tournaments }) => ({
@@ -420,7 +417,7 @@ export const useTournamentStore = create<Store>()(
 
             const firstRoundMatches = generateSwissPairings(tournament);
             const firstRound: Round = {
-              id: uuid(),
+              id: nanoid(),
               number: 1,
               matches: firstRoundMatches,
             };
@@ -456,7 +453,7 @@ export const useTournamentStore = create<Store>()(
             const { rounds } = tournament;
 
             const newRound: Round = {
-              id: uuid(),
+              id: nanoid(),
               number: rounds.length + 1,
               matches: generateSwissPairings(tournament),
             };
