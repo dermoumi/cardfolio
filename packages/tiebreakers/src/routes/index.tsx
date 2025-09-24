@@ -1,3 +1,5 @@
+import type { FormEvent } from "react";
+
 import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
@@ -15,7 +17,9 @@ function App() {
   const [name, setName] = useState("");
   const navigate = Route.useNavigate();
 
-  const handleCreateTournament = useCallback(() => {
+  const handleCreateTournament = useCallback((event: FormEvent) => {
+    event.preventDefault();
+
     const id = createTournament(name || "Tournament");
     navigate({ to: `/tournament/${id}/` });
   }, [name, createTournament, navigate]);
