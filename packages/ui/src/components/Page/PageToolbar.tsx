@@ -1,11 +1,22 @@
 import type { FC, PropsWithChildren } from "react";
 
-import styles from "./PageToolbar.module.css";
+import { useContext } from "react";
+import { createPortal } from "react-dom";
+
+import { HeaderContext } from "./HeaderContext";
 
 export type PageToolbarProps = PropsWithChildren;
 
 const PageToolbar: FC<PageToolbarProps> = ({ children }) => {
-  return <div className={styles.pageToolbar}>{children}</div>;
+  const headerContext = useContext(HeaderContext);
+  if (!headerContext) {
+    throw new Error("Page.Toolbar must be used within a Page component");
+  }
+
+  const { toolbarRef } = headerContext;
+  if (!toolbarRef) return null;
+
+  return createPortal(children, toolbarRef);
 };
 
 export default PageToolbar;
