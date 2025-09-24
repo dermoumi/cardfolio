@@ -1,5 +1,18 @@
 .surface {
-  padding: var(--space-sm);
+  border-radius: var(--border-radius-sm);
+
+  & .header {
+    background-color: var(--color-border);
+    padding: var(--space-sm);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  & .body {
+    padding: var(--space-sm);
+  }
 }
 
 .soft {

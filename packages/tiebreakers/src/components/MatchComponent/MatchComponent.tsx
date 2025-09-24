@@ -13,9 +13,10 @@ export type MatchComponentProps = {
   tournament: Tournament;
   round: Round;
   match: Match;
+  table: number;
 };
 
-const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament }) => {
+const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament, table }) => {
   const addResult = useTournamentStore((state) => state.addResult);
 
   const playerA = useMemo(() => tournament.players.find((p) => p.id === match.playerA), [
@@ -44,6 +45,7 @@ const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament }) =
 
   return (
     <Surface variant="outlined">
+      <Surface.Header>Table {table}</Surface.Header>
       <Stack>
         <div className={classNames(styles.player, playerAStatus)}>
           <span>{playerA?.name}</span>

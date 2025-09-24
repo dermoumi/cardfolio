@@ -203,9 +203,14 @@ const RoundComponent: FC<RoundComponentProps> = (
             </Button>
           </Stack>
           <ListView>
-            {round.matches.map((match) => (
+            {round.matches.map((match, index) => (
               <ListView.Item key={match.id}>
-                <MatchComponent match={match} round={round} tournament={tournament} />
+                <MatchComponent
+                  match={match}
+                  round={round}
+                  tournament={tournament}
+                  table={index + 1}
+                />
               </ListView.Item>
             ))}
           </ListView>
