@@ -1,5 +1,5 @@
 import type { Round, Tournament } from "@/store/tournamentStore";
-import type { FC } from "react";
+import type { FC, FormEvent } from "react";
 
 import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -39,12 +39,13 @@ const Setup: FC<SetupProps> = ({ tournament }) => {
 
   const [playerName, setPlayerName] = useState("");
 
-  const handleAddPlayer = () => {
+  const handleAddPlayer = useCallback((event: FormEvent) => {
+    event.preventDefault();
     if (!playerName || tournament.status !== "setup") return;
 
     addPlayer(tournament.id, playerName);
     setPlayerName("");
-  };
+  }, [playerName, addPlayer, tournament.id, tournament.status]);
 
   const handleStartTournament = () => {
     startTournament(tournament.id);
