@@ -1,0 +1,21 @@
+.player {
+  padding: var(--space-xs) var(--space-sm);
+  border-left: var(--space-sm) solid #ddd;
+  border-radius: 2px;
+
+  &.winner {
+    border-color: green;
+  }
+
+  &.loser {
+    border-color: red;
+
+    & > span {
+      opacity: 0.4;
+    }
+  }
+
+  &.draw {
+    border-color: orange;
+  }
+}

@@ -48,6 +48,24 @@
         "group": "50",
         "order": 3
       }
+    },
+    {
+      "name": "Tiebreakers",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "args": ["dev"],
+      "cwd": "${workspaceFolder}/packages/tiebreakers",
+      "serverReadyAction": {
+        "action": "debugWithChrome",
+        "pattern": "Local.+(https?://.+)",
+        "killOnServerStop": true,
+        "webRoot": "${workspaceFolder}/packages/frontend/src"
+      },
+      "presentation": {
+        "group": "60",
+        "order": 4
+      }
     }
   ]
 }

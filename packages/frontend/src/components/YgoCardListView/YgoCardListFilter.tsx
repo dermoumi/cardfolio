@@ -19,6 +19,7 @@ const YgoCardListFilter: FC<YgoCardListFilterProps> = ({ filters, setFilters }) 
   return (
     <div className={styles.filterBar}>
       <TextInput
+        name="card-name"
         type="search"
         placeholder="Search cards..."
         value={filters.name || ""}
