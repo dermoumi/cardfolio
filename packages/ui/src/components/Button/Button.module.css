@@ -1,4 +1,29 @@
 .button {
   display: block;
   padding: 0.5rem 1rem;
+
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+
+  background-color: var(--color-primary);
+  color: var(--color-primary-fg);
+  user-select: none;
+
+  border-radius: 999999px;
+  border: 1px solid transparent;
+
+  transition: transform 0.1s ease-in-out;
+
+  &:active {
+    transform: scale(0.98);
+    transition: transform 0.2s ease-in-out;
+  }
+
+  &[disabled] {
+    border-style: dashed;
+    border-color: var(--color-primary);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+  }
 }

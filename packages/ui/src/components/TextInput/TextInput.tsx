@@ -1,5 +1,7 @@
 import type { FC } from "react";
 
+import styles from "./TextInput.module.css";
+
 export type TextInputProps = {
   name: string;
   value?: string;
@@ -11,6 +13,7 @@ export type TextInputProps = {
 const TextInput: FC<TextInputProps> = ({ value, name, type = "text", onChange, placeholder }) => {
   return (
     <input
+      className={styles.textInput}
       name={name}
       type={type}
       value={value}

@@ -4,7 +4,8 @@
   --color-bg-alt: #18181b;
   --color-surface: #26262a;
   --color-surface-alt: #323238;
-  --color-primary: #e2b714;
+  --color-primary: #ffffff;
+  --color-primary-fg: #000000;
   --color-primary-hover: #f5d742;
   --color-secondary: #6c6f93;
   --color-accent: #7f5af0;
@@ -23,8 +24,10 @@
   --space-xl: 4rem;
 
   /* Typography */
-  --font-family-sans: "Inter", "Segoe UI", Arial, sans-serif;
-  --font-family-mono: "Fira Mono", "Menlo", monospace;
+  --font-family-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-family-mono: monospace;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
@@ -52,7 +55,8 @@
   --color-bg-alt: #f8f9fa;
   --color-surface: #ffffff;
   --color-surface-alt: #f1f3f5;
-  --color-primary: #e2b714;
+  --color-primary: #000000;
+  --color-primary-fg: #ffffff;
   --color-primary-hover: #c9a20d;
   --color-secondary: #6c6f93;
   --color-accent: #7f5af0;
