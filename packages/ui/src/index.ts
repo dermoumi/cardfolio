@@ -20,3 +20,6 @@ export * from "./components/ComboBox";
 
 export { default as ListView } from "./components/ListView";
 export * from "./components/ListView";
+
+export { default as Icon } from "./components/Icon";
+export * from "./components/Icon";

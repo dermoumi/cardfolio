@@ -9,7 +9,8 @@
     "lint": "tsc -b && dprint check && eslint"
   },
   "dependencies": {
-    "classnames": "^2.5.1"
+    "classnames": "^2.5.1",
+    "lucide-react": "^0.544.0"
   },
   "peerDependencies": {
     "@tanstack/react-router": "^1.131.41",

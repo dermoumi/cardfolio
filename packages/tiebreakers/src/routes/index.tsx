@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 
-import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
+import { Button, Icon, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
@@ -38,7 +38,10 @@ function App() {
                   placeholder="Tournament Name"
                 />
               </Stack.Stretch>
-              <Button type="submit">Add tournament</Button>
+              <Button type="submit">
+                <Icon name="network" />
+                Add tournament
+              </Button>
             </Stack>
           </form>
         </Surface>
