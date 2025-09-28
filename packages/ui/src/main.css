@@ -1,20 +1,29 @@
 :root {
   /* Colors */
-  --color-bg: #232326;
-  --color-bg-alt: #18181b;
-  --color-surface: #26262a;
-  --color-surface-alt: #323238;
-  --color-primary: #ffffff;
-  --color-primary-fg: #000000;
-  --color-primary-hover: #f5d742;
-  --color-secondary: #6c6f93;
-  --color-accent: #7f5af0;
-  --color-danger: #ff5c5c;
-  --color-success: #2ec27e;
-  --color-warning: #f4d35e;
-  --color-text: #e4e4e7;
-  --color-text-muted: #a1a1aa;
-  --color-border: #313136;
+  --color-primary-80: #d0a45d;
+  --color-primary-60: #ecc169;
+  --color-primary-50: #f3d278;
+  --color-primary-40: #f9e090;
+  --color-primray-30: #f5e9a4;
+
+  --color-gray-0: #fffaf7;
+  --color-gray-10: #faf7f5;
+  --color-gray-20: #e8e2de;
+  --color-gray-50: #8d8787;
+  --color-gray-80: #272b2f;
+  --color-gray-90: #1c1e21;
+  --color-gray-100: #090a0b;
+
+  --color-bg: var(--color-gray-90);
+  --color-surface: var(--color-gray-80);
+  --color-primary: var(--color-primary-60);
+  --color-primary-fg: var(--color-gray-80);
+  --color-primary-hover: var(--color-primary-40);
+  --color-accent: #e77d6f;
+  --color-danger: #d73247;
+  --color-success: #3ebd70;
+  --color-warning: var(--color-accent); /* ??? */
+  --color-text: var(--color-gray-10);
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -35,12 +44,13 @@
   --font-size-xl: 2rem;
   --font-weight-normal: 400;
   --font-weight-bold: 700;
-  --line-height: 1.5;
 
   /* Borders & Radius */
   --border-radius-sm: 3px;
   --border-radius-md: 6px;
   --border-radius-lg: 12px;
+  --border-radius-full: 9999px;
+
   --border-width: 1px;
 
   /* Shadows & Effects */
@@ -51,19 +61,10 @@
 }
 
 [data-theme="light"] {
-  --color-bg: #e9ecef;
-  --color-bg-alt: #f8f9fa;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f1f3f5;
-  --color-primary: #000000;
-  --color-primary-fg: #ffffff;
-  --color-primary-hover: #c9a20d;
-  --color-secondary: #6c6f93;
-  --color-accent: #7f5af0;
-  --color-danger: #d90429;
-  --color-success: #2ec27e;
-  --color-warning: #f4d35e;
-  --color-text: #18181b;
-  --color-text-muted: #6c6f93;
-  --color-border: #d1d5db;
+  --color-bg: var(--color-gray-10);
+  --color-surface: var(--color-gray-0);
+  --color-primary: var(--color-primary-50);
+  --color-primary-fg: var(--color-gray-80);
+  --color-primary-hover: var(--color-primary-30);
+  --color-text: var(--color-gray-80);
 }
