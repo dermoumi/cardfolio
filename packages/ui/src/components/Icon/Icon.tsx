@@ -1,9 +1,10 @@
 import type { FC } from "react";
 
-import { Network } from "lucide-react";
+import { ArrowLeft, Network } from "lucide-react";
 
 const ICON_MAP = {
   network: Network,
+  arrowLeft: ArrowLeft,
 };
 
 export type IconName = keyof typeof ICON_MAP;

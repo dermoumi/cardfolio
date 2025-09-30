@@ -33,7 +33,7 @@ const Button: FC<ButtonProps> = (
       className={classNames(
         VARIANT_CLASSES[variant],
         styles.button,
-        children === undefined && styles.iconOnly,
+        { [styles.iconOnly]: !children },
       )}
       onClick={onClick}
       disabled={disabled}

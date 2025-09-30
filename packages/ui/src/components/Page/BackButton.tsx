@@ -1,14 +1,16 @@
-import type { FC, PropsWithChildren } from "react";
+import type { FC } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 
+import { useScreenSize } from "../../providers/ScreenSizeProvider";
 import Button from "../Button";
 
-export type BackButtonProps = PropsWithChildren<{
+export type BackButtonProps = {
   to?: string;
   from?: string;
-}>;
+  label?: string;
+};
 
 /**
  * Checks if the given history state is the initial state.
@@ -36,8 +38,10 @@ function getParentPath(path: string): string {
 const BackButton: FC<BackButtonProps> = ({
   from,
   to = getParentPath(window.location.pathname),
-  children,
+  label = "Back",
 }) => {
+  const { screenSize } = useScreenSize();
+
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
@@ -49,7 +53,11 @@ const BackButton: FC<BackButtonProps> = ({
     navigate({ from, to, replace: true });
   }, [navigate, from, to]);
 
-  return <Button onClick={handleClick}>{children ?? "← Back"}</Button>;
+  return (
+    <Button onClick={handleClick} icon="arrowLeft" label={label} variant="subtle">
+      {screenSize === "sm" ? null : label}
+    </Button>
+  );
 };
 
 export default BackButton;

@@ -1,3 +1,4 @@
+import "./globals.d.ts";
 import "./main.css";
 
 export { default as Button } from "./components/Button";
