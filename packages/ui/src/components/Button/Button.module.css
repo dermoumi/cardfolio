@@ -3,7 +3,8 @@
   --color-bg: var(--color-primary);
   --color-bg-hover: var(--color-primary-hover);
   --color-bg-active: var(--color-primary-active);
-  --color-focus: var(--color-accent);
+  --color-focus: var(--color-primary-fg);
+  --outline-offset: -4px;
 
   --padding-sm: var(--space-sm);
   --padding-md: var(--space-md);
@@ -27,7 +28,7 @@
   border-radius: var(--border-radius-xl);
   border: 1px solid transparent;
   outline: 2px solid transparent;
-  outline-offset: 2px;
+  outline-offset: var(--outline-offset);
 
   transition: all 0.1s ease-in-out;
 
@@ -74,4 +75,6 @@
   --color-bg: transparent;
   --color-bg-hover: var(--color-subtle-hover);
   --color-bg-active: var(--color-subtle-active);
+  --color-focus: var(--color-primary-active);
+  --outline-offset: -2px;
 }
