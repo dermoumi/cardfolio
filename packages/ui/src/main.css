@@ -56,10 +56,11 @@
   --font-weight-bold: 700;
 
   /* Borders & Radius */
+  --border-radius-xs: 1px;
   --border-radius-sm: 3px;
   --border-radius-md: 6px;
   --border-radius-lg: 12px;
-  --border-radius-full: 9999px;
+  --border-radius-xl: 999999px;
 
   --border-width: 1px;
 

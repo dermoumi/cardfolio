@@ -1,6 +1,22 @@
 .button {
-  display: block;
-  padding: 0.5rem 1rem;
+  --color-fg: var(--color-primary-fg);
+  --color-bg: var(--color-primary);
+  --color-bg-hover: var(--color-primary-hover);
+  --color-bg-active: var(--color-primary-active);
+  --color-focus: var(--color-accent);
+
+  --padding-sm: var(--space-sm);
+  --padding-md: var(--space-md);
+
+  --padding-h: var(--padding-md);
+  --padding-v: var(--padding-sm);
+
+  display: flex;
+  padding: var(--padding-v) var(--padding-h);
+
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
 
   font-family: var(--font-family-sans);
   font-size: var(--font-size-md);
@@ -8,14 +24,30 @@
 
   user-select: none;
 
-  border-radius: 999999px;
+  border-radius: var(--border-radius-xl);
   border: 1px solid transparent;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
 
   transition: all 0.1s ease-in-out;
 
-  &:not([disabled]):active {
-    transform: scale(0.98);
-    transition: all 0.2s ease-in-out;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+
+  &:not([disabled]) {
+    &:focus {
+      outline-color: var(--color-focus);
+    }
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+
+    &:active {
+      background-color: var(--color-bg-active);
+      transform: scale(0.98);
+      transition: all 0.2s ease-in-out;
+    }
   }
 
   &[disabled] {
@@ -26,33 +58,20 @@
   }
 }
 
+.icon-only {
+  --padding-h: var(--padding-sm);
+}
+
 .primary {
-  background-color: var(--color-primary);
-  color: var(--color-primary-fg);
-
-  &:not([disabled]) {
-    &:hover {
-      background-color: var(--color-primary-hover);
-    }
-
-    &:active {
-      background-color: var(--color-primary-active);
-    }
-  }
+  --color-fg: var(--color-primary-fg);
+  --color-bg: var(--color-primary);
+  --color-bg-hover: var(--color-primary-hover);
+  --color-bg-active: var(--color-primary-active);
 }
 
 .subtle {
-  background-color: transparent;
-  color: inherit;
-
-  &:not([disabled]) {
-    &:hover {
-      background-color: var(--color-subtle-hover);
-      color: var(--color-subtle-fg);
-    }
-
-    &:active {
-      background-color: var(--color-subtle-active);
-    }
-  }
+  --color-fg: inherit;
+  --color-bg: transparent;
+  --color-bg-hover: var(--color-subtle-hover);
+  --color-bg-active: var(--color-subtle-active);
 }
