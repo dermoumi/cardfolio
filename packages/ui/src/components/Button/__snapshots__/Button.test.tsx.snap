@@ -3,7 +3,7 @@
 exports[`Button > matches snapshot 1`] = `
 <DocumentFragment>
   <button
-    class="_button_0829c1"
+    class="_primary_0829c1 _button_0829c1"
     type="button"
   >
     Button

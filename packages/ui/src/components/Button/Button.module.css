@@ -6,18 +6,16 @@
   font-size: var(--font-size-md);
   font-weight: 500;
 
-  background-color: var(--color-primary);
-  color: var(--color-primary-fg);
   user-select: none;
 
   border-radius: 999999px;
   border: 1px solid transparent;
 
-  transition: transform 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
 
-  &:active {
+  &:not([disabled]):active {
     transform: scale(0.98);
-    transition: transform 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
   }
 
   &[disabled] {
@@ -25,5 +23,36 @@
     border-color: var(--color-primary);
     background-color: var(--color-surface);
     color: var(--color-text);
+  }
+}
+
+.primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-fg);
+
+  &:not([disabled]) {
+    &:hover {
+      background-color: var(--color-primary-hover);
+    }
+
+    &:active {
+      background-color: var(--color-primary-active);
+    }
+  }
+}
+
+.subtle {
+  background-color: transparent;
+  color: inherit;
+
+  &:not([disabled]) {
+    &:hover {
+      background-color: var(--color-subtle-hover);
+      color: var(--color-subtle-fg);
+    }
+
+    &:active {
+      background-color: var(--color-subtle-active);
+    }
   }
 }

@@ -1,10 +1,16 @@
 :root {
   /* Colors */
-  --color-primary-80: #d0a45d;
+  --color-primary-85: #3f2f12;
+  --color-primary-80: #4f3a17;
+  --color-primary-70: #d0a45d;
+  --color-primary-65: #deb363;
   --color-primary-60: #ecc169;
+  --color-primary-55: #f0ca71;
   --color-primary-50: #f3d278;
+  --color-primary-45: #f6d984;
   --color-primary-40: #f9e090;
-  --color-primray-30: #f5e9a4;
+  --color-primary-30: #f5e9a4;
+  --color-primary-10: #fceec5;
 
   --color-gray-0: #fffaf7;
   --color-gray-10: #faf7f5;
@@ -18,7 +24,11 @@
   --color-surface: var(--color-gray-80);
   --color-primary: var(--color-primary-60);
   --color-primary-fg: var(--color-gray-80);
-  --color-primary-hover: var(--color-primary-40);
+  --color-primary-hover: var(--color-primary-50);
+  --color-primary-active: var(--color-primary-65);
+  --color-subtle-fg: var(--color-gray-10);
+  --color-subtle-hover: var(--color-primary-80);
+  --color-subtle-active: var(--color-primary-85);
   --color-accent: #e77d6f;
   --color-danger: #d73247;
   --color-success: #3ebd70;
@@ -65,6 +75,10 @@
   --color-surface: var(--color-gray-0);
   --color-primary: var(--color-primary-50);
   --color-primary-fg: var(--color-gray-80);
-  --color-primary-hover: var(--color-primary-30);
+  --color-primary-hover: var(--color-primary-45);
+  --color-primary-active: var(--color-primary-55);
+  --color-subtle-fg: var(--color-gray-80);
+  --color-subtle-hover: var(--color-primary-10);
+  --color-subtle-active: var(--color-primary-55);
   --color-text: var(--color-gray-80);
 }

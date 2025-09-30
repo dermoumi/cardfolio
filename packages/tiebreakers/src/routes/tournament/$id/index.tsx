@@ -165,7 +165,7 @@ const RoundComponent: FC<RoundComponentProps> = (
       <Page.Toolbar>
         <Page.BackButton from={Route.fullPath} to="/" />
         <Page.ToolbarSpacer />
-        <Button onClick={handleShowScores}>
+        <Button onClick={handleShowScores} variant="subtle">
           Player scores
         </Button>
         <Button
