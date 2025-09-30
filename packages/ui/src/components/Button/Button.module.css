@@ -1,8 +1,8 @@
 .button {
-  --color-fg: var(--color-primary-fg);
-  --color-bg: var(--color-primary);
-  --color-bg-hover: var(--color-primary-hover);
-  --color-bg-active: var(--color-primary-active);
+  --btn-fg: var(--color-primary-fg);
+  --btn-bg: var(--color-primary);
+  --btn-bg-hover: var(--color-primary-hover);
+  --btn-bg-active: var(--color-primary-active);
   --color-focus: var(--color-primary-fg);
   --outline-offset: -4px;
 
@@ -32,8 +32,10 @@
 
   transition: all 0.1s ease-in-out;
 
-  background-color: var(--color-bg);
-  color: var(--color-fg);
+  background-color: var(--btn-bg);
+  color: var(--btn-fg);
+
+  box-shadow: 0 0 0 2px var(--color-bg);
 
   &:not([disabled]) {
     &:focus {
@@ -41,11 +43,11 @@
     }
 
     &:hover {
-      background-color: var(--color-bg-hover);
+      background-color: var(--btn-bg-hover);
     }
 
     &:active {
-      background-color: var(--color-bg-active);
+      background-color: var(--btn-bg-active);
       transform: scale(0.98);
       transition: all 0.2s ease-in-out;
     }
@@ -64,17 +66,17 @@
 }
 
 .primary {
-  --color-fg: var(--color-primary-fg);
-  --color-bg: var(--color-primary);
-  --color-bg-hover: var(--color-primary-hover);
-  --color-bg-active: var(--color-primary-active);
+  --btn-fg: var(--color-primary-fg);
+  --btn-bg: var(--color-primary);
+  --btn-bg-hover: var(--color-primary-hover);
+  --btn-bg-active: var(--color-primary-active);
 }
 
 .subtle {
-  --color-fg: inherit;
-  --color-bg: transparent;
-  --color-bg-hover: var(--color-subtle-hover);
-  --color-bg-active: var(--color-subtle-active);
+  --btn-fg: inherit;
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--color-subtle-hover);
+  --btn-bg-active: var(--color-subtle-active);
   --color-focus: var(--color-primary-active);
   --outline-offset: -2px;
 }

@@ -1,7 +1,7 @@
 import type { Round, Tournament } from "@/store/tournamentStore";
 import type { FC, FormEvent } from "react";
 
-import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
+import { Button, FloatingAction, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 
@@ -168,13 +168,14 @@ const RoundComponent: FC<RoundComponentProps> = (
         <Button onClick={handleShowScores} variant="subtle">
           Player scores
         </Button>
-        <Button
-          disabled={!allMatchesCompleted || !isViewingLastRound(tournament.id)}
-          onClick={handleEndRound}
-        >
-          End round
-        </Button>
       </Page.Toolbar>
+      <FloatingAction
+        disabled={!allMatchesCompleted || !isViewingLastRound(tournament.id)}
+        onClick={handleEndRound}
+        icon="calendarClock"
+      >
+        End round
+      </FloatingAction>
       <Stack>
         <Stack horizontal gap="small">
           <Button

@@ -25,6 +25,9 @@ export * from "./components/ListView";
 export { default as Icon } from "./components/Icon";
 export * from "./components/Icon";
 
+export { default as FloatingAction } from "./components/FloatingAction";
+export * from "./components/FloatingAction";
+
 export { default as ScreenSizeProvider } from "./providers/ScreenSizeProvider";
 export * from "./providers/ScreenSizeProvider";
 
