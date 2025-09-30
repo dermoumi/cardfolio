@@ -26,3 +26,6 @@ export * from "./components/Icon";
 
 export { default as ScreenSizeProvider } from "./providers/ScreenSizeProvider";
 export * from "./providers/ScreenSizeProvider";
+
+export { default as ThemeProvider } from "./providers/ThemeProvider";
+export * from "./providers/ThemeProvider";

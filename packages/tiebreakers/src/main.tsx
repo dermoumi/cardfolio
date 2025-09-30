@@ -1,4 +1,4 @@
-import { ScreenSizeProvider } from "@cardfolio/ui";
+import { ScreenSizeProvider, ThemeProvider } from "@cardfolio/ui";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
@@ -29,9 +29,6 @@ declare module "@tanstack/react-router" {
 // Setup react-query client
 const queryClient = new QueryClient();
 
-// Set initial theme to light
-document.body.dataset.theme = "light";
-
 // Render the app
 const rootElement = document.getElementById("app");
 if (rootElement && !rootElement.innerHTML) {
@@ -39,9 +36,11 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <ScreenSizeProvider>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </ThemeProvider>
       </ScreenSizeProvider>
     </StrictMode>,
   );
