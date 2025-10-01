@@ -1,6 +1,6 @@
 .floating-action {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 1000;
+  bottom: var(--space-lg);
+  inset-inline-end: var(--space-lg);
+  z-index: 100;
 }
