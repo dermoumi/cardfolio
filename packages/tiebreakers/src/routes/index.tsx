@@ -56,7 +56,7 @@ function App() {
 
             return (
               <ListView.Item key={t.id}>
-                <Route.Link to={`/tournament/${t.id}/`}>{t.name}</Route.Link> (
+                <Route.Link to={`/${t.id}/`}>{t.name}</Route.Link> (
                 <a href="#" onClick={handleDelete}>delete</a>
                 )
               </ListView.Item>

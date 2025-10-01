@@ -8,7 +8,7 @@ import {
   useTournamentStore,
 } from "@/store/tournamentStore";
 
-export const Route = createFileRoute("/tournament/$id/scores")({
+export const Route = createFileRoute("/$id/scores")({
   component: ScoresPage,
 });
 
@@ -32,7 +32,7 @@ function ScoresPage() {
     <Page>
       <Page.Header
         title={tournament.name}
-        backAction={<Page.BackButton from={Route.fullPath} to={`/tournament/${id}`} />}
+        backAction={<Page.BackButton from={Route.fullPath} to={`/${id}`} />}
       />
       <h3>Player scores</h3>
       <ListView>

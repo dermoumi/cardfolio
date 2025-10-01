@@ -8,7 +8,7 @@ import { useCallback, useMemo, useState } from "react";
 import MatchComponent from "@/components/MatchComponent";
 import { useTournamentStore } from "@/store/tournamentStore";
 
-export const Route = createFileRoute("/tournament/$id/")({
+export const Route = createFileRoute("/$id/")({
   component: TournamentPage,
 });
 
@@ -161,7 +161,7 @@ const RoundComponent: FC<RoundComponentProps> = (
   const navigate = Route.useNavigate();
 
   const handleShowScores = useCallback(() => {
-    navigate({ to: `/tournament/${tournament.id}/scores` });
+    navigate({ to: `/${tournament.id}/scores` });
   }, [navigate, tournament.id]);
 
   return (
