@@ -29,10 +29,11 @@ function ScoresPage() {
     ).sort(([, scoreA], [, scoreB]) => scoreB - scoreA), [tournament]);
 
   return (
-    <Page title={`Tourney ${tournament.name}`}>
-      <Page.Toolbar>
-        <Page.BackButton from={Route.fullPath} to="/" />
-      </Page.Toolbar>
+    <Page>
+      <Page.Header
+        title={tournament.name}
+        backAction={<Page.BackButton from={Route.fullPath} to={`/tournament/${id}`} />}
+      />
       <h3>Player scores</h3>
       <ListView>
         {scores.map(([player, score, wins, losses, draws]) => {

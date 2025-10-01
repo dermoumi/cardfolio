@@ -1,0 +1,35 @@
+.header {
+  display: flex;
+  justify-content: stretch;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 3.5rem;
+
+  [data-screen-size="lg"] & {
+    flex-direction: column;
+    align-items: start;
+    gap: 0;
+  }
+}
+
+.back-action {
+  flex: 0;
+}
+
+.title-container {
+  display: flex;
+  flex: 1;
+  justify-content: stretch;
+  align-items: center;
+}
+
+.title {
+  flex: 1;
+  font-size: var(--font-size-md);
+  user-select: none;
+}
+
+.actions {
+  flex: 0;
+}

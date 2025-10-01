@@ -6,23 +6,17 @@ import { useEffect, useState } from "react";
 
 import BackButton from "./BackButton";
 import { PageContext } from "./context";
-import { HeaderContext } from "./HeaderContext";
 import styles from "./Page.module.css";
-import PageToolbar from "./PageToolbar";
-import PageToolbarSpacer from "./PageToolbarSpacer";
+import PageHeader from "./PageHeader";
 
-export type PageProps = PropsWithChildren<{
-  title?: string;
-}>;
+export type PageProps = PropsWithChildren;
 
 type PageComponent = FC<PageProps> & {
-  Toolbar: typeof PageToolbar;
-  ToolbarSpacer: typeof PageToolbar;
+  Header: typeof PageHeader;
   BackButton: typeof BackButton;
 };
 
-const Page: PageComponent = ({ title, children }) => {
-  const [toolbarRef, setToolbarRef] = useState<HTMLDivElement | null>(null);
+const Page: PageComponent = ({ children }) => {
   const [fabsRegistered, setFabsRegistered] = useState(0);
 
   // Restore scroll position on mount, after first render
@@ -49,22 +43,15 @@ const Page: PageComponent = ({ title, children }) => {
   return (
     <PageContext.Provider value={{ registerFab, unregisterFab }}>
       <main className={classNames(styles.page, { [styles.hasFab]: fabsRegistered > 0 })}>
-        <header className={styles.pageHeader}>
-          <h2 className={styles.pageTitle}>{title}</h2>
-          <div className={styles.pageToolbar} ref={setToolbarRef} />
-        </header>
         <div className={styles.pageContent}>
-          <HeaderContext.Provider value={{ toolbarRef }}>
-            {children}
-          </HeaderContext.Provider>
+          {children}
         </div>
       </main>
     </PageContext.Provider>
   );
 };
 
-Page.Toolbar = PageToolbar;
-Page.ToolbarSpacer = PageToolbarSpacer;
+Page.Header = PageHeader;
 Page.BackButton = BackButton;
 
 export default Page;

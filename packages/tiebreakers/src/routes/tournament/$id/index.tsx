@@ -18,7 +18,7 @@ function TournamentPage() {
   if (!tournament) return <div>Tournament not found</div>;
 
   return (
-    <Page title={`Tourney ${tournament.name}`}>
+    <Page>
       {tournament.status === "setup" && <Setup tournament={tournament} />}
       {tournament.status === "in-progress" && <MatchesView tournament={tournament} />}
     </Page>
@@ -52,13 +52,17 @@ const Setup: FC<SetupProps> = ({ tournament }) => {
 
   return (
     <>
-      <Page.Toolbar>
-        <Page.BackButton from={Route.fullPath} to="/" />
-        <Page.ToolbarSpacer />
-        <Button disabled={tournament.players.length <= 2} onClick={handleStartTournament}>
-          Start tournament
-        </Button>
-      </Page.Toolbar>
+      <Page.Header
+        title={tournament.name}
+        backAction={<Page.BackButton from={Route.fullPath} to="/" />}
+      />
+      <FloatingAction
+        disabled={tournament.players.length <= 2}
+        onClick={handleStartTournament}
+        icon="network"
+      >
+        Start tournament
+      </FloatingAction>
       <h3>Players</h3>
       <Surface>
         <form onSubmit={handleAddPlayer}>
@@ -162,13 +166,11 @@ const RoundComponent: FC<RoundComponentProps> = (
 
   return (
     <>
-      <Page.Toolbar>
-        <Page.BackButton from={Route.fullPath} to="/" />
-        <Page.ToolbarSpacer />
-        <Button onClick={handleShowScores} variant="subtle">
-          Player scores
-        </Button>
-      </Page.Toolbar>
+      <Page.Header
+        title={tournament.name}
+        backAction={<Page.BackButton from={Route.fullPath} to="/" />}
+        actions={<Button onClick={handleShowScores} variant="subtle">Scores</Button>}
+      />
       <FloatingAction
         disabled={!allMatchesCompleted || !isViewingLastRound(tournament.id)}
         onClick={handleEndRound}

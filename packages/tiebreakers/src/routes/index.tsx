@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEventHandler } from "react";
 
 import { Button, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
@@ -25,8 +25,9 @@ function App() {
   }, [name, createTournament, navigate]);
 
   return (
-    <Page title="Tournaments">
+    <Page>
       <Stack>
+        <Page.Header title="Tournaments" />
         <Surface>
           <form onSubmit={handleCreateTournament}>
             <Stack horizontal gap="small">
@@ -45,24 +46,22 @@ function App() {
           </form>
         </Surface>
         <ListView>
-          {tournaments.map((t) => (
-            <ListView.Item key={t.id}>
-              <Route.Link to={`/tournament/${t.id}/`}>{t.name}</Route.Link> (
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!window.confirm(`Delete tournament "${t.name}"? This cannot be undone.`)) {
-                    return;
-                  }
-                  removeTournament(t.id);
-                }}
-              >
-                delete
-              </a>
-              )
-            </ListView.Item>
-          ))}
+          {tournaments.map((t) => {
+            const handleDelete: MouseEventHandler = (e) => {
+              e.preventDefault();
+              if (!window.confirm(`Delete tournament "${t.name}"? This cannot be undone.`)) return;
+
+              removeTournament(t.id);
+            };
+
+            return (
+              <ListView.Item key={t.id}>
+                <Route.Link to={`/tournament/${t.id}/`}>{t.name}</Route.Link> (
+                <a href="#" onClick={handleDelete}>delete</a>
+                )
+              </ListView.Item>
+            );
+          })}
         </ListView>
       </Stack>
     </Page>
