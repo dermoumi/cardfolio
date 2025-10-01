@@ -55,7 +55,7 @@ const BackButton: FC<BackButtonProps> = ({
 
   return (
     <Button onClick={handleClick} icon="arrowLeft" label={label} variant="subtle">
-      {screenSize === "sm" ? null : label}
+      {screenSize === "lg" && label}
     </Button>
   );
 };
