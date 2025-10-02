@@ -44,8 +44,7 @@ const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament, tab
   }, [match.result]);
 
   return (
-    <Surface variant="outlined">
-      <Surface.Header>Table {table}</Surface.Header>
+    <Surface variant="outlined" header={`Table ${table}`}>
       <Stack>
         <div className={classNames(styles.player, playerAStatus)}>
           <span>{playerA?.name}</span>

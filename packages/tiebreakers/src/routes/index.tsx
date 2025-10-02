@@ -28,7 +28,7 @@ function App() {
     <Page>
       <Stack>
         <Page.Header title="Tournaments" />
-        <Surface>
+        <Surface header="Add a tournament">
           <form onSubmit={handleCreateTournament}>
             <Stack horizontal gap="small">
               <Stack.Stretch>

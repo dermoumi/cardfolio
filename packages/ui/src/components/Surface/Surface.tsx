@@ -1,41 +1,27 @@
 import type { FC, PropsWithChildren } from "react";
 
 import classNames from "classnames";
-import { useState } from "react";
 
 import styles from "./Surface.module.css";
-import { SurfaceContext } from "./SurfaceContext";
-import SurfaceHeader from "./SurfaceHeader";
-
-export type SurfaceProps = PropsWithChildren<{
-  variant?: "soft" | "outlined" | "transparent";
-}>;
 
 const VARIANT_MAP = {
   soft: styles.soft,
   outlined: styles.outlined,
-  transparent: styles.transparent,
+  subtle: styles.subtle,
 } as const;
 
-export type SurfaceComponent = FC<SurfaceProps> & {
-  Header: typeof SurfaceHeader;
-};
+export type SurfaceProps = PropsWithChildren<{
+  variant?: keyof typeof VARIANT_MAP;
+  header?: React.ReactNode;
+}>;
 
-const Surface: SurfaceComponent = ({ children, variant = "soft" }) => {
-  const [headerRef, setHeaderRef] = useState<HTMLDivElement | null>(null);
-
+const Surface: FC<SurfaceProps> = ({ children, variant = "soft", header }) => {
   return (
     <div className={classNames(styles.surface, VARIANT_MAP[variant])}>
-      <div className={styles.header} ref={setHeaderRef} />
-      <div className={styles.body}>
-        <SurfaceContext.Provider value={{ headerRef }}>
-          {children}
-        </SurfaceContext.Provider>
-      </div>
+      {header && <div className={styles.header}>{header}</div>}
+      <div className={styles.body}>{children}</div>
     </div>
   );
 };
-
-Surface.Header = SurfaceHeader;
 
 export default Surface;

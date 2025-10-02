@@ -84,7 +84,7 @@ const Setup: FC<SetupProps> = ({ tournament }) => {
           </Stack>
         </form>
       </Surface>
-      <Surface variant="transparent">
+      <Surface variant="subtle">
         <Stack gap="small">
           {tournament.players.map((player) => (
             <Stack horizontal gap="small" key={player.id}>
