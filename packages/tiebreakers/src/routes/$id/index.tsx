@@ -1,12 +1,9 @@
-import type { Round, Tournament } from "@/store/tournamentStore";
-import type { FC, FormEvent } from "react";
-
-import { Button, FloatingAction, ListView, Page, Stack, Surface, TextInput } from "@cardfolio/ui";
+import { Button, FloatingAction, ListView, Page, Stack } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 import MatchComponent from "@/components/MatchComponent";
-import { useTournamentStore } from "@/store/tournamentStore";
+import { findTournament, getCurrentRound, useTournamentStore } from "@/store/tournamentStore";
 
 export const Route = createFileRoute("/$id/")({
   component: TournamentPage,
@@ -14,136 +11,20 @@ export const Route = createFileRoute("/$id/")({
 
 function TournamentPage() {
   const { id } = Route.useParams();
-  const tournament = useTournamentStore((state) => state.tournaments.find((t) => t.id === id));
+  const tournament = useTournamentStore(({ tournaments }) => findTournament(tournaments, id));
   if (!tournament) return <div>Tournament not found</div>;
 
-  return (
-    <Page>
-      {tournament.status === "setup" && <Setup tournament={tournament} />}
-      {tournament.status === "in-progress" && <MatchesView tournament={tournament} />}
-    </Page>
-  );
-}
+  const currentRound = getCurrentRound(tournament);
+  const round = useMemo(() => {
+    if (currentRound === undefined) throw new Error("No current round");
+    const r = tournament.rounds[currentRound];
+    if (!r) throw new Error("Current round not found");
+    return r;
+  }, [currentRound, tournament.rounds]);
 
-type SetupProps = {
-  tournament: Tournament;
-};
-
-const Setup: FC<SetupProps> = ({ tournament }) => {
-  const addPlayer = useTournamentStore((state) => state.addPlayer);
-  const removePlayer = useTournamentStore((state) => state.removePlayer);
-  const renamePlayer = useTournamentStore((state) => state.renamePlayer);
-
-  const startTournament = useTournamentStore((state) => state.startTournament);
-
-  const [playerName, setPlayerName] = useState("");
-
-  const handleAddPlayer = useCallback((event: FormEvent) => {
-    event.preventDefault();
-    if (!playerName || tournament.status !== "setup") return;
-
-    addPlayer(tournament.id, playerName);
-    setPlayerName("");
-  }, [playerName, addPlayer, tournament.id, tournament.status]);
-
-  const handleStartTournament = () => {
-    startTournament(tournament.id);
-  };
-
-  return (
-    <>
-      <Page.Header
-        title={tournament.name}
-        backAction={<Page.BackButton from={Route.fullPath} to="/" />}
-      />
-      <FloatingAction
-        disabled={tournament.players.length <= 2}
-        onClick={handleStartTournament}
-        icon="network"
-      >
-        Start tournament
-      </FloatingAction>
-      <h3>Players</h3>
-      <Surface>
-        <form onSubmit={handleAddPlayer}>
-          <Stack horizontal gap="small">
-            <Stack.Stretch>
-              <TextInput
-                name="new-player-name"
-                placeholder="Add a player..."
-                value={playerName}
-                onChange={setPlayerName}
-              />
-            </Stack.Stretch>
-            <Button
-              disabled={!playerName || tournament.status !== "setup"}
-              type="submit"
-            >
-              Add
-            </Button>
-          </Stack>
-        </form>
-      </Surface>
-      <Surface variant="subtle">
-        <Stack gap="small">
-          {tournament.players.map((player) => (
-            <Stack horizontal gap="small" key={player.id}>
-              <Stack.Stretch>
-                <TextInput
-                  name={`player-${player.id}-name`}
-                  placeholder="Player name"
-                  value={player.name}
-                  onChange={(name) => renamePlayer(tournament.id, player.id, name)}
-                />
-              </Stack.Stretch>
-              <Button
-                disabled={tournament.status !== "setup"}
-                onClick={() => {
-                  if (
-                    tournament.status !== "setup"
-                    || !window.confirm(`Remove player "${player.name}"?`)
-                  ) return;
-
-                  removePlayer(tournament.id, player.id);
-                }}
-              >
-                Remove
-              </Button>
-            </Stack>
-          ))}
-        </Stack>
-      </Surface>
-    </>
-  );
-};
-
-type MatchesViewProps = {
-  tournament: Tournament;
-};
-
-const MatchesView: FC<MatchesViewProps> = ({ tournament }) => {
-  const currentRound = tournament.currentRound ?? (tournament.rounds.length - 1);
-  const round = useMemo(() => tournament.rounds[currentRound], [currentRound, tournament.rounds]);
-
-  return round
-    ? <RoundComponent round={round} tournament={tournament} />
-    : <div>No rounds yet</div>;
-};
-
-type RoundComponentProps = {
-  tournament: Tournament;
-  round: Round;
-};
-
-const RoundComponent: FC<RoundComponentProps> = (
-  {
-    round,
-    tournament,
-  },
-) => {
-  const allMatchesCompleted = useMemo(() => round.matches.every((match) => match.result), [
-    round.matches,
-  ]);
+  const allMatchesCompleted = useMemo(() => {
+    return round.matches.every((match) => match.result);
+  }, [round.matches]);
 
   const nextRound = useTournamentStore((state) => state.nextRound);
   const isViewingFirstRound = useTournamentStore((state) => state.isViewingFirstRound);
@@ -165,7 +46,7 @@ const RoundComponent: FC<RoundComponentProps> = (
   }, [navigate, tournament.id]);
 
   return (
-    <>
+    <Page>
       <Page.Header
         title={tournament.name}
         backAction={<Page.BackButton from={Route.fullPath} to="/" />}
@@ -217,6 +98,6 @@ const RoundComponent: FC<RoundComponentProps> = (
         <div>
         </div>
       </Stack>
-    </>
+    </Page>
   );
-};
+}

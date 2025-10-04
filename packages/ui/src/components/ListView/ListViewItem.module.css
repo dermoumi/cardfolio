@@ -1,7 +1,26 @@
 .list-view-item {
-  padding-top: var(--space-sm);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-sm);
+}
 
-  &:first-child {
-    padding-top: 0;
+.content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.clickable {
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-surface-alt);
   }
 }

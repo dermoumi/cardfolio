@@ -1,0 +1,13 @@
+.number-input {
+  display: block;
+  padding: 0.5rem 1rem;
+
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+
+  background-color: var(--color-surface);
+  color: var(--color-text);
+
+  border-radius: 999999px;
+  border: 1px solid var(--color-primary);
+}

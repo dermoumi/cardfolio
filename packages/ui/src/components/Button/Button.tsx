@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import type { FC, MouseEventHandler } from "react";
 import type { IconName } from "../Icon";
 
 import classNames from "classnames";
@@ -13,11 +13,12 @@ const VARIANT_CLASSES = {
 
 type CommonProps = {
   type?: "button" | "submit";
-  onClick?: () => void;
+  onClick?: MouseEventHandler;
   disabled?: boolean;
   variant?: keyof typeof VARIANT_CLASSES;
   icon?: IconName;
   label?: string;
+  form?: string;
 };
 
 export type ButtonProps =
@@ -25,7 +26,7 @@ export type ButtonProps =
   | (CommonProps & { icon: IconName; label: string; children?: undefined; });
 
 const Button: FC<ButtonProps> = (
-  { type = "button", onClick, disabled, variant = "primary", children, icon, label },
+  { type = "button", onClick, disabled, variant = "primary", children, icon, label, form },
 ) => {
   return (
     <button
@@ -38,6 +39,7 @@ const Button: FC<ButtonProps> = (
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
+      form={form}
     >
       {icon && <Icon name={icon} />}
       {children}

@@ -8,9 +8,13 @@ export type TextInputProps = {
   type?: "text" | "password" | "search";
   onChange?: (value: string) => void;
   placeholder?: string;
+  required?: boolean;
+  form?: string;
 };
 
-const TextInput: FC<TextInputProps> = ({ value, name, type = "text", onChange, placeholder }) => {
+const TextInput: FC<TextInputProps> = (
+  { value, name, type = "text", onChange, placeholder, required, form },
+) => {
   return (
     <input
       className={styles.textInput}
@@ -19,6 +23,8 @@ const TextInput: FC<TextInputProps> = ({ value, name, type = "text", onChange, p
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
       placeholder={placeholder}
+      required={required}
+      form={form}
     />
   );
 };

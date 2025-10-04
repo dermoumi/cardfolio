@@ -1,11 +1,13 @@
 import type { FC } from "react";
 
-import { ArrowLeft, CalendarClock, Network } from "lucide-react";
+import { ArrowLeft, CalendarClock, Network, Plus, X } from "lucide-react";
 
 const ICON_MAP = {
   network: Network,
   arrowLeft: ArrowLeft,
   calendarClock: CalendarClock,
+  plus: Plus,
+  x: X,
 };
 
 export type IconName = keyof typeof ICON_MAP;

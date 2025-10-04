@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NumberInput > matches snapshot 1`] = `
+<DocumentFragment>
+  <input
+    class="_numberInput_1ad6bf"
+    name="test"
+    placeholder="Enter text"
+    type="number"
+  />
+</DocumentFragment>
+`;

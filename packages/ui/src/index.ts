@@ -7,6 +7,9 @@ export * from "./components/Button";
 export { default as TextInput } from "./components/TextInput";
 export * from "./components/TextInput";
 
+export { default as NumberInput } from "./components/NumberInput";
+export * from "./components/NumberInput";
+
 export { default as Page } from "./components/Page";
 export * from "./components/Page";
 

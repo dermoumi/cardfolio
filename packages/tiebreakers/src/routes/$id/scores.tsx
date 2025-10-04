@@ -18,15 +18,17 @@ function ScoresPage() {
   const tournament = useTournamentStore((state) => state.tournaments.find((t) => t.id === id));
   if (!tournament) return <div>Tournament not found</div>;
 
-  const scores = useMemo(() =>
-    tournament.players.map(
+  const scores = useMemo(() => {
+    const { players, rounds, config } = tournament;
+    return players.map(
       (player) => {
-        const score = calculatePlayerScore(tournament, player);
-        const { wins, losses, draws } = getPlayerWinsLossesDraws(tournament, player);
+        const score = calculatePlayerScore(player, rounds, players, config);
+        const { wins, losses, draws } = getPlayerWinsLossesDraws(player, rounds);
 
         return [player, score, wins, losses, draws] as const;
       },
-    ).sort(([, scoreA], [, scoreB]) => scoreB - scoreA), [tournament]);
+    ).sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
+  }, [tournament]);
 
   return (
     <Page>
