@@ -18,6 +18,7 @@ export type MatchComponentProps = {
 
 const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament, table }) => {
   const addResult = useTournamentStore((state) => state.addResult);
+  const { result } = match;
 
   const playerA = useMemo(() => tournament.players.find((p) => p.id === match.playerA), [
     match.playerA,
@@ -30,18 +31,18 @@ const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament, tab
   ]);
 
   const playerAStatus = useMemo(() => {
-    if (match.result === "A") return styles.winner;
-    if (match.result === "B") return styles.loser;
-    if (match.result === "draw") return styles.draw;
+    if (result === "A") return styles.winner;
+    if (result === "B" || result === "loss") return styles.loser;
+    if (result === "draw") return styles.draw;
     return "Pending";
-  }, [match.result]);
+  }, [result]);
 
   const playerBStatus = useMemo(() => {
-    if (match.result === "B") return styles.winner;
-    if (match.result === "A") return styles.loser;
-    if (match.result === "draw") return styles.draw;
+    if (result === "B") return styles.winner;
+    if (result === "A" || result === "loss") return styles.loser;
+    if (result === "draw") return styles.draw;
     return "Pending";
-  }, [match.result]);
+  }, [result]);
 
   return (
     <Surface variant="outlined" header={`Table ${table}`}>
@@ -73,7 +74,8 @@ const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament, tab
             Draw
           </Button>
           <Button
-            disabled={true}
+            disabled={!playerB}
+            onClick={() => addResult(tournament.id, round.id, match.id, "loss")}
           >
             Loss
           </Button>

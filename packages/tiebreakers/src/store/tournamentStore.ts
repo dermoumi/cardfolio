@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type ID = string;
-export type Result = "A" | "B" | "draw";
+export type Result = "A" | "B" | "draw" | "loss";
 
 const DEFAULT_WIN_POINTS = 3;
 const DEFAULT_DRAW_POINTS = 1;
@@ -80,7 +80,9 @@ export function getPlayerWinsLossesDraws(
     .flatMap((round) => round.matches)
     .reduce(
       ([w, l, d], { playerA, playerB, result }) => {
-        if (playerA === player.id) {
+        if (result === "loss") {
+          l++;
+        } else if (playerA === player.id) {
           if (result === "A") w++;
           else if (result === "B") l++;
           else if (result === "draw") d++;
@@ -99,11 +101,9 @@ export function getPlayerWinsLossesDraws(
 }
 
 function getPlayerOpponentsIds(player: Player, rounds: Array<Round>): Array<ID> {
-  return rounds.flatMap((round) =>
-    round.matches
-      .filter(
-        (match) => match.playerA === player.id || match.playerB === player.id,
-      )
+  return rounds.flatMap(({ matches }) =>
+    matches
+      .filter((match) => match.playerA === player.id || match.playerB === player.id)
       .map((match) => (match.playerA === player.id ? match.playerB : match.playerA))
       .filter((id): id is ID => !!id)
   );
@@ -126,7 +126,7 @@ function getPlayerRoundsLost(player: Player, rounds: Array<Round>): Array<number
       if (!result || (playerA !== player.id && playerB !== player.id)) return;
 
       const isPlayerA = playerA === player.id;
-      if ((result === "B" && isPlayerA) || (result === "A" && !isPlayerA)) {
+      if (result === "loss" || (result === "B" && isPlayerA) || (result === "A" && !isPlayerA)) {
         roundsLost.push(number);
       }
     });
