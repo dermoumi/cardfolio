@@ -204,6 +204,12 @@ export function calculatePlayerScore(
     + Math.min(sumSqRoundsLost, 999);
 }
 
+function getTimesByed(player: Player, rounds: Array<Round>): number {
+  return rounds.flatMap(({ matches }) =>
+    matches.filter((match) => match.playerA === player.id && !match.playerB)
+  ).length;
+}
+
 function shuffleArray<T>(array: Array<T>): Array<T> {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -224,10 +230,21 @@ function sortPlayersByScore(
   // We shuffle to add a tiny degree of randomness to players with the same score
   const players = shuffle ? shuffleArray(playerList) : [...playerList];
 
+  // We first sort by times byed to ensure players with byes are ranked heigher
   return players.sort((a, b) =>
     calculatePlayerScore(b, rounds, playerList, config)
     - calculatePlayerScore(a, rounds, playerList, config)
   );
+}
+
+// If we have an odd number of players, we need to give a bye
+// Out of the players with the least byes, take the one with the lowest score
+function getByePlayer(playersByScore: Array<Player>, rounds: Array<Round>): Player | undefined {
+  if (playersByScore.length % 2 === 0) return undefined;
+
+  const minByes = Math.min(...playersByScore.map(p => getTimesByed(p, rounds)));
+  const candidatesForBye = playersByScore.filter(p => getTimesByed(p, rounds) === minByes);
+  return candidatesForBye[candidatesForBye.length - 1];
 }
 
 // Sorts players by their score string in descending order
@@ -239,60 +256,49 @@ function generateSwissPairings(
   config: Config,
   shuffle: boolean = true,
 ): Array<Match> {
-  const playersByScore = sortPlayersByScore(playerList, rounds, config, shuffle);
-
   const matches: Array<Match> = [];
   const pairedPlayerIds = new Set<ID>();
 
-  for (let i = 0; i < playersByScore.length; i++) {
-    const playerA = playersByScore[i];
-    if (!playerA) continue;
-    if (pairedPlayerIds.has(playerA.id)) continue;
+  const playersByScore = sortPlayersByScore(playerList, rounds, config, shuffle);
+  const playerForBye = getByePlayer(playersByScore, rounds);
 
-    const opponents = getPlayerOpponentsIds(playerA, rounds);
+  // Remove the bype player from the players list
+  if (playerForBye) {
+    const index = playersByScore.findIndex(p => p.id === playerForBye.id);
+    if (index !== -1) playersByScore.splice(index, 1);
+  }
 
-    let playerB: Player | undefined;
+  // For each player, find their opponent
+  playersByScore.forEach((playerA, i) => {
+    if (pairedPlayerIds.has(playerA.id)) return;
 
-    // Try to find an opponent
-    for (let j = i + 1; j < playersByScore.length; j++) {
-      const potentialOpp = playersByScore[j];
-      if (!potentialOpp) continue;
+    const previousOpponentsIds = getPlayerOpponentsIds(playerA, rounds);
+    const potentialOpponents = playersByScore.slice(i + 1).filter(p => !pairedPlayerIds.has(p.id));
 
-      if (!pairedPlayerIds.has(potentialOpp.id) && !opponents.includes(potentialOpp.id)) {
-        playerB = potentialOpp;
-        break;
-      }
-    }
+    // Try to find an opponent, that hasn't been paired yet and isn't a rematch
+    const playerB = potentialOpponents.find(({ id }) => !previousOpponentsIds.includes(id))
+      ?? potentialOpponents[0];
 
-    // If no opponent found without rematch, just take the next available player
     if (!playerB) {
-      for (let j = i + 1; j < playersByScore.length; j++) {
-        const potentialOpponent = playersByScore[j];
-        if (!potentialOpponent) continue;
-
-        if (!pairedPlayerIds.has(potentialOpponent.id)) {
-          playerB = potentialOpponent;
-          break;
-        }
-      }
+      throw new Error("Failed to find opponent for player");
     }
 
-    if (playerB) {
-      matches.push({
-        id: nanoid(),
-        playerA: playerA.id,
-        playerB: playerB.id,
-      });
-      pairedPlayerIds.add(playerA.id);
-      pairedPlayerIds.add(playerB.id);
-    } else {
-      // Bye
-      matches.push({
-        id: nanoid(),
-        playerA: playerA.id,
-      });
-      pairedPlayerIds.add(playerA.id);
-    }
+    matches.push({
+      id: nanoid(),
+      playerA: playerA.id,
+      playerB: playerB.id,
+    });
+    pairedPlayerIds.add(playerA.id);
+    pairedPlayerIds.add(playerB.id);
+  });
+
+  // Add the bye match if applicable
+  if (playerForBye) {
+    matches.push({
+      id: nanoid(),
+      playerA: playerForBye.id,
+      playerB: undefined,
+    });
   }
 
   return matches;
