@@ -41,7 +41,7 @@ function RouteComponent() {
 
     const id = createTournament(name, playerList, winPoints, drawPoints, lossPoints);
 
-    navigate({ to: `/${id}/` });
+    navigate({ to: `/${id}/`, replace: true });
   }, [name, createTournament, navigate, playerList, winPoints, drawPoints, lossPoints]);
 
   const handleAddPlayer = useCallback((event: FormEvent) => {
