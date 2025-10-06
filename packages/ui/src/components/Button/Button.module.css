@@ -4,7 +4,6 @@
   --btn-bg-hover: var(--color-primary-hover);
   --btn-bg-active: var(--color-primary-active);
   --color-focus: var(--color-primary-fg);
-  --outline-offset: -4px;
 
   --padding-sm: var(--space-sm);
   --padding-md: var(--space-md);
@@ -27,8 +26,8 @@
 
   border-radius: var(--border-radius-xl);
   border: 1px solid transparent;
-  outline: 2px solid transparent;
-  outline-offset: var(--outline-offset);
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 
   transition: all 0.1s ease-in-out;
 
@@ -38,8 +37,8 @@
   box-shadow: 0 0 0 2px var(--color-bg);
 
   &:not([disabled]) {
-    &:focus {
-      outline-color: var(--color-focus);
+    &:focus-visible {
+      outline: var(--focus-outline-hover);
     }
 
     &:hover {
@@ -49,7 +48,7 @@
     &:active {
       background-color: var(--btn-bg-active);
       transform: scale(0.98);
-      transition: all 0.2s ease-in-out;
+      transition: all 0.4s ease-in-out;
     }
   }
 
@@ -72,11 +71,37 @@
   --btn-bg-active: var(--color-primary-active);
 }
 
+.secondary {
+  --btn-fg: var(--color-secondary-fg);
+  --btn-bg: var(--color-secondary);
+  --btn-bg-hover: var(--color-secondary-hover);
+  --btn-bg-active: var(--color-secondary-active);
+}
+
 .subtle {
   --btn-fg: inherit;
-  --btn-bg: transparent;
+  --btn-bg: var(--color-bg);
   --btn-bg-hover: var(--color-subtle-hover);
   --btn-bg-active: var(--color-subtle-active);
-  --color-focus: var(--color-primary-active);
-  --outline-offset: -2px;
+}
+
+.small {
+  --padding-sm: var(--space-xs);
+  --padding-md: var(--space-sm);
+
+  font-size: var(--font-size-sm);
+}
+
+.medium {
+  --padding-sm: var(--space-sm);
+  --padding-md: var(--space-md);
+
+  font-size: var(--font-size-md);
+}
+
+.large {
+  --padding-sm: var(--space-md);
+  --padding-md: var(--space-lg);
+
+  font-size: var(--font-size-lg);
 }

@@ -1,6 +1,6 @@
 import type { MouseEventHandler } from "react";
 
-import { Button, ListView, Page, Stack } from "@cardfolio/ui";
+import { Button, FloatingAction, ListView, Page, Stack } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback } from "react";
 
@@ -23,8 +23,11 @@ function App() {
     <Page>
       <Stack>
         <Page.Header
-          title="Tournaments"
-          actions={<Button onClick={handleNewTournament}>New</Button>}
+          variant="centered"
+          title="Tiebreaker Calculator"
+          actions={
+            <FloatingAction onClick={handleNewTournament} icon="plus" size="lg">New</FloatingAction>
+          }
         />
         <ListView>
           {tournaments.map((t) => {
@@ -43,7 +46,15 @@ function App() {
             return (
               <ListView.Item
                 key={t.id}
-                actions={<Button onClick={handleDelete}>Delete</Button>}
+                actions={
+                  <Button
+                    onClick={handleDelete}
+                    size="sm"
+                    icon="trash"
+                    label="Delete"
+                    variant="secondary"
+                  />
+                }
                 onClick={handleClick}
               >
                 {t.name}

@@ -49,16 +49,21 @@ function TournamentPage() {
     <Page>
       <Page.Header
         title={tournament.name}
-        backAction={<Page.BackButton from={Route.fullPath} to="/" />}
-        actions={<Button onClick={handleShowScores} variant="subtle">Scores</Button>}
+        navSlot={<Page.BackButton from={Route.fullPath} to="/" />}
+        actions={
+          <>
+            <Button onClick={handleShowScores} variant="subtle">Scores</Button>
+            <FloatingAction
+              disabled={!allMatchesCompleted || !isViewingLastRound(tournament.id)}
+              onClick={handleEndRound}
+              icon="calendarClock"
+              size="lg"
+            >
+              End round
+            </FloatingAction>
+          </>
+        }
       />
-      <FloatingAction
-        disabled={!allMatchesCompleted || !isViewingLastRound(tournament.id)}
-        onClick={handleEndRound}
-        icon="calendarClock"
-      >
-        End round
-      </FloatingAction>
       <Stack>
         <Stack horizontal gap="small">
           <Button

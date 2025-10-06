@@ -5,6 +5,7 @@
   align-items: center;
   gap: var(--space-sm);
   min-height: 4rem;
+  padding: 0 var(--space-sm);
 
   [data-screen-size="lg"] & {
     flex-direction: column;
@@ -14,8 +15,9 @@
   }
 }
 
-.back-action {
+.nav-slot {
   flex: 0;
+  min-width: 2.5rem;
 }
 
 .title-container {
@@ -37,4 +39,18 @@
 
 .actions {
   flex: 0;
+}
+
+.normal .title {
+  text-align: left;
+}
+
+.centered {
+  & .title {
+    text-align: center;
+  }
+
+  & .nav-slot {
+    min-width: unset;
+  }
 }

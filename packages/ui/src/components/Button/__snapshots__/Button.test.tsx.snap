@@ -3,7 +3,7 @@
 exports[`Button > matches snapshot 1`] = `
 <DocumentFragment>
   <button
-    class="_primary_0829c1 _button_0829c1"
+    class="_primary_0829c1 _medium_0829c1 _button_0829c1"
     type="button"
   >
     Button
@@ -14,19 +14,19 @@ exports[`Button > matches snapshot 1`] = `
 exports[`Button > matches snapshot with icon 1`] = `
 <DocumentFragment>
   <button
-    class="_primary_0829c1 _button_0829c1"
+    class="_primary_0829c1 _medium_0829c1 _button_0829c1"
     type="button"
   >
     <svg
       class="lucide lucide-network"
       fill="none"
-      height="24"
+      height="16"
       stroke="currentColor"
       stroke-linecap="round"
       stroke-linejoin="round"
       stroke-width="2"
       viewBox="0 0 24 24"
-      width="24"
+      width="16"
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect

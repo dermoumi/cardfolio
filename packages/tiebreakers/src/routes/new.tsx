@@ -59,7 +59,7 @@ function RouteComponent() {
         <Page>
           <Page.Header
             title="New tournament"
-            backAction={<Page.BackButton from={Route.fullPath} to="/" />}
+            navSlot={<Page.BackButton from={Route.fullPath} to="/" />}
             actions={<Button type="submit" icon="network">Save</Button>}
           />
           <Stack>

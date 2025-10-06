@@ -34,7 +34,7 @@ function ScoresPage() {
     <Page>
       <Page.Header
         title={tournament.name}
-        backAction={<Page.BackButton from={Route.fullPath} to={`/${id}`} />}
+        navSlot={<Page.BackButton from={Route.fullPath} to={`/${id}`} />}
       />
       <h3>Player scores</h3>
       <ListView>
