@@ -8,7 +8,7 @@ import YgoCardListFilter from "./YgoCardListFilter";
 import styles from "./YgoCardListView.module.css";
 
 export type YgoCardListProps = {
-  cards: Array<YgoCard>;
+  cards: YgoCard[];
   fetchNextPage: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;

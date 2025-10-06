@@ -73,6 +73,7 @@ export default tseslint.config(
         varsIgnorePattern: "^_",
         argsIgnorePattern: "^_",
       }],
+      "@typescript-eslint/array-type": ["error", { default: "array-simple" }],
       // PostCSS
       "postcss-modules/no-undef-class": "error",
       "postcss-modules/no-unused-class": "warn",
@@ -81,6 +82,8 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      "react-hooks/rules-of-hooks": ["error"],
+      "react-hooks/exhaustive-deps": ["warn"],
     },
   },
   {

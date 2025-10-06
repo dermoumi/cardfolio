@@ -1,0 +1,29 @@
+.surface {
+  border-radius: var(--border-radius-sm);
+
+  & .header {
+    background-color: var(--color-border);
+    padding: var(--space-sm);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  & .body {
+    padding: var(--space-sm);
+  }
+}
+
+.soft {
+  background-color: var(--color-surface);
+}
+
+.outlined {
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.subtle {
+  background-color: transparent;
+}

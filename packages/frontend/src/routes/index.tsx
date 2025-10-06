@@ -10,7 +10,7 @@ function App() {
 
   const callback = useCallback(() => {
     console.log(state);
-  }, []);
+  }, [state]);
 
   return (
     <div>

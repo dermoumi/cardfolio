@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import YgoCardListView from ".";
 
 describe("YgoCardListView", () => {
-  const mockCards: Array<YgoCard> = [
+  const mockCards: YgoCard[] = [
     {
       "id": 15,
       "updatedAt": "2025-09-03T21:54:04.817564Z",

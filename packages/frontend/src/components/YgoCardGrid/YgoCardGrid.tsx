@@ -5,7 +5,7 @@ import YgoCardItem from "../YgoCardItem";
 import styles from "./YgoCardGrid.module.css";
 
 export type YgoCardGridProps = {
-  cards: Array<YgoCard>;
+  cards: YgoCard[];
 };
 
 const YgoCardGrid: FC<YgoCardGridProps> = ({ cards }) => {
