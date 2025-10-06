@@ -26,7 +26,7 @@ function RouteComponent() {
   const [winPoints, setWinPoints] = useState(3);
   const [drawPoints, setDrawPoints] = useState(1);
   const [lossPoints, setLossPoints] = useState(1);
-  const [playerList, setPlayerList] = useState<Array<Player>>([]);
+  const [playerList, setPlayerList] = useState<Player[]>([]);
   const [shufflePlayers, setShufflePlayers] = useState(true);
 
   const playerListFormId = useId();

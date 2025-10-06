@@ -26,14 +26,14 @@ export type Match = {
 export type Round = {
   id: ID;
   number: number;
-  matches: Array<Match>;
+  matches: Match[];
 };
 
 export type Tournament = {
   id: ID;
   name: string;
-  players: Array<Player>;
-  rounds: Array<Round>;
+  players: Player[];
+  rounds: Round[];
   currentRound?: number;
   status: "in-progress" | "top-cut" | "finished";
   config: Config;
@@ -47,12 +47,12 @@ export type Config = {
 };
 
 type Store = {
-  tournaments: Array<Tournament>;
+  tournaments: Tournament[];
 
   // actions
   createTournament: (
     name: string,
-    players: Array<Player>,
+    players: Player[],
     winPoints?: number,
     drawPoints?: number,
     lossPoints?: number,
@@ -74,7 +74,7 @@ type Store = {
 
 export function getPlayerWinsLossesDraws(
   player: Player,
-  rounds: Array<Round>,
+  rounds: Round[],
 ): { wins: number; losses: number; draws: number; } {
   const [wins, losses, draws] = rounds
     .flatMap((round) => round.matches)
@@ -100,7 +100,7 @@ export function getPlayerWinsLossesDraws(
   return { wins, losses, draws };
 }
 
-function getPlayerOpponentsIds(player: Player, rounds: Array<Round>): Array<ID> {
+function getPlayerOpponentsIds(player: Player, rounds: Round[]): ID[] {
   return rounds.flatMap(({ matches }) =>
     matches
       .filter((match) => match.playerA === player.id || match.playerB === player.id)
@@ -111,16 +111,16 @@ function getPlayerOpponentsIds(player: Player, rounds: Array<Round>): Array<ID> 
 
 function getPlayerOpponents(
   player: Player,
-  rounds: Array<Round>,
-  playerList: Array<Player>,
-): Array<Player> {
+  rounds: Round[],
+  playerList: Player[],
+): Player[] {
   return getPlayerOpponentsIds(player, rounds)
     .map((opponentId) => playerList.find((p) => p.id === opponentId))
     .filter((p): p is Player => !!p);
 }
 
-function getPlayerRoundsLost(player: Player, rounds: Array<Round>): Array<number> {
-  const roundsLost: Array<number> = [];
+function getPlayerRoundsLost(player: Player, rounds: Round[]): number[] {
+  const roundsLost: number[] = [];
   rounds.forEach(({ matches, number }) => {
     matches.forEach(({ result, playerA, playerB }) => {
       if (!result || (playerA !== player.id && playerB !== player.id)) return;
@@ -135,17 +135,17 @@ function getPlayerRoundsLost(player: Player, rounds: Array<Round>): Array<number
   return roundsLost;
 }
 
-function getTotalPossiblePoints(rounds: Array<Round>, { winPoints }: Config): number {
+function getTotalPossiblePoints(rounds: Round[], { winPoints }: Config): number {
   return rounds.length * winPoints;
 }
 
-function getMatchPoints(player: Player, rounds: Array<Round>, config: Config): number {
+function getMatchPoints(player: Player, rounds: Round[], config: Config): number {
   const { winPoints, drawPoints, lossPoints } = config;
   const { wins, draws, losses } = getPlayerWinsLossesDraws(player, rounds);
   return wins * winPoints + draws * drawPoints + losses * lossPoints;
 }
 
-function getMWP(player: Player, rounds: Array<Round>, config: Config): number {
+function getMWP(player: Player, rounds: Round[], config: Config): number {
   const totalPossiblePoints = getTotalPossiblePoints(rounds, config);
   if (totalPossiblePoints === 0) return 0;
 
@@ -155,8 +155,8 @@ function getMWP(player: Player, rounds: Array<Round>, config: Config): number {
 
 function getOppMWP(
   player: Player,
-  rounds: Array<Round>,
-  playerList: Array<Player>,
+  rounds: Round[],
+  playerList: Player[],
   config: Config,
 ): number {
   const opponents = getPlayerOpponents(player, rounds, playerList);
@@ -168,8 +168,8 @@ function getOppMWP(
 
 function getOppsOppMWP(
   player: Player,
-  rounds: Array<Round>,
-  playerList: Array<Player>,
+  rounds: Round[],
+  playerList: Player[],
   config: Config,
 ): number {
   const opponents = getPlayerOpponents(player, rounds, playerList);
@@ -184,8 +184,8 @@ function getOppsOppMWP(
 
 export function calculatePlayerScore(
   player: Player,
-  rounds: Array<Round>,
-  playerList: Array<Player>,
+  rounds: Round[],
+  playerList: Player[],
   config: Config,
 ): PlayerScore {
   const matchPoints = getMatchPoints(player, rounds, config);
@@ -204,13 +204,13 @@ export function calculatePlayerScore(
     + Math.min(sumSqRoundsLost, 999);
 }
 
-function getTimesByed(player: Player, rounds: Array<Round>): number {
+function getTimesByed(player: Player, rounds: Round[]): number {
   return rounds.flatMap(({ matches }) =>
     matches.filter((match) => match.playerA === player.id && !match.playerB)
   ).length;
 }
 
-function shuffleArray<T>(array: Array<T>): Array<T> {
+function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -222,11 +222,11 @@ function shuffleArray<T>(array: Array<T>): Array<T> {
 
 // Helper to sort players by their score in descending order
 function sortPlayersByScore(
-  playerList: Array<Player>,
-  rounds: Array<Round>,
+  playerList: Player[],
+  rounds: Round[],
   config: Config,
   shuffle: boolean = true,
-): Array<Player> {
+): Player[] {
   // We shuffle to add a tiny degree of randomness to players with the same score
   const players = shuffle ? shuffleArray(playerList) : [...playerList];
 
@@ -239,7 +239,7 @@ function sortPlayersByScore(
 
 // If we have an odd number of players, we need to give a bye
 // Out of the players with the least byes, take the one with the lowest score
-function getByePlayer(playersByScore: Array<Player>, rounds: Array<Round>): Player | undefined {
+function getByePlayer(playersByScore: Player[], rounds: Round[]): Player | undefined {
   if (playersByScore.length % 2 === 0) return undefined;
 
   const minByes = Math.min(...playersByScore.map(p => getTimesByed(p, rounds)));
@@ -251,12 +251,12 @@ function getByePlayer(playersByScore: Array<Player>, rounds: Array<Round>): Play
 // pair adjancent, avoid rematches if possible by searching forward
 // If odd number of players, last player gets a bye
 function generateSwissPairings(
-  playerList: Array<Player>,
-  rounds: Array<Round>,
+  playerList: Player[],
+  rounds: Round[],
   config: Config,
   shuffle: boolean = true,
-): Array<Match> {
-  const matches: Array<Match> = [];
+): Match[] {
+  const matches: Match[] = [];
   const pairedPlayerIds = new Set<ID>();
 
   const playersByScore = sortPlayersByScore(playerList, rounds, config, shuffle);
@@ -311,7 +311,7 @@ export function getCurrentRound(tournament: Tournament): number | undefined {
 
 // Helper to find a tournament by ID
 export function findTournament(
-  tournaments: Array<Tournament>,
+  tournaments: Tournament[],
   tournamentId: ID,
 ): Tournament | undefined {
   return tournaments.find(t => t.id === tournamentId);
@@ -329,10 +329,10 @@ function isInProgressStatus(tournament: Tournament): boolean {
 
 // Generic helper function to update an item in an array by ID
 function updateById<T extends { id: ID; }>(
-  items: Array<T>,
+  items: T[],
   id: ID,
   updater: (item: T) => T,
-): Array<T> {
+): T[] {
   return items.map((item) => {
     if (item.id === id) {
       return updater(item);

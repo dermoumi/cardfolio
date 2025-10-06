@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import YgoCardGrid from ".";
 
 describe("YgoCardGrid", () => {
-  const mockCards: Array<YgoCard> = [
+  const mockCards: YgoCard[] = [
     {
       "id": 15,
       "updatedAt": "2025-09-03T21:54:04.817564Z",

@@ -114,13 +114,13 @@ type YgoCardMonster = YgoCardCommonFields & {
   monsterKind: YgoMonsterKind;
   monsterAttribute: YgoMonsterAttribute;
   monsterRace: YgoMonsterRace;
-  monsterSubtypes?: Array<YgoMonsterSubtype>;
+  monsterSubtypes?: YgoMonsterSubtype[];
   monsterAtk: number;
   monsterDef: number;
   monsterLevel: number;
   monsterPendulumScale?: number;
   monsterPendulumEffect?: string;
-  monsterLinkArrows?: Array<YgoLinkArrows>;
+  monsterLinkArrows?: YgoLinkArrows[];
 };
 
 /**
@@ -151,15 +151,15 @@ export type YgoCardFilters = {
   name?: string;
   description?: string;
   kind?: YgoCardKind;
-  attribute?: Array<YgoMonsterAttribute>;
-  race?: Array<YgoMonsterRace>;
-  subtype?: Array<YgoMonsterSubtype>;
+  attribute?: YgoMonsterAttribute[];
+  race?: YgoMonsterRace[];
+  subtype?: YgoMonsterSubtype[];
   atkMin?: number;
   atkMax?: number;
   defMin?: number;
   defMax?: number;
   levelMin?: number;
   levelMax?: number;
-  spellKind?: Array<YgoSpellKind>;
-  trapKind?: Array<YgoTrapKind>;
+  spellKind?: YgoSpellKind[];
+  trapKind?: YgoTrapKind[];
 };
