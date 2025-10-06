@@ -9,17 +9,17 @@
     "lint": "tsc -b && dprint check && eslint"
   },
   "dependencies": {
-    "classnames": "^2.5.1",
     "lucide-react": "^0.544.0"
   },
   "peerDependencies": {
-    "@tanstack/react-router": "^1.131.41",
+    "@tanstack/react-router": "catalog:",
+    "classnames": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@cardfolio/tsconfig": "workspace:^",
-    "@tanstack/react-router": "^1.132.41",
+    "@cardfolio/tsconfig": "workspace:",
+    "@tanstack/react-router": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
