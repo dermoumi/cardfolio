@@ -1,6 +1,4 @@
-import type { MouseEventHandler } from "react";
-
-import { Button, FloatingAction, ListView, Page, Stack } from "@cardfolio/ui";
+import { FloatingAction, ListView, Page, Stack } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback } from "react";
 
@@ -31,32 +29,26 @@ function App() {
         />
         <ListView>
           {tournaments.map((t) => {
-            const handleClick: MouseEventHandler = (e) => {
-              e.preventDefault();
+            const handleClick = () => {
               navigate({ to: `/${t.id}/` });
             };
 
-            const handleDelete: MouseEventHandler = (e) => {
-              e.preventDefault();
-              if (!window.confirm(`Delete tournament "${t.name}"? This cannot be undone.`)) return;
-
-              removeTournament(t.id);
+            const handleDelete = () => {
+              if (window.confirm(`Delete tournament "${t.name}"? This cannot be undone.`)) {
+                removeTournament(t.id);
+              }
             };
 
             return (
               <ListView.Item
                 key={t.id}
-                actions={
-                  <Button
-                    onClick={handleDelete}
-                    size="sm"
-                    icon="trash"
-                    label="Delete"
-                    variant="secondary"
-                  />
-                }
                 onClick={handleClick}
               >
+                <ListView.Action
+                  onClick={handleDelete}
+                  icon="trash"
+                  label="Delete"
+                />
                 {t.name}
               </ListView.Item>
             );

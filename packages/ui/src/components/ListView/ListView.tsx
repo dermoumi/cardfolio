@@ -1,18 +1,21 @@
 import type { FC, PropsWithChildren } from "react";
 
+import ListItem from "./ListItem";
+import ListItemAction from "./ListItemAction";
 import styles from "./ListView.module.css";
-import ListViewItem from "./ListViewItem";
 
 export type ListViewProps = PropsWithChildren;
 
 type ListviewComponent = FC<ListViewProps> & {
-  Item: typeof ListViewItem;
+  Item: typeof ListItem;
+  Action: typeof ListItemAction;
 };
 
 const ListView: ListviewComponent = ({ children }) => {
   return <ul className={styles.listView}>{children}</ul>;
 };
 
-ListView.Item = ListViewItem;
+ListView.Item = ListItem;
+ListView.Action = ListItemAction;
 
 export default ListView;

@@ -10,7 +10,6 @@ import {
   Stack,
   Surface,
   TextInput,
-  useScreenSize,
 } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { nanoid } from "nanoid";
@@ -32,8 +31,6 @@ function RouteComponent() {
 
   const playerListFormId = useId();
   const [playerName, setPlayerName] = useState("");
-
-  const { screenSize } = useScreenSize();
 
   const createTournament = useTournamentStore((state) => state.createTournament);
   const navigate = Route.useNavigate();
@@ -120,14 +117,11 @@ function RouteComponent() {
                       setPlayerList((prev) => prev.filter((toRemove) => toRemove.id !== id));
                     };
 
-                    const removeAction = (
-                      <Button onClick={handleDelete} icon="x">
-                        {screenSize === "sm" ? null : "Remove"}
-                      </Button>
-                    );
-
                     return (
-                      <ListView.Item key={`${id}`} actions={removeAction}>{player}</ListView.Item>
+                      <ListView.Item key={`${id}`}>
+                        <ListView.Action onClick={handleDelete} icon="x" label="Remove" />
+                        {player}
+                      </ListView.Item>
                     );
                   })}
                 </ListView>
