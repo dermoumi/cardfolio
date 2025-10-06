@@ -2,7 +2,7 @@ use postgres_types::ToSql;
 
 /// Utility to keep track of query parameters for database queries
 pub struct QueryParams {
-    params: Vec<Box<(dyn ToSql + Sync + Send)>>,
+    params: Vec<Box<dyn ToSql + Sync + Send>>,
 }
 
 impl QueryParams {
