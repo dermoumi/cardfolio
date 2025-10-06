@@ -36,3 +36,6 @@ export * from "./providers/ScreenSizeProvider";
 
 export { default as ThemeProvider } from "./providers/ThemeProvider";
 export * from "./providers/ThemeProvider";
+
+export { default as Checkbox } from "./components/Checkbox";
+export * from "./components/Checkbox";

@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 
 import {
   Button,
+  Checkbox,
   ListView,
   NumberInput,
   Page,
@@ -27,6 +28,7 @@ function RouteComponent() {
   const [drawPoints, setDrawPoints] = useState(1);
   const [lossPoints, setLossPoints] = useState(1);
   const [playerList, setPlayerList] = useState<Array<Player>>([]);
+  const [shufflePlayers, setShufflePlayers] = useState(true);
 
   const playerListFormId = useId();
   const [playerName, setPlayerName] = useState("");
@@ -39,10 +41,26 @@ function RouteComponent() {
   const handleCreateTournament = useCallback((event: FormEvent) => {
     event.preventDefault();
 
-    const id = createTournament(name, playerList, winPoints, drawPoints, lossPoints);
+    const id = createTournament(
+      name,
+      playerList,
+      winPoints,
+      drawPoints,
+      lossPoints,
+      shufflePlayers,
+    );
 
     navigate({ to: `/${id}/`, replace: true });
-  }, [name, createTournament, navigate, playerList, winPoints, drawPoints, lossPoints]);
+  }, [
+    name,
+    createTournament,
+    navigate,
+    playerList,
+    winPoints,
+    drawPoints,
+    lossPoints,
+    shufflePlayers,
+  ]);
 
   const handleAddPlayer = useCallback((event: FormEvent) => {
     event.preventDefault();
@@ -60,7 +78,7 @@ function RouteComponent() {
           <Page.Header
             title="New tournament"
             navSlot={<Page.BackButton from={Route.fullPath} to="/" />}
-            actions={<Button type="submit" icon="network">Save</Button>}
+            actions={<Button type="submit" icon="save">Save</Button>}
           />
           <Stack>
             <Surface header="Tournament name">
@@ -146,6 +164,14 @@ function RouteComponent() {
                     min={0}
                     required
                   />
+                </label>
+                <label>
+                  <Checkbox
+                    name="shufflePlayers"
+                    checked={shufflePlayers}
+                    onChange={setShufflePlayers}
+                  />
+                  Shuffle players at random for first round
                 </label>
               </Stack>
             </Surface>
