@@ -25,6 +25,7 @@
         "pin",
         "digest"
       ],
+      "minimumReleaseAge": "1 day",
       "automerge": true
     }
   ]
