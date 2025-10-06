@@ -1,5 +1,5 @@
 import { ListView, Page, Stack } from "@cardfolio/ui";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import {
@@ -16,7 +16,7 @@ function ScoresPage() {
   const { id } = Route.useParams();
 
   const tournament = useTournamentStore((state) => state.tournaments.find((t) => t.id === id));
-  if (!tournament) return <div>Tournament not found</div>;
+  if (!tournament) throw notFound();
 
   const scores = useMemo(() => {
     const { players, rounds, config } = tournament;

@@ -6,7 +6,7 @@
     "dev": "vite --port 5174",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "tsc -b && dprint check && eslint"
+    "lint": "tsc -b && dprint check && eslint --max-warnings 0"
   },
   "dependencies": {
     "@cardfolio/ui": "workspace:",

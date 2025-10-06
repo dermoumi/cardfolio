@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
-    "lint": "tsc -b && dprint check && eslint"
+    "lint": "tsc -b && dprint check && eslint --max-warnings 0"
   },
   "dependencies": {
     "lucide-react": "^0.544.0"

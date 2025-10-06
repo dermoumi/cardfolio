@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
-    "lint": "tsc -b && dprint check && eslint"
+    "lint": "tsc -b && dprint check && eslint --max-warnings 0"
   },
   "dependencies": {
     "@cardfolio/ui": "workspace:",

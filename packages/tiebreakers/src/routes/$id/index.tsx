@@ -1,5 +1,5 @@
 import { Button, FloatingAction, ListView, Page, Stack } from "@cardfolio/ui";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
 
 import MatchComponent from "@/components/MatchComponent";
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/$id/")({
 function TournamentPage() {
   const { id } = Route.useParams();
   const tournament = useTournamentStore(({ tournaments }) => findTournament(tournaments, id));
-  if (!tournament) return <div>Tournament not found</div>;
+  if (!tournament) throw notFound();
 
   const currentRound = getCurrentRound(tournament);
   const round = useMemo(() => {
