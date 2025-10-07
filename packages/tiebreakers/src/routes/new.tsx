@@ -3,10 +3,10 @@ import type { FormEvent } from "react";
 
 import {
   Button,
-  Checkbox,
   ListView,
   NumberInput,
   Page,
+  RadioGroup,
   Stack,
   Surface,
   TextInput,
@@ -25,9 +25,9 @@ function RouteComponent() {
   const [name, setName] = useState("");
   const [winPoints, setWinPoints] = useState(3);
   const [drawPoints, setDrawPoints] = useState(1);
-  const [lossPoints, setLossPoints] = useState(1);
+  const [lossPoints, setLossPoints] = useState(0);
   const [playerList, setPlayerList] = useState<Player[]>([]);
-  const [shufflePlayers, setShufflePlayers] = useState(true);
+  const [playerOrder, setPlayerOrder] = useState<string>("shuffleFirstRound");
 
   const playerListFormId = useId();
   const [playerName, setPlayerName] = useState("");
@@ -44,7 +44,7 @@ function RouteComponent() {
       winPoints,
       drawPoints,
       lossPoints,
-      shufflePlayers,
+      playerOrder === "shuffleFirstRound",
     );
 
     navigate({ to: `/${id}/`, replace: true });
@@ -56,7 +56,7 @@ function RouteComponent() {
     winPoints,
     drawPoints,
     lossPoints,
-    shufflePlayers,
+    playerOrder,
   ]);
 
   const handleAddPlayer = useCallback((event: FormEvent) => {
@@ -83,7 +83,7 @@ function RouteComponent() {
                 <TextInput
                   name="name"
                   value={name}
-                  onChange={(value) => setName(value)}
+                  onChange={setName}
                   placeholder="Tournament Name"
                   required
                 />
@@ -118,7 +118,7 @@ function RouteComponent() {
                     };
 
                     return (
-                      <ListView.Item key={`${id}`}>
+                      <ListView.Item key={`player-${id}`}>
                         <ListView.Action onClick={handleDelete} icon="x" label="Remove" />
                         {player}
                       </ListView.Item>
@@ -159,14 +159,10 @@ function RouteComponent() {
                     required
                   />
                 </label>
-                <label>
-                  <Checkbox
-                    name="shufflePlayers"
-                    checked={shufflePlayers}
-                    onChange={setShufflePlayers}
-                  />
-                  Shuffle players at random for first round
-                </label>
+                <RadioGroup name="playerOrder" value={playerOrder} onChange={setPlayerOrder}>
+                  <RadioGroup.Option label="Shuffle first round" value="shuffleFirstRound" />
+                  <RadioGroup.Option label="Keep players order" value="keepPlayersOrder" />
+                </RadioGroup>
               </Stack>
             </Surface>
           </Stack>

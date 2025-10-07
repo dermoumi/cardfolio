@@ -39,3 +39,6 @@ export * from "./providers/ThemeProvider";
 
 export { default as Checkbox } from "./components/Checkbox";
 export * from "./components/Checkbox";
+
+export { default as RadioGroup } from "./components/RadioGroup";
+export * from "./components/RadioGroup";
