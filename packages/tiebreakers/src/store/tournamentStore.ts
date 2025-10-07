@@ -5,10 +5,6 @@ import { persist } from "zustand/middleware";
 export type ID = string;
 export type Result = "A" | "B" | "draw" | "loss";
 
-const DEFAULT_WIN_POINTS = 3;
-const DEFAULT_DRAW_POINTS = 1;
-const DEFAULT_LOSS_POINTS = 0;
-
 type PlayerScore = number;
 
 export type Player = {
@@ -43,21 +39,14 @@ export type Config = {
   winPoints: number;
   drawPoints: number;
   lossPoints: number;
-  shuffleFirstRound: boolean;
+  shuffleRounds: "skipFirst" | "all" | "none";
 };
 
 type Store = {
   tournaments: Tournament[];
 
   // actions
-  createTournament: (
-    name: string,
-    players: Player[],
-    winPoints?: number,
-    drawPoints?: number,
-    lossPoints?: number,
-    shuffleFirstRound?: boolean,
-  ) => ID;
+  createTournament: (name: string, players: Player[], config: Config) => ID;
   removeTournament: (tournamentId: ID) => void;
 
   viewFirstRound: (tournamentId: ID) => void;
@@ -345,25 +334,11 @@ export const useTournamentStore = create<Store>()(
   persist(
     (set, get) => ({
       tournaments: [],
-      createTournament: (
-        name,
-        players,
-        winPoints = DEFAULT_WIN_POINTS,
-        drawPoints = DEFAULT_DRAW_POINTS,
-        lossPoints = DEFAULT_LOSS_POINTS,
-        shuffleFirstRound = true,
-      ) => {
-        const config = {
-          winPoints,
-          drawPoints,
-          lossPoints,
-          shuffleFirstRound,
-        };
-
+      createTournament: (name, players, config) => {
         const firstRound = {
           id: nanoid(),
           number: 1,
-          matches: generateSwissPairings(players, [], config, shuffleFirstRound),
+          matches: generateSwissPairings(players, [], config, config.shuffleRounds === "all"),
         } as Round;
 
         const newTournament = {
@@ -472,7 +447,12 @@ export const useTournamentStore = create<Store>()(
             const newRound: Round = {
               id: nanoid(),
               number: rounds.length + 1,
-              matches: generateSwissPairings(players, rounds, config),
+              matches: generateSwissPairings(
+                players,
+                rounds,
+                config,
+                config.shuffleRounds !== "none",
+              ),
             };
 
             return {

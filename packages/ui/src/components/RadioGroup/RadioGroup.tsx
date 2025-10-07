@@ -1,17 +1,19 @@
-import type { FC, PropsWithChildren } from "react";
+import type { ReactElement, ReactNode } from "react";
+import type { RadioOptionProps } from "./RadioOption";
 
 import { useMemo } from "react";
 
 import RadioGroupContext from "./context";
 import Option from "./RadioOption";
 
-export type RadioGroupProps = PropsWithChildren<{
+export type RadioGroupProps<T extends string> = {
   name: string;
-  value: string;
-  onChange: (value: string) => void;
-}>;
+  value: T;
+  onChange: (value: T) => void;
+  children: Array<ReactElement<RadioOptionProps>> | ReactElement<RadioOptionProps>;
+};
 
-type RadioGroupComponent = FC<RadioGroupProps> & {
+type RadioGroupComponent = (<T extends string>(props: RadioGroupProps<T>) => ReactNode) & {
   Option: typeof Option;
 };
 
@@ -23,7 +25,8 @@ const RadioGroup: RadioGroupComponent = ({ name, value, onChange, children }) =>
       role="radiogroup"
       aria-labelledby={name}
     >
-      <RadioGroupContext.Provider value={contextValue}>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <RadioGroupContext.Provider value={contextValue as any}>
         {children}
       </RadioGroupContext.Provider>
     </div>

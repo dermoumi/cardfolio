@@ -27,7 +27,7 @@ function RouteComponent() {
   const [drawPoints, setDrawPoints] = useState(1);
   const [lossPoints, setLossPoints] = useState(0);
   const [playerList, setPlayerList] = useState<Player[]>([]);
-  const [playerOrder, setPlayerOrder] = useState<string>("shuffleFirstRound");
+  const [shuffleRounds, setShuffleRounds] = useState<"skipFirst" | "all" | "none">("all");
 
   const playerListFormId = useId();
   const [playerName, setPlayerName] = useState("");
@@ -41,10 +41,12 @@ function RouteComponent() {
     const id = createTournament(
       name,
       playerList,
-      winPoints,
-      drawPoints,
-      lossPoints,
-      playerOrder === "shuffleFirstRound",
+      {
+        winPoints,
+        drawPoints,
+        lossPoints,
+        shuffleRounds,
+      },
     );
 
     navigate({ to: `/${id}/`, replace: true });
@@ -56,7 +58,7 @@ function RouteComponent() {
     winPoints,
     drawPoints,
     lossPoints,
-    playerOrder,
+    shuffleRounds,
   ]);
 
   const handleAddPlayer = useCallback((event: FormEvent) => {
@@ -159,9 +161,10 @@ function RouteComponent() {
                     required
                   />
                 </label>
-                <RadioGroup name="playerOrder" value={playerOrder} onChange={setPlayerOrder}>
-                  <RadioGroup.Option label="Shuffle first round" value="shuffleFirstRound" />
-                  <RadioGroup.Option label="Keep players order" value="keepPlayersOrder" />
+                <RadioGroup name="playerOrder" value={shuffleRounds} onChange={setShuffleRounds}>
+                  <RadioGroup.Option label="Always shuffle round players" value="all" />
+                  <RadioGroup.Option label="Don't shuffle first round players" value="skipFirst" />
+                  <RadioGroup.Option label="Never shuffle round players" value="none" />
                 </RadioGroup>
               </Stack>
             </Surface>
