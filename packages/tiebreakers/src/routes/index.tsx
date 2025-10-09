@@ -49,7 +49,10 @@ function App() {
                   icon="trash"
                   label="Delete"
                 />
-                {t.name}
+                <Stack>
+                  <div>{t.name}</div>
+                  <div>{new Date(t.timestamp).toLocaleString()}</div>
+                </Stack>
               </ListView.Item>
             );
           })}

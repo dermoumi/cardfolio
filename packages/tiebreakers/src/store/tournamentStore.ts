@@ -33,6 +33,7 @@ export type Tournament = {
   currentRound?: number;
   status: "in-progress" | "top-cut" | "finished";
   config: Config;
+  timestamp: number;
 };
 
 export type Config = {
@@ -335,13 +336,13 @@ export const useTournamentStore = create<Store>()(
     (set, get) => ({
       tournaments: [],
       createTournament: (name, players, config) => {
-        const firstRound = {
+        const firstRound: Round = {
           id: nanoid(),
           number: 1,
           matches: generateSwissPairings(players, [], config, config.shuffleRounds === "all"),
-        } as Round;
+        };
 
-        const newTournament = {
+        const newTournament: Tournament = {
           id: nanoid(),
           name,
           players,
@@ -349,7 +350,8 @@ export const useTournamentStore = create<Store>()(
           currentRound: 0,
           status: "in-progress",
           config,
-        } as Tournament;
+          timestamp: +Date.now(),
+        };
 
         set(({ tournaments, ...state }) => ({
           ...state,
@@ -484,6 +486,19 @@ export const useTournamentStore = create<Store>()(
         }));
       },
     }),
-    { name: "tiebreakers-storage" },
+    {
+      name: "tiebreakers-storage",
+      version: 2510090000,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      migrate: (persistedState: any, version) => {
+        if (version === 0) {
+          for (const tournament of persistedState.tournaments) {
+            tournament.timestamp ??= +Date.now();
+          }
+        }
+
+        return persistedState;
+      },
+    },
   ),
 );
