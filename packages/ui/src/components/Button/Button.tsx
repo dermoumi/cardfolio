@@ -1,5 +1,5 @@
 import type { FC, MouseEventHandler } from "react";
-import type { IconName } from "../Icon";
+import type { IconName, IconSize } from "../Icon";
 
 import classNames from "classnames";
 
@@ -10,19 +10,13 @@ const VARIANT_CLASSES = {
   primary: styles.primary,
   secondary: styles.secondary,
   subtle: styles.subtle,
-};
+} as const;
 
 const SIZE_CLASSES = {
   sm: styles.small,
   md: styles.medium,
   lg: styles.large,
-};
-
-const SIZE_ICONS = {
-  sm: 12,
-  md: 16,
-  lg: 24,
-};
+} as const;
 
 type CommonProps = {
   type?: "button" | "submit";
@@ -32,7 +26,7 @@ type CommonProps = {
   icon?: IconName;
   label?: string;
   form?: string;
-  size?: keyof typeof SIZE_CLASSES;
+  size?: IconSize & keyof typeof SIZE_CLASSES;
 };
 
 export type ButtonProps =
@@ -66,7 +60,7 @@ const Button: FC<ButtonProps> = (
       aria-label={label}
       form={form}
     >
-      {icon && <Icon name={icon} size={SIZE_ICONS[size]} />}
+      {icon && <Icon name={icon} size={size} />}
       {children}
     </button>
   );

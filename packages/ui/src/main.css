@@ -13,8 +13,8 @@
   --color-gray-100: #030203;
 
   --color-bg: var(--color-gray-90);
-  --color-surface: var(--color-gray-80);
-  --color-surface-alt: var(--color-gray-70);
+  --color-surface: var(--color-gray-70);
+  --color-surface-alt: var(--color-gray-80);
   --color-primary: var(--color-gray-10);
   --color-primary-fg: var(--color-gray-90);
   --color-primary-hover: var(--color-gray-0);
@@ -49,11 +49,13 @@
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
     "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   --font-family-mono: monospace;
+
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.25rem;
   --font-size-xl: 2rem;
+
   --font-weight-normal: 400;
   --font-weight-bold: 700;
 
@@ -74,9 +76,9 @@
 }
 
 [data-theme="light"] {
-  --color-bg: var(--color-gray-10);
-  --color-surface: var(--color-gray-0);
-  --color-surface-alt: var(--color-gray-20);
+  --color-bg: var(--color-gray-0);
+  --color-surface: var(--color-gray-10);
+  --color-surface-alt: var(--color-gray-10);
   --color-primary: var(--color-gray-70);
   --color-primary-fg: var(--color-gray-10);
   --color-primary-hover: var(--color-gray-60);

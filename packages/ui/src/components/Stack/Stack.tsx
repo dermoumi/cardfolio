@@ -5,23 +5,25 @@ import classNames from "classnames";
 import styles from "./Stack.module.css";
 import StackStretch from "./StackStretch";
 
-export type StackProps = PropsWithChildren<{
-  horizontal?: boolean;
-  gap?: "none" | "small" | "medium" | "large";
-}>;
-
 const GAP_MAP = {
   none: styles.gapNone,
-  small: styles.gapSmall,
-  medium: styles.gapMedium,
-  large: styles.gapLarge,
+  xs: styles.gapExtraSmall,
+  sm: styles.gapSmall,
+  md: styles.gapMedium,
+  lg: styles.gapLarge,
+  xl: styles.gapExtraLarge,
 } as const;
+
+export type StackProps = PropsWithChildren<{
+  horizontal?: boolean;
+  gap?: keyof typeof GAP_MAP;
+}>;
 
 export type StackComponent = FC<StackProps> & {
   Stretch: typeof StackStretch;
 };
 
-const Stack: StackComponent = ({ horizontal, gap = "medium", children }) => {
+const Stack: StackComponent = ({ horizontal, gap = "md", children }) => {
   return (
     <div
       className={classNames(

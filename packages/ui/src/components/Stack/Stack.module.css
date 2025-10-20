@@ -14,6 +14,10 @@
   gap: 0;
 }
 
+.gap-extra-small {
+  gap: var(--space-xs);
+}
+
 .gap-small {
   gap: var(--space-sm);
 }
@@ -24,4 +28,8 @@
 
 .gap-large {
   gap: var(--space-lg);
+}
+
+.gap-extra-large {
+  gap: var(--space-xl);
 }

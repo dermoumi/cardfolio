@@ -53,7 +53,7 @@ const MatchComponent: FC<MatchComponentProps> = ({ match, round, tournament, tab
         <div className={classNames(styles.player, playerBStatus)}>
           <span>{playerB?.name || "???"}</span>
         </div>
-        <Stack horizontal gap="small">
+        <Stack horizontal gap="sm">
           <Stack.Stretch>
             <Button onClick={() => addResult(tournament.id, round.id, match.id, "A")}>
               A

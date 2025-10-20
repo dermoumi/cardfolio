@@ -1,7 +1,8 @@
-import { FloatingAction, ListView, Page, Stack } from "@cardfolio/ui";
+import { FloatingAction, ListView, Page } from "@cardfolio/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback } from "react";
 
+import TournamentCard from "@/components/TournamentCard";
 import { useTournamentStore } from "@/store/tournamentStore";
 
 export const Route = createFileRoute("/")({
@@ -19,45 +20,38 @@ function App() {
 
   return (
     <Page>
-      <Stack>
-        <Page.Header
-          variant="centered"
-          title="Tiebreaker Calculator"
-          actions={
-            <FloatingAction onClick={handleNewTournament} icon="plus" size="lg">New</FloatingAction>
-          }
-        />
+      <Page.Header
+        variant="centered"
+        title="Tiebreaker Calculator"
+        actions={
+          <FloatingAction onClick={handleNewTournament} icon="plus" size="lg">New</FloatingAction>
+        }
+      />
+      <Page.Content>
         <ListView>
-          {tournaments.map((t) => {
+          {tournaments.map(({ id, name, timestamp }) => {
             const handleClick = () => {
-              navigate({ to: `/${t.id}/` });
+              navigate({ to: `/${id}/` });
             };
 
             const handleDelete = () => {
-              if (window.confirm(`Delete tournament "${t.name}"? This cannot be undone.`)) {
-                removeTournament(t.id);
+              if (window.confirm(`Delete tournament "${name}"? This cannot be undone.`)) {
+                removeTournament(id);
               }
             };
 
             return (
-              <ListView.Item
-                key={t.id}
+              <TournamentCard
+                key={id}
+                name={name}
+                date={new Date(timestamp)}
                 onClick={handleClick}
-              >
-                <ListView.Action
-                  onClick={handleDelete}
-                  icon="trash"
-                  label="Delete"
-                />
-                <Stack>
-                  <div>{t.name}</div>
-                  <div>{new Date(t.timestamp).toLocaleString()}</div>
-                </Stack>
-              </ListView.Item>
+                onDelete={handleDelete}
+              />
             );
           })}
         </ListView>
-      </Stack>
+      </Page.Content>
     </Page>
   );
 }

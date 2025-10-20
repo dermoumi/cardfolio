@@ -1,0 +1,8 @@
+.name {
+  font-weight: bold;
+}
+
+.date {
+  color: var(--color-subtle-fg);
+  font-size: var(--font-size-sm);
+}

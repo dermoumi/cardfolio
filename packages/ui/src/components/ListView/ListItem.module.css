@@ -1,10 +1,13 @@
 .list-item {
+  --color-bg: transparent;
+
   min-height: 48px;
   display: flex;
   align-items: center;
-  padding: 0 var(--space-sm);
-
-  transition: all 0.1s ease-in-out;
+  padding: var(--space-sm) var(--space-md);
+  gap: var(--space-md);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-bg);
 }
 
 .content {
@@ -21,9 +24,17 @@
 
 .clickable {
   cursor: pointer;
+  user-select: none;
 
   &:hover {
-    --color-bg: var(--color-surface-alt);
-    background-color: var(--color-surface-alt);
+    --color-bg: var(--color-surface);
   }
+
+  &:active:not(:has(button:active, a:active)) {
+    --color-bg: var(--color-surface-alt);
+  }
+}
+
+.avatar {
+  flex: 0;
 }

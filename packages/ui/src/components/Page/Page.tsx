@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 import BackButton from "./BackButton";
 import { PageContext } from "./context";
 import styles from "./Page.module.css";
+import PageContent from "./PageContent";
 import PageHeader from "./PageHeader";
 
 export type PageProps = PropsWithChildren;
 
 type PageComponent = FC<PageProps> & {
   Header: typeof PageHeader;
+  Content: typeof PageContent;
   BackButton: typeof BackButton;
 };
 
@@ -52,6 +54,7 @@ const Page: PageComponent = ({ children }) => {
 };
 
 Page.Header = PageHeader;
+Page.Content = PageContent;
 Page.BackButton = BackButton;
 
 export default Page;

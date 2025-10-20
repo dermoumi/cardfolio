@@ -26,10 +26,8 @@
 
   border-radius: var(--border-radius-xl);
   border: 1px solid transparent;
-  outline: var(--focus-outline);
+  outline: transparent;
   outline-offset: var(--focus-outline-offset);
-
-  transition: all 0.1s ease-in-out;
 
   background-color: var(--btn-bg);
   color: var(--btn-fg);
@@ -48,7 +46,6 @@
     &:active {
       background-color: var(--btn-bg-active);
       transform: scale(0.98);
-      transition: all 0.4s ease-in-out;
     }
   }
 
@@ -80,7 +77,7 @@
 
 .subtle {
   --btn-fg: inherit;
-  --btn-bg: var(--color-bg);
+  --btn-bg: transparent;
   --btn-bg-hover: var(--color-subtle-hover);
   --btn-bg-active: var(--color-subtle-active);
 }

@@ -65,7 +65,7 @@ function TournamentPage() {
         }
       />
       <Stack>
-        <Stack horizontal gap="small">
+        <Stack horizontal gap="sm">
           <Button
             disabled={isViewingFirstRound(tournament.id)}
             onClick={() => viewPrevRound(tournament.id)}
