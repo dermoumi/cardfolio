@@ -13,9 +13,9 @@
   "dependencies": {
     "@cardfolio/ui": "workspace:^",
     "@tanstack/react-query": "^5.90.7",
-    "@tanstack/react-router": "^1.134.15",
-    "@tanstack/react-router-devtools": "^1.134.15",
-    "@tanstack/router-plugin": "^1.134.15",
+    "@tanstack/react-router": "^1.135.0",
+    "@tanstack/react-router-devtools": "^1.135.0",
+    "@tanstack/router-plugin": "^1.135.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "vite": "catalog:"
