@@ -5,23 +5,20 @@ import * as postCssModules from "eslint-plugin-postcss-modules";
 import * as reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import storybook from "eslint-plugin-storybook";
+import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import jsoncParser from "jsonc-eslint-parser";
 import * as tseslint from "typescript-eslint";
 import yamlParser from "yaml-eslint-parser";
 
-export default tseslint.config(
-  storybook.configs["flat/recommended"],
-  {
-    ignores: [
-      "dist",
-      "coverage",
-      "*.bundled_*.mjs",
-      "eslint.config.js",
-      "!.storybook", // dot-folders are implicitly ignored, but we want to lint .storybook
-    ],
-  },
-  {
+export default defineConfig(
+  globalIgnores([
+    "dist/",
+    "coverage/",
+    "*.bundled_*.mjs",
+    "!.storybook", // dot-folders are implicitly ignored, but we want to lint .storybook
+  ]),
+  { // JS/TS files
     files: ["**/*.{js,ts,jsx,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
@@ -40,6 +37,7 @@ export default tseslint.config(
       js.configs.recommended,
       tseslint.configs.strict,
       tseslint.configs.stylistic,
+      storybook.configs["flat/recommended"],
     ],
     linterOptions: {
       reportUnusedDisableDirectives: "error",
@@ -87,13 +85,13 @@ export default tseslint.config(
       "react-hooks/exhaustive-deps": ["warn"],
     },
   },
-  {
-    files: ["**/*.test.{js,jsx,ts,tsx}"],
+  { // Test files
+    files: ["**/*.{test,stories}.{js,jsx,ts,tsx}"],
     rules: {
       "postcss-modules/no-unused-class": "off",
     },
   },
-  {
+  { // PNPM package files
     files: ["package.json", "**/package.json"],
     languageOptions: {
       parser: jsoncParser,
@@ -107,7 +105,7 @@ export default tseslint.config(
       "pnpm/json-prefer-workspace-settings": "error",
     },
   },
-  {
+  { // PNPM workspace file
     files: ["pnpm-workspace.yaml"],
     languageOptions: {
       parser: yamlParser,
