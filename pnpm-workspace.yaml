@@ -13,19 +13,20 @@ catalog:
   '@types/react': ^19.2.7
   '@types/react-dom': ^19.2.3
   '@vitejs/plugin-react': ^5.1.2
+  '@vitest/browser-playwright': ^4.0.15
   '@vitest/coverage-v8': ^4.0.15
   jsdom: ^27.2.0
-  react: ^19.2.1
-  react-dom: ^19.2.1
+  react: 19.2.1
+  react-dom: 19.2.1
   typescript: ^5.9.3
   typescript-eslint: ^8.49.0
   vite: ^7.2.4
   vitest: ^4.0.15
+
+minimumReleaseAge: 1440
 
 onlyBuiltDependencies:
   - deasync
   - dprint
   - esbuild
   - unrs-resolver
-
-minimumReleaseAge: 1440 # 1 day
