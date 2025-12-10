@@ -4,14 +4,22 @@ import pnpmPlugin from "eslint-plugin-pnpm";
 import * as postCssModules from "eslint-plugin-postcss-modules";
 import * as reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import storybook from "eslint-plugin-storybook";
 import globals from "globals";
 import jsoncParser from "jsonc-eslint-parser";
 import * as tseslint from "typescript-eslint";
 import yamlParser from "yaml-eslint-parser";
 
 export default tseslint.config(
+  storybook.configs["flat/recommended"],
   {
-    ignores: ["dist", "coverage", "*.bundled_*.mjs", "eslint.config.js"],
+    ignores: [
+      "dist",
+      "coverage",
+      "*.bundled_*.mjs",
+      "eslint.config.js",
+      "!.storybook", // dot-folders are implicitly ignored, but we want to lint .storybook
+    ],
   },
   {
     files: ["**/*.{js,ts,jsx,tsx}"],
