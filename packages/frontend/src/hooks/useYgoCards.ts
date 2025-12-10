@@ -5,7 +5,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 type YgoCardResponse = {
-  cards: Array<YgoCard>;
+  cards: YgoCard[];
   next: string | null;
 };
 

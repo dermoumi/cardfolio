@@ -1,5 +1,4 @@
 import js from "@eslint/js";
-import { tanstackConfig } from "@tanstack/eslint-config";
 import pluginImportX from "eslint-plugin-import-x";
 import pnpmPlugin from "eslint-plugin-pnpm";
 import * as postCssModules from "eslint-plugin-postcss-modules";
@@ -11,7 +10,6 @@ import * as tseslint from "typescript-eslint";
 import yamlParser from "yaml-eslint-parser";
 
 export default tseslint.config(
-  ...tanstackConfig,
   {
     ignores: ["dist", "coverage", "*.bundled_*.mjs", "eslint.config.js"],
   },
@@ -22,11 +20,6 @@ export default tseslint.config(
       globals: globals.browser,
       parserOptions: {
         projectService: true,
-        project: [
-          "./packages/*/tsconfig.json",
-          "./packages/*/tsconfig.*.json",
-          "!./packages/tsconfig/tsconfig.*.json",
-        ],
       },
     },
     plugins: {
