@@ -13,10 +13,6 @@
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix"
   },
-  "dependencies": {
-    "turbo": "catalog:",
-    "typescript": "catalog:"
-  },
   "devDependencies": {
     "@eslint/js": "catalog:",
     "dprint": "catalog:",
@@ -31,6 +27,7 @@
     "husky": "catalog:",
     "jsonc-eslint-parser": "catalog:",
     "turbo": "catalog:",
+    "typescript": "catalog:",
     "typescript-eslint": "catalog:",
     "yaml-eslint-parser": "catalog:"
   }

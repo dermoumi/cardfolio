@@ -133,13 +133,6 @@ catalogs:
 importers:
 
   .:
-    dependencies:
-      turbo:
-        specifier: 'catalog:'
-        version: 2.6.3
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
     devDependencies:
       '@eslint/js':
         specifier: 'catalog:'
@@ -177,6 +170,12 @@ importers:
       jsonc-eslint-parser:
         specifier: 'catalog:'
         version: 2.4.2
+      turbo:
+        specifier: 'catalog:'
+        version: 2.6.3
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
       typescript-eslint:
         specifier: 'catalog:'
         version: 8.49.0(eslint@9.39.1(jiti@2.5.1))(typescript@5.9.3)
