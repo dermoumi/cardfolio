@@ -1,6 +1,8 @@
+minimumReleaseAge: 1440 # 1 day
+catalogMode: "strict" # Always use catalogs
+cleanupUnusedCatalogs: true
 packages:
   - packages/*
-minimumReleaseAge: 1440 # 1 day
 onlyBuiltDependencies:
   - deasync
   - dprint
