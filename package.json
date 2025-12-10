@@ -13,25 +13,22 @@
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix"
   },
-  "dependencies": {
-    "turbo": "^2.6.3",
-    "typescript": "catalog:"
-  },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "dprint": "^0.50.2",
-    "eslint": "^9.39.1",
-    "eslint-plugin-import-x": "^4.16.1",
-    "eslint-plugin-pnpm": "^1.4.2",
-    "eslint-plugin-postcss-modules": "^2.0.0",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "eslint-plugin-storybook": "10.1.5",
-    "globals": "^16.5.0",
-    "husky": "^9.1.7",
-    "jsonc-eslint-parser": "^2.4.2",
-    "turbo": "^2.6.3",
-    "typescript-eslint": "^8.49.0",
-    "yaml-eslint-parser": "^1.3.2"
+    "@eslint/js": "catalog:",
+    "dprint": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-import-x": "catalog:",
+    "eslint-plugin-pnpm": "catalog:",
+    "eslint-plugin-postcss-modules": "catalog:",
+    "eslint-plugin-react-hooks": "catalog:",
+    "eslint-plugin-react-refresh": "catalog:",
+    "eslint-plugin-storybook": "catalog:",
+    "globals": "catalog:",
+    "husky": "catalog:",
+    "jsonc-eslint-parser": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "yaml-eslint-parser": "catalog:"
   }
 }
