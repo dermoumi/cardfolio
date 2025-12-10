@@ -1,97 +1,128 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalPassThroughEnv": ["CARDFOLIO_*"],
-  "globalEnv": ["CARDFOLIO_*"],
+  "globalPassThroughEnv": [
+    "CARDFOLIO_*"
+  ],
+  "globalEnv": [
+    "CARDFOLIO_*"
+  ],
   "tasks": {
     "dev": {
-      "dependsOn": ["^build"],
-      "passThroughEnv": ["LOGLEVEL"],
+      "dependsOn": [
+        "^build"
+      ],
+      "passThroughEnv": [
+        "LOGLEVEL"
+      ],
       "persistent": true,
       "cache": false
     },
     "build": {
       "outputLogs": "errors-only",
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
         "!src/**/*.test.{ts,tsx}",
         "package.json",
-        "Cargo.toml",
+        "vite.config.ts",
         "tsconfig.json",
         "tsconfig.*.json",
-        "vite.config.ts",
-        "$TURBO_ROOT$/packages/tsconfig/**/*"
+        "Cargo.toml",
+        "$TURBO_ROOT$/packages/tsconfig/**/*",
+        "$TURBO_ROOT$/pnpm-workspace.yaml"
       ],
-      "env": ["CARDFOLIO_*"],
-      "outputs": ["dist/**/*", "$TURBO_ROOT$/target/**/*"]
+      "env": [
+        "CARDFOLIO_*"
+      ],
+      "outputs": [
+        "dist/**/*",
+        "$TURBO_ROOT$/target/**/*"
+      ]
     },
     "test": {
       "outputLogs": "errors-only",
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "vitest.config.ts",
         "package.json",
-        "Cargo.toml",
+        "vite.config.ts",
+        "vitest.config.ts",
         "tsconfig.json",
         "tsconfig.*.json",
-        "vite.config.ts",
-        "$TURBO_ROOT$/packages/tsconfig/**/*"
+        "Cargo.toml",
+        "$TURBO_ROOT$/packages/tsconfig/**/*",
+        "$TURBO_ROOT$/pnpm-workspace.yaml"
       ]
     },
     "test:cov": {
       "outputLogs": "errors-only",
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "vitest.config.ts",
         "package.json",
-        "Cargo.toml",
+        "vite.config.ts",
+        "vitest.config.ts",
         "tsconfig.json",
         "tsconfig.*.json",
-        "vite.config.ts",
-        "tsup.config.ts",
-        "$TURBO_ROOT$/packages/tsconfig/**/*"
+        "Cargo.toml",
+        "$TURBO_ROOT$/packages/tsconfig/**/*",
+        "$TURBO_ROOT$/pnpm-workspace.yaml"
       ],
-      "outputs": ["lcov.info"]
+      "outputs": [
+        "lcov.info"
+      ]
     },
     "lint": {
       "outputLogs": "errors-only",
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "vitest.config.ts",
         "package.json",
-        "Cargo.toml",
+        "vite.config.ts",
+        "vitest.config.ts",
         "tsconfig.json",
         "tsconfig.*.json",
-        "vite.config.ts",
+        "Cargo.toml",
         "$TURBO_ROOT$/dprint.jsonc",
         "$TURBO_ROOT$/eslint.config.js",
-        "$TURBO_ROOT$/packages/tsconfig/**/*"
+        "$TURBO_ROOT$/packages/tsconfig/**/*",
+        "$TURBO_ROOT$/pnpm-workspace.yaml"
       ]
     },
     "lint:fix": {
       "outputLogs": "errors-only",
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
         "src/**/*.{ts,tsx,css,rs}",
-        "vitest.config.ts",
         "package.json",
-        "Cargo.toml",
+        "vite.config.ts",
+        "vitest.config.ts",
         "tsconfig.json",
         "tsconfig.*.json",
-        "vite.config.ts",
+        "Cargo.toml",
         "$TURBO_ROOT$/dprint.jsonc",
         "$TURBO_ROOT$/eslint.config.js",
-        "$TURBO_ROOT$/packages/tsconfig/**/*"
+        "$TURBO_ROOT$/packages/tsconfig/**/*",
+        "$TURBO_ROOT$/pnpm-workspace.yaml"
       ],
-      "outputs": ["src/**/*"]
+      "outputs": [
+        "src/**/*"
+      ]
     }
   }
 }
