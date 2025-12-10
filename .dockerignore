@@ -12,6 +12,11 @@
 **/.cargo
 */.env
 */.env.*
+.pnpm-store/
+.github/
+.husky/
+.turbo/
+.vscode/
 
 # Ignore files created by editors or OS
 *.DS_Store
@@ -19,3 +24,6 @@
 *.tmp
 *.swp
 *.bak
+
+# Ignore testing directories
+run/
