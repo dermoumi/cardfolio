@@ -1,6 +1,3 @@
 .base-button {
   font-family: var(--font-family-sans);
-
-  display: block;
-  padding: 0.5rem 1rem;
 }
