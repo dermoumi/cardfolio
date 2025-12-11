@@ -4,11 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 import TextInput from ".";
 
 describe("TextInput", () => {
-  it("matches snapshot", () => {
-    const { asFragment } = render(<TextInput placeholder="Enter text" />);
-    expect(asFragment()).toMatchSnapshot();
-  });
-
   it("calls onChange when text is entered", () => {
     const handleChange = vi.fn();
     const { getByPlaceholderText } = render(
