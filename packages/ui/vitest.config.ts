@@ -12,7 +12,6 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: "jsdom",
     projects: [{
       extends: true,
       plugins: [
@@ -29,6 +28,12 @@ export default defineConfig({
           instances: [{ browser: "chromium" }],
         },
         setupFiles: [".storybook/vitest.setup.ts"],
+      },
+    }, {
+      extends: true,
+      test: {
+        name: "unit",
+        environment: "jsdom",
       },
     }],
   },

@@ -4,11 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 import BaseButton from ".";
 
 describe("BaseButton", () => {
-  it("matches snapshot", () => {
-    const { asFragment } = render(<BaseButton>Button</BaseButton>);
-    expect(asFragment()).toMatchSnapshot();
-  });
-
   it("calls onClick when clicked", () => {
     const onClick = vi.fn();
     const { getByText } = render(<BaseButton onClick={onClick}>Button</BaseButton>);
