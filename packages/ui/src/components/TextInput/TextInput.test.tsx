@@ -5,14 +5,14 @@ import TextInput from ".";
 
 describe("TextInput", () => {
   it("matches snapshot", () => {
-    const { asFragment } = render(<TextInput placeholder="Enter text" />);
+    const { asFragment } = render(<TextInput name="test" placeholder="Enter text" />);
     expect(asFragment()).toMatchSnapshot();
   });
 
   it("calls onChange when text is entered", () => {
     const handleChange = vi.fn();
     const { getByPlaceholderText } = render(
-      <TextInput placeholder="Enter text" onChange={handleChange} />,
+      <TextInput name="test" placeholder="Enter text" onChange={handleChange} />,
     );
 
     const input = getByPlaceholderText("Enter text") as HTMLInputElement;

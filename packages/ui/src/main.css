@@ -1,0 +1,94 @@
+:root {
+  /* Colors */
+  --color-gray-0: #ffffff;
+  --color-gray-10: #f5f4f5;
+  --color-gray-20: #ede8eb;
+  --color-gray-30: #d9d3d7;
+  --color-gray-40: #bdb3b8;
+  --color-gray-50: #898185;
+  --color-gray-60: #554e52;
+  --color-gray-70: #312c2f;
+  --color-gray-80: #1c171a;
+  --color-gray-90: #0c090c;
+  --color-gray-100: #030203;
+
+  --color-bg: var(--color-gray-90);
+  --color-surface: var(--color-gray-70);
+  --color-surface-alt: var(--color-gray-80);
+  --color-primary: var(--color-gray-10);
+  --color-primary-fg: var(--color-gray-90);
+  --color-primary-hover: var(--color-gray-0);
+  --color-primary-active: var(--color-gray-20);
+  --color-secondary: var(--color-gray-60);
+  --color-secondary-fg: var(--color-gray-10);
+  --color-secondary-hover: var(--color-gray-50);
+  --color-secondary-active: var(--color-gray-70);
+  --color-subtle-fg: var(--color-gray-10);
+  --color-subtle-hover: var(--color-gray-60);
+  --color-subtle-active: var(--color-gray-70);
+  --color-accent: #e77d6f;
+  --color-danger: #d73247;
+  --color-success: #3ebd70;
+  --color-warning: var(--color-accent); /* ??? */
+  --color-text: var(--color-gray-10);
+
+  --focus-outline-color: rgba(247, 162, 120, 0.8);
+  --focus-outline: 2px solid transparent;
+  --focus-outline-hover: 2px solid var(--focus-outline-color);
+  --focus-outline-offset: 2px;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 3rem;
+
+  /* Typography */
+  --font-family-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-family-mono: monospace;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 2rem;
+
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+
+  /* Borders & Radius */
+  --border-radius-xs: 1px;
+  --border-radius-sm: 3px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 999999px;
+
+  --border-width: 1px;
+
+  /* Shadows & Effects */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+  --color-bg: var(--color-gray-0);
+  --color-surface: var(--color-gray-10);
+  --color-surface-alt: var(--color-gray-10);
+  --color-primary: var(--color-gray-70);
+  --color-primary-fg: var(--color-gray-10);
+  --color-primary-hover: var(--color-gray-60);
+  --color-primary-active: var(--color-gray-80);
+  --color-secondary: var(--color-gray-20);
+  --color-secondary-fg: var(--color-gray-80);
+  --color-secondary-hover: var(--color-gray-10);
+  --color-secondary-active: var(--color-gray-30);
+  --color-subtle-fg: var(--color-gray-80);
+  --color-subtle-hover: var(--color-gray-20);
+  --color-subtle-active: var(--color-gray-30);
+  --color-text: var(--color-gray-80);
+}

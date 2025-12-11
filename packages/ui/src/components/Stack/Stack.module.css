@@ -1,0 +1,35 @@
+.stack {
+  display: flex;
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.gap-none {
+  gap: 0;
+}
+
+.gap-extra-small {
+  gap: var(--space-xs);
+}
+
+.gap-small {
+  gap: var(--space-sm);
+}
+
+.gap-medium {
+  gap: var(--space-md);
+}
+
+.gap-large {
+  gap: var(--space-lg);
+}
+
+.gap-extra-large {
+  gap: var(--space-xl);
+}

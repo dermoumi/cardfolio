@@ -1,0 +1,40 @@
+.list-item {
+  --color-bg: transparent;
+
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  gap: var(--space-md);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-bg);
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.clickable {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    --color-bg: var(--color-surface);
+  }
+
+  &:active:not(:has(button:active, a:active)) {
+    --color-bg: var(--color-surface-alt);
+  }
+}
+
+.avatar {
+  flex: 0;
+}
