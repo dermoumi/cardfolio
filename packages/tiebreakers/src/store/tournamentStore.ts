@@ -215,7 +215,7 @@ function sortPlayersByScore(
   playerList: Player[],
   rounds: Round[],
   config: Config,
-  shuffle: boolean = true,
+  shuffle = true,
 ): Player[] {
   // We shuffle to add a tiny degree of randomness to players with the same score
   const players = shuffle ? shuffleArray(playerList) : [...playerList];
@@ -244,7 +244,7 @@ function generateSwissPairings(
   playerList: Player[],
   rounds: Round[],
   config: Config,
-  shuffle: boolean = true,
+  shuffle = true,
 ): Match[] {
   const matches: Match[] = [];
   const pairedPlayerIds = new Set<ID>();

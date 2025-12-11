@@ -34,3 +34,7 @@ Thumbs.db
 
 # App contents
 run/
+
+# Storybook
+storybook-static/
+*storybook.log

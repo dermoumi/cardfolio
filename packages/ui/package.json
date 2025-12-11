@@ -4,9 +4,12 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
+    "prepare": "playwright install chromium --with-deps",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
-    "lint": "tsc -b && dprint check && eslint --max-warnings 0"
+    "lint": "tsc -b && dprint check && eslint --max-warnings 0",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "storybook:build": "storybook build"
   },
   "dependencies": {
     "lucide-react": "^0.544.0"
@@ -19,14 +22,22 @@
   },
   "devDependencies": {
     "@cardfolio/tsconfig": "workspace:",
+    "@chromatic-com/storybook": "catalog:",
+    "@storybook/addon-a11y": "catalog:",
+    "@storybook/addon-docs": "catalog:",
+    "@storybook/addon-vitest": "catalog:",
+    "@storybook/react-vite": "catalog:",
     "@tanstack/react-router": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitest/browser-playwright": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "playwright": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "storybook": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
   }

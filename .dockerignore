@@ -1,17 +1,20 @@
 # General ignores
-**/target
-**/node_modules
-**/dist
-**/.git
-**/.idea
-**/.vscode
-**/.vinxi
-**/.output
+**/target/
+**/node_modules/
+**/dist/
+**/.git/
+**/.vscode/
+**/storybook-static/
+**/.cargo/
 **/Dockerfile
 **/.dockerignore
-**/.cargo
 */.env
 */.env.*
+.pnpm-store/
+.github/
+.husky/
+.turbo/
+.vscode/
 
 # Ignore files created by editors or OS
 *.DS_Store
@@ -19,3 +22,6 @@
 *.tmp
 *.swp
 *.bak
+
+# Ignore testing directories
+run/
