@@ -1,33 +1,25 @@
-minimumReleaseAge: 1440 # 1 day
-catalogMode: "strict" # Always use catalogs
-cleanupUnusedCatalogs: true
 packages:
   - packages/*
-onlyBuiltDependencies:
-  - deasync
-  - dprint
-  - esbuild
-  - unrs-resolver
+
 catalog:
-  "@chromatic-com/storybook": 4.1.3
-  "@eslint/js": 9.39.1
-  "@storybook/addon-a11y": 10.1.5
-  "@storybook/addon-docs": 10.1.5
-  "@storybook/addon-vitest": 10.1.5
-  "@storybook/react-vite": 10.1.5
-  "@tanstack/react-query": 5.90.12
-  "@tanstack/react-router": 1.140.1
-  "@tanstack/react-router-devtools": 1.140.1
-  "@tanstack/router-core": 1.140.1
-  "@tanstack/router-plugin": 1.140.1
-  "@testing-library/dom": 10.4.1
-  "@testing-library/react": 16.3.0
-  "@types/node": 24.10.2
-  "@types/react": 19.2.7
-  "@types/react-dom": 19.2.3
-  "@vitejs/plugin-react": 5.1.2
-  "@vitest/browser-playwright": 4.0.15
-  "@vitest/coverage-v8": 4.0.15
+  '@eslint/js': 9.39.1
+  '@storybook/addon-a11y': 10.1.5
+  '@storybook/addon-docs': 10.1.5
+  '@storybook/addon-vitest': 10.1.5
+  '@storybook/react-vite': 10.1.5
+  '@tanstack/react-query': 5.90.12
+  '@tanstack/react-router': 1.140.1
+  '@tanstack/react-router-devtools': 1.140.1
+  '@tanstack/router-core': 1.140.1
+  '@tanstack/router-plugin': 1.140.1
+  '@testing-library/dom': 10.4.1
+  '@testing-library/react': 16.3.0
+  '@types/node': 24.10.2
+  '@types/react': 19.2.7
+  '@types/react-dom': 19.2.3
+  '@vitejs/plugin-react': 5.1.2
+  '@vitest/browser-playwright': 4.0.15
+  '@vitest/coverage-v8': 4.0.15
   dprint: 0.50.2
   eslint: 9.39.1
   eslint-plugin-import-x: 4.16.1
@@ -50,3 +42,15 @@ catalog:
   vite: 7.2.7
   vitest: 4.0.15
   yaml-eslint-parser: 1.3.2
+
+catalogMode: strict
+
+cleanupUnusedCatalogs: true
+
+minimumReleaseAge: 1440
+
+onlyBuiltDependencies:
+  - deasync
+  - dprint
+  - esbuild
+  - unrs-resolver
