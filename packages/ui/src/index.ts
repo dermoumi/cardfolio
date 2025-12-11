@@ -1,3 +1,5 @@
+import "./main.css";
+
 export { default as BaseButton } from "./components/BaseButton";
 export * from "./components/BaseButton";
 

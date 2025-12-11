@@ -1,4 +1,4 @@
 {
   "extends": "@cardfolio/tsconfig/tsconfig.node.json",
-  "include": ["vitest.config.ts", ".storybook/**/*"]
+  "include": ["vite.config.ts", ".storybook/main.ts"]
 }
