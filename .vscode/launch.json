@@ -48,6 +48,26 @@
         "group": "50",
         "order": 3
       }
+    },
+    {
+      "name": "UI Storybook",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "args": ["storybook", "--ci"],
+      "cwd": "${workspaceFolder}/packages/ui",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "serverReadyAction": {
+        "action": "debugWithChrome",
+        "pattern": "Local.+(https?://[^\\s]+)",
+        "killOnServerStop": true,
+        "webRoot": "${workspaceFolder}/packages/ui/src"
+      },
+      "presentation": {
+        "group": "60",
+        "order": 4
+      }
     }
   ]
 }
