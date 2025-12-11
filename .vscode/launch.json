@@ -57,7 +57,6 @@
       "args": ["storybook", "--ci"],
       "cwd": "${workspaceFolder}/packages/ui",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
       "serverReadyAction": {
         "action": "debugWithChrome",
         "pattern": "Local.+(https?://[^\\s]+)",
