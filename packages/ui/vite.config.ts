@@ -12,6 +12,10 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["lcov", "text"],
+    },
     projects: [{
       extends: true,
       plugins: [

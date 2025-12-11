@@ -13,8 +13,8 @@ import yamlParser from "yaml-eslint-parser";
 
 export default defineConfig(
   globalIgnores([
-    "dist/",
-    "coverage/",
+    "**/dist/**",
+    "**/coverage/**",
     "*.bundled_*.mjs",
     "!.storybook", // dot-folders are implicitly ignored, but we want to lint .storybook
   ]),
