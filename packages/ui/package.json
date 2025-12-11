@@ -17,7 +17,6 @@
   },
   "devDependencies": {
     "@cardfolio/tsconfig": "workspace:",
-    "@chromatic-com/storybook": "catalog:",
     "@storybook/addon-a11y": "catalog:",
     "@storybook/addon-docs": "catalog:",
     "@storybook/addon-vitest": "catalog:",
