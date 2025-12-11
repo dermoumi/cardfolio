@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import Button from "./Button";
+import BaseButton from ".";
 
 const meta = {
-  component: Button,
-} satisfies Meta<typeof Button>;
-
+  component: BaseButton,
+} satisfies Meta<typeof BaseButton>;
 export default meta;
+
 type Story = StoryObj<typeof meta>;
 
-export const DefaultButton: Story = {
+export const NormalButton: Story = {
   args: {
     children: "Click me",
   },
