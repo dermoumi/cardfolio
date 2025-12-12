@@ -1,5 +1,7 @@
 import type { Preview } from "@storybook/react-vite";
 
+import UiProvider from "../src/providers/UiProvider";
+
 const preview: Preview = {
   parameters: {
     controls: {
@@ -15,6 +17,13 @@ const preview: Preview = {
       test: "todo",
     },
   },
+  decorators: [
+    (Story) => (
+      <UiProvider updateRootDataset>
+        <Story />
+      </UiProvider>
+    ),
+  ],
 };
 
 export default preview;
