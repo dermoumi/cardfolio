@@ -51,15 +51,13 @@
     },
     {
       "name": "UI Storybook",
-      "type": "node",
+      "type": "node-terminal",
       "request": "launch",
-      "runtimeExecutable": "pnpm",
-      "args": ["storybook", "--ci"],
+      "command": "pnpm storybook --ci",
       "cwd": "${workspaceFolder}/packages/ui",
-      "console": "integratedTerminal",
       "serverReadyAction": {
         "action": "debugWithChrome",
-        "pattern": "Local.+(https?://[^\\s]+)",
+        "pattern": "(https?://localhost:[^\\s]+)",
         "killOnServerStop": true,
         "webRoot": "${workspaceFolder}/packages/ui/src"
       },
