@@ -1,6 +1,7 @@
 {
   "extends": "@cardfolio/tsconfig/tsconfig.react.json",
-  "include": ["src"],
+  "include": ["src", ".storybook/**/*"],
+  "exclude": [".storybook/main.ts"],
   "compilerOptions": {
     "types": ["vite/client", "@vitest/browser-playwright"]
   }
