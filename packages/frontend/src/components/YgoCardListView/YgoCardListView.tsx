@@ -1,7 +1,7 @@
 import type { YgoCard, YgoCardFilters } from "@/types";
 import type { FC } from "react";
 
-import { Button } from "@cardfolio/ui";
+import { BaseButton as Button } from "@cardfolio/ui";
 
 import YgoCardGrid from "../YgoCardGrid";
 import YgoCardListFilter from "./YgoCardListFilter";
