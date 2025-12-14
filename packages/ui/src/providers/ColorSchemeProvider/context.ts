@@ -10,6 +10,8 @@ export type ColorSchemeContextType = {
 
   /**
    * Function to force a specific color scheme.
+   *
+   * Passing `null` will revert to the system color scheme.
    */
   setForcedColorScheme: (scheme: ColorScheme | null) => void;
 };
