@@ -4,4 +4,25 @@
   --font-family-sans:
     "Google Sans Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+
+  /* Colors */
+  --color-gray-0: #ffffff;
+  --color-gray-10: #f5f4f5;
+  --color-gray-20: #ede8eb;
+  --color-gray-30: #d9d3d7;
+  --color-gray-40: #bdb3b8;
+  --color-gray-50: #898185;
+  --color-gray-60: #554e52;
+  --color-gray-70: #312c2f;
+  --color-gray-80: #1c171a;
+  --color-gray-90: #0c090c;
+  --color-gray-100: #030203;
+
+  --color-bg: var(--color-gray-0);
+  --color-text: var(--color-gray-80);
+}
+
+[data-color-scheme="dark"] {
+  --color-bg: var(--color-gray-90);
+  --color-text: var(--color-gray-10);
 }
