@@ -40,9 +40,15 @@ const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ updateRootDataset, 
 
   // Update root dataset when effectiveColorScheme changes, if enabled
   useEffect(() => {
-    if (updateRootDataset) {
-      document.documentElement.dataset.colorScheme = colorScheme;
+    if (!updateRootDataset) {
+      return;
     }
+
+    document.documentElement.dataset.colorScheme = colorScheme;
+
+    return () => {
+      delete document.documentElement.dataset.colorScheme;
+    };
   }, [colorScheme, updateRootDataset]);
 
   return (

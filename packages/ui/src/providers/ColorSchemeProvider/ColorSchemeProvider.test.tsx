@@ -219,7 +219,7 @@ describe("ColorSchemeProvider", () => {
     expect(document.documentElement.dataset.colorScheme).toBeUndefined();
   });
 
-  it.todo("cleans up the dataset when unmounted if it was set", () => {
+  it("cleans up the dataset when unmounted if it was set", () => {
     MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: dark)"]);
 
     const { unmount } = render(
