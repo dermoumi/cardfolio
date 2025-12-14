@@ -1,6 +1,6 @@
 import type { ColorSchemeContextType } from "./context";
 
-import { render, waitFor } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { act, useEffect } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -119,19 +119,19 @@ describe("ColorSchemeProvider", () => {
       </ColorSchemeProvider>,
     );
 
-    // Default to dark
+    // Default to light
     expect(getByTestId("color-scheme-display").textContent).toBe("light");
 
-    // Change to light
-    act(() => MediaQueryMock.setMatchingQueries("(prefers-color-scheme: light)"));
-    expect(getByTestId("color-scheme-display").textContent).toBe("light");
-
-    // Change back to dark
+    // Change system preference to dark
     act(() => MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)"));
     expect(getByTestId("color-scheme-display").textContent).toBe("dark");
+
+    // Change system preference back to light
+    act(() => MediaQueryMock.setMatchingQueries("(prefers-color-scheme: light)"));
+    expect(getByTestId("color-scheme-display").textContent).toBe("light");
   });
 
-  it("overrides system preferences when forced color scheme is set", async () => {
+  it("overrides system preferences when forced color scheme is set", () => {
     MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
     let colorSchemeValue: ColorSchemeContextType;
 
@@ -152,7 +152,7 @@ describe("ColorSchemeProvider", () => {
     expect(getByTestId("color-scheme-display").textContent).toBe("light");
   });
 
-  it("reverts to system preferences when forced color scheme set to null", async () => {
+  it("reverts to system preferences when forced color scheme set to null", () => {
     MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
     let colorSchemeValue: ColorSchemeContextType;
 
@@ -169,23 +169,15 @@ describe("ColorSchemeProvider", () => {
     expect(getByTestId("color-scheme-display").textContent).toBe("dark");
 
     // Force light mode
-    act(() => {
-      colorSchemeValue.setForcedColorScheme("light");
-    });
-
+    act(() => colorSchemeValue.setForcedColorScheme("light"));
     expect(getByTestId("color-scheme-display").textContent).toBe("light");
 
     // Remove forced scheme
-    act(() => {
-      colorSchemeValue.setForcedColorScheme(null);
-    });
-
-    await waitFor(() => {
-      expect(getByTestId("color-scheme-display").textContent).toBe("dark");
-    });
+    act(() => colorSchemeValue.setForcedColorScheme(null));
+    expect(getByTestId("color-scheme-display").textContent).toBe("dark");
   });
 
-  it("updates root dataset when updateRootDataset is true", async () => {
+  it("updates root dataset when updateRootDataset is true", () => {
     MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
     let colorSchemeValue: ColorSchemeContextType;
 
@@ -203,7 +195,6 @@ describe("ColorSchemeProvider", () => {
 
     // Force light mode
     act(() => colorSchemeValue.setForcedColorScheme("light"));
-
     expect(document.documentElement.dataset.colorScheme).toBe("light");
   });
 
