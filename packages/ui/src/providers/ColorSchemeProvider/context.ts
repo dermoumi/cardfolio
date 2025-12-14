@@ -18,10 +18,16 @@ export const ColorSchemeContext = createContext<ColorSchemeContextType | undefin
 
 export const useColorScheme = (): ColorSchemeContextType => {
   const context = useContext(ColorSchemeContext);
-
-  if (!context) {
-    throw new Error("useColorScheme must be used within a ColorSchemeProvider");
+  if (context) {
+    return context;
   }
 
-  return context;
+  return {
+    colorScheme: "light",
+    setForcedColorScheme: () => {
+      throw new Error(
+        "Can only force color scheme when calling useColorScheme inside ColorSchemeProvider",
+      );
+    },
+  };
 };

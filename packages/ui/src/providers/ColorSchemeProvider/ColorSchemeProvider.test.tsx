@@ -243,7 +243,7 @@ describe("useColorScheme", () => {
     consoleSpy?.mockRestore();
   });
 
-  it.todo("does not throw when used outside provider", () => {
+  it("does not throw when used outside provider", () => {
     // Suppress console.error for this test
     consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
 
