@@ -2,7 +2,7 @@ packages:
   - packages/*
 
 catalog:
-  '@eslint/js': 9.39.1
+  '@eslint/js': 9.39.2
   '@storybook/addon-a11y': 10.1.8
   '@storybook/addon-docs': 10.1.8
   '@storybook/addon-vitest': 10.1.8
@@ -21,7 +21,7 @@ catalog:
   '@vitest/browser-playwright': 4.0.15
   '@vitest/coverage-v8': 4.0.15
   dprint: 0.50.2
-  eslint: 9.39.1
+  eslint: 9.39.2
   eslint-plugin-import-x: 4.16.1
   eslint-plugin-pnpm: 1.4.2
   eslint-plugin-postcss-modules: 2.0.0
