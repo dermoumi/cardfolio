@@ -21,7 +21,7 @@ const TestComponent = ({ onMount }: { onMount?: (values: ColorSchemeContextType)
 class MediaQueryMock {
   private static matchingQueries: string[] = [];
   private static mocks = new Set<WeakRef<MediaQueryMock>>();
-  public static setMatchingQueries(queries: string[]) {
+  public static setMatchingQueries(...queries: string[]) {
     this.matchingQueries = queries;
 
     // Notify all existing mocks of the change
@@ -123,16 +123,16 @@ describe("ColorSchemeProvider", () => {
     expect(getByTestId("color-scheme-display").textContent).toBe("light");
 
     // Change to light
-    act(() => MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: light)"]));
+    act(() => MediaQueryMock.setMatchingQueries("(prefers-color-scheme: light)"));
     expect(getByTestId("color-scheme-display").textContent).toBe("light");
 
     // Change back to dark
-    act(() => MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: dark)"]));
+    act(() => MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)"));
     expect(getByTestId("color-scheme-display").textContent).toBe("dark");
   });
 
   it("overrides system preferences when forced color scheme is set", async () => {
-    MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: dark)"]);
+    MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
     let colorSchemeValue: ColorSchemeContextType;
 
     const { getByTestId } = render(
@@ -153,7 +153,7 @@ describe("ColorSchemeProvider", () => {
   });
 
   it("reverts to system preferences when forced color scheme set to null", async () => {
-    MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: dark)"]);
+    MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
     let colorSchemeValue: ColorSchemeContextType;
 
     const { getByTestId } = render(
@@ -186,7 +186,7 @@ describe("ColorSchemeProvider", () => {
   });
 
   it("updates root dataset when updateRootDataset is true", async () => {
-    MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: dark)"]);
+    MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
     let colorSchemeValue: ColorSchemeContextType;
 
     render(
@@ -208,7 +208,7 @@ describe("ColorSchemeProvider", () => {
   });
 
   it("does not update root dataset when updateRootDataset is false", () => {
-    MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: dark)"]);
+    MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
 
     render(
       <ColorSchemeProvider updateRootDataset={false}>
@@ -220,7 +220,7 @@ describe("ColorSchemeProvider", () => {
   });
 
   it("cleans up the dataset when unmounted if it was set", () => {
-    MediaQueryMock.setMatchingQueries(["(prefers-color-scheme: dark)"]);
+    MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
 
     const { unmount } = render(
       <ColorSchemeProvider updateRootDataset>
