@@ -12,11 +12,11 @@
   --color-gray-90: #0c090c;
   --color-gray-100: #030203;
 
-  --color-bg: var(--color-gray-90);
-  --color-text: var(--color-gray-10);
-}
-
-[data-color-scheme="light"] {
   --color-bg: var(--color-gray-0);
   --color-text: var(--color-gray-80);
+}
+
+[data-color-scheme="dark"] {
+  --color-bg: var(--color-gray-90);
+  --color-text: var(--color-gray-10);
 }
