@@ -244,9 +244,6 @@ describe("useColorScheme", () => {
   });
 
   it("does not throw when used outside provider", () => {
-    // Suppress console.error for this test
-    consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
-
     const ComponentWithoutProvider = () => {
       useColorScheme();
       return <div>Test</div>;
@@ -255,5 +252,27 @@ describe("useColorScheme", () => {
     expect(() => {
       render(<ComponentWithoutProvider />);
     }).not.toThrow();
+  });
+
+  it("does throws when forcing color scheme outside provider", () => {
+    // Suppress console.error for this test
+    consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+
+    let colorSchemeValue: ColorSchemeContextType;
+    render(
+      <TestComponent
+        onMount={(values) => {
+          colorSchemeValue = values;
+        }}
+      />,
+    );
+
+    expect(() => {
+      act(() => {
+        colorSchemeValue.setForcedColorScheme("dark");
+      });
+    }).toThrowError(
+      "Can only force color scheme when calling useColorScheme inside ColorSchemeProvider",
+    );
   });
 });
