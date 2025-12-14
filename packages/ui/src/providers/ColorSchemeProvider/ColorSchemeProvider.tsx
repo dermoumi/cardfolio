@@ -17,7 +17,7 @@ export type ColorScheme = "light" | "dark";
  * Provider to manage and provide color scheme information.
  */
 const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ updateRootDataset, children }) => {
-  const [systemColorScheme, setSystemColorScheme] = useState<ColorScheme>("dark");
+  const [systemColorScheme, setSystemColorScheme] = useState<ColorScheme>("light");
   const [forcedColorScheme, setForcedColorScheme] = useState<ColorScheme | null>(null);
 
   const colorScheme = forcedColorScheme ?? systemColorScheme;
