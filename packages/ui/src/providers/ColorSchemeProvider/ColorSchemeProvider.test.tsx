@@ -1,3 +1,4 @@
+import type { FC } from "react";
 import type { ColorSchemeContextType } from "./context";
 
 import { render } from "@testing-library/react";
@@ -8,7 +9,11 @@ import ColorSchemeProvider from "./ColorSchemeProvider";
 import { useColorScheme } from "./context";
 
 // Helper component to expose context values for testing
-const TestComponent = ({ onMount }: { onMount?: (values: ColorSchemeContextType) => void; }) => {
+type TestComponentProps = {
+  onMount?: (values: ColorSchemeContextType) => void;
+};
+
+const TestComponent: FC<TestComponentProps> = ({ onMount }) => {
   const values = useColorScheme();
 
   useEffect(() => {
