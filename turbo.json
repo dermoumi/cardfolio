@@ -78,7 +78,7 @@
         "$TURBO_ROOT$/pnpm-workspace.yaml"
       ],
       "outputs": [
-        "lcov.info"
+        "**/lcov.info"
       ]
     },
     "lint": {
