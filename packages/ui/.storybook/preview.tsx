@@ -1,6 +1,6 @@
 import type { Preview } from "@storybook/react-vite";
 
-import { UiProvider } from "../src";
+import UiProvider from "../src/providers/UiProvider";
 import "./preview.css";
 
 const preview: Preview = {
