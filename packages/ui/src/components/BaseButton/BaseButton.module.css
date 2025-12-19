@@ -1,3 +1,50 @@
 .base-button {
-  font-family: var(--font-family-sans);
+  --base-bg-color: hsl(from var(--ui-color-accent) h s l / 0.1);
+  --base-fg-color: var(--ui-color-accent);
+  --base-border-color: var(--ui-color-accent);
+
+  font-family: var(--ui-font-family-sans);
+
+  --bg-color: var(--base-bg-color);
+  --fg-color: var(--base-fg-color);
+  background-color: var(--bg-color);
+  color: var(--fg-color);
+
+  --border-color: transparent;
+  --border-radius: var(--ui-radius-mx);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+
+  --padding-x: var(--ui-spacing-lg);
+  --padding-y: var(--ui-spacing-md);
+  padding: var(--padding-y) var(--padding-x);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &[disabled] {
+    cursor: not-allowed;
+    opacity: var(--ui-disabled-opacity);
+    filter: var(--ui-disabled-filter);
+  }
+
+  &:not([disabled]):hover {
+    --bg-color: color-mix(in srgb, white 10%, var(--base-bg-color));
+
+    filter: var(--ui-hover-filter);
+    transform: var(--ui-hover-transform);
+    text-shadow: 0 0 2em rgba(255 255 255 / 0.25);
+
+    box-shadow: 0 0 0 3px hsl(from var(--bg-color) h s l / 0.1);
+  }
+
+  &:not([disabled]):active {
+    filter: var(--ui-active-filter);
+    transform: var(--ui-active-transform);
+  }
+
+  &:focus-visible {
+    outline: 3px solid hsl(from var(--ui-color-accent) h s l / 0.2);
+  }
 }

@@ -1,28 +1,58 @@
 @import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,1..1000,100&display=swap");
 
 :root {
-  --font-family-sans:
+  --ui-font-family-sans:
     "Google Sans Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 
-  /* Colors */
-  --color-gray-0: #ffffff;
-  --color-gray-10: #f5f4f5;
-  --color-gray-20: #ede8eb;
-  --color-gray-30: #d9d3d7;
-  --color-gray-40: #bdb3b8;
-  --color-gray-50: #898185;
-  --color-gray-60: #554e52;
-  --color-gray-70: #312c2f;
-  --color-gray-80: #1c171a;
-  --color-gray-90: #0c090c;
-  --color-gray-100: #030203;
+  --ui-font-size-sm: 0.875rem;
+  --ui-font-size-md: 1rem;
+  --ui-font-size-lg: 1.25rem;
+  --ui-font-size-xl: 1.5rem;
 
-  --color-bg: var(--color-gray-0);
-  --color-text: var(--color-gray-80);
+  --ui-spacing-step: 0.25rem;
+  --ui-spacing-sm: var(--ui-spacing-step);
+  --ui-spacing-md: calc(var(--ui-spacing-step) * 2);
+  --ui-spacing-lg: calc(var(--ui-spacing-step) * 4);
+  --ui-spacing-xl: calc(var(--ui-spacing-step) * 8);
+
+  --ui-radius-step: 0.2rem;
+  --ui-radius-sm: var(--ui-radius-step);
+  --ui-radius-md: calc(var(--ui-radius-step) * 2 + var(--ui-spacing-sm));
+  --ui-radius-lg: calc(var(--ui-radius-step) * 3 + var(--ui-spacing-sm));
+  --ui-radius-mx: 999999px;
+
+  /* Colors */
+  --ui-color-gray-0: hsl(0 0 100%);
+  --ui-color-gray-10: hsl(0 0 95%);
+  --ui-color-gray-20: hsl(0 0 89%);
+  --ui-color-gray-30: hsl(0 0 83%);
+  --ui-color-gray-40: hsl(0 0 74%);
+  --ui-color-gray-50: hsl(0 0 53%);
+  --ui-color-gray-60: hsl(0 0 33%);
+  --ui-color-gray-70: hsl(0 0 19%);
+  --ui-color-gray-80: hsl(0 0 11%);
+  --ui-color-gray-90: hsl(0 0 6%);
+  --ui-color-gray-100: hsl(0 0 1%);
+
+  --ui-color-bg: var(--ui-color-gray-0);
+  --ui-color-text: var(--ui-color-gray-80);
+  --ui-color-contrast: var(--ui-color-gray-10);
+  --ui-color-accent: var(--ui-color-gray-70);
+
+  --ui-disabled-opacity: 0.6;
+  --ui-disabled-filter: ;
+
+  --ui-hover-filter: contrast(1.2) brightness(1.1);
+  --ui-hover-transform: ;
+
+  --ui-active-filter: brightness(0.95);
+  --ui-active-transform: scale(0.97);
 }
 
 [data-color-scheme="dark"] {
-  --color-bg: var(--color-gray-90);
-  --color-text: var(--color-gray-10);
+  --ui-color-bg: var(--ui-color-gray-80);
+  --ui-color-text: var(--ui-color-gray-10);
+  --ui-color-contrast: var(--ui-color-gray-70);
+  --ui-color-accent: var(--ui-color-gray-10);
 }

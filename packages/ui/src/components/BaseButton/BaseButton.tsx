@@ -1,24 +1,67 @@
-import type { FC, PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
+
+import classNames from "classnames";
+import { forwardRef } from "react";
 
 import styles from "./BaseButton.module.css";
+import { RADIUS_CLASSES, SIZE_CLASSES, VARIANT_CLASSES } from "./variants";
 
 export type BaseButtonProps = PropsWithChildren<{
   /**
    * Click handler for the button.
    */
   onClick?: () => void;
+
   /**
    * Disables the button if true.
    */
   disabled?: boolean;
+
+  /**
+   * Style variant of the button.
+   */
+  variant?: keyof typeof VARIANT_CLASSES;
+
+  /**
+   * Size of the button.
+   */
+  size?: keyof typeof SIZE_CLASSES;
+
+  /**
+   * Radius style of the button.
+   */
+  radius?: keyof typeof RADIUS_CLASSES;
+
+  /**
+   * Class name for the button.
+   */
+  className?: string;
 }>;
 
-const BaseButton: FC<BaseButtonProps> = ({ onClick, disabled, children }) => {
-  return (
-    <button className={styles.baseButton} onClick={onClick} disabled={disabled}>
-      {children}
-    </button>
-  );
-};
+const BaseButton = forwardRef<HTMLButtonElement, BaseButtonProps>(
+  (
+    { onClick, disabled, variant = "primary", size = "md", radius = "full", className, children },
+    ref,
+  ) => {
+    return (
+      <button
+        ref={ref}
+        className={classNames(
+          styles.baseButton,
+          VARIANT_CLASSES[variant],
+          SIZE_CLASSES[size],
+          RADIUS_CLASSES[radius],
+          className,
+        )}
+        onClick={onClick}
+        disabled={disabled}
+      >
+        {children}
+      </button>
+    );
+  },
+);
+
+BaseButton.displayName = "BaseButton";
 
 export default BaseButton;

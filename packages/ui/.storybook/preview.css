@@ -1,4 +1,4 @@
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: var(--ui-color-bg);
+  color: var(--ui-color-text);
 }

@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { expect, fn } from "storybook/test";
 
-import BaseButton from ".";
+import BaseButton from "./BaseButton";
+import { RADIUS_CLASSES, SIZE_CLASSES, VARIANT_CLASSES } from "./variants";
 
 const meta = {
   title: "Atoms/BaseButton",
@@ -11,9 +12,16 @@ const meta = {
   args: {
     onClick: fn(),
     children: "Button",
+    variant: "primary",
+    size: "md",
+    radius: "full",
+    disabled: false,
   },
   argTypes: {
     disabled: { control: "boolean" },
+    variant: { control: "radio", options: Object.keys(VARIANT_CLASSES) },
+    size: { control: "radio", options: Object.keys(SIZE_CLASSES) },
+    radius: { control: "radio", options: Object.keys(RADIUS_CLASSES) },
     children: { description: "Content to be displayed inside the button." },
   },
 } satisfies Meta<typeof BaseButton>;

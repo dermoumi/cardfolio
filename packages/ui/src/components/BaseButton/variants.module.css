@@ -1,0 +1,44 @@
+.primary {
+  --base-bg-color: var(--ui-color-accent);
+  --base-fg-color: var(--ui-color-contrast);
+  --base-border-color: transparent;
+}
+
+.subtle {
+  --base-bg-color: transparent;
+  --base-fg-color: var(--ui-color-accent);
+  --base-border-color: transparent;
+
+  &:not([disabled]):hover {
+    --bg-color: color-mix(in srgb, var(--ui-color-accent) 10%, transparent);
+  }
+
+  &:not([disabled]):active {
+    --bg-color: color-mix(in srgb, var(--ui-color-accent) 20%, transparent);
+  }
+}
+
+.size-sm {
+  --padding-x: var(--ui-spacing-md);
+  --padding-y: var(--ui-spacing-sm);
+}
+
+.size-lg {
+  --padding-x: var(--ui-spacing-xl);
+  --padding-y: var(--ui-spacing-lg);
+
+  text-transform: uppercase;
+  font-size: 1.125rem;
+}
+
+.radius-sm {
+  --border-radius: var(--ui-radius-sm);
+}
+
+.radius-md {
+  --border-radius: var(--ui-radius-md);
+}
+
+.radius-lg {
+  --border-radius: var(--ui-radius-lg);
+}
