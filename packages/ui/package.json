@@ -15,6 +15,9 @@
     "react": "catalog:",
     "react-dom": "catalog:"
   },
+  "dependencies": {
+    "classnames": "catalog:"
+  },
   "devDependencies": {
     "@cardfolio/tsconfig": "workspace:",
     "@storybook/addon-a11y": "catalog:",

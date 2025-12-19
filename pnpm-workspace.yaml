@@ -20,6 +20,7 @@ catalog:
   '@vitejs/plugin-react': 5.1.2
   '@vitest/browser-playwright': 4.0.16
   '@vitest/coverage-v8': 4.0.16
+  classnames: 2.5.1
   dprint: 0.50.2
   eslint: 9.39.2
   eslint-plugin-import-x: 4.16.1

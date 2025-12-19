@@ -22,5 +22,12 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-docs"),
   ],
   "framework": getAbsolutePath("@storybook/react-vite"),
+  "typescript": {
+    reactDocgen: "react-docgen-typescript",
+    reactDocgenTypescriptOptions: {
+      EXPERIMENTAL_useWatchProgram: true,
+      EXPERIMENTAL_useProjectService: true,
+    },
+  },
 };
 export default config;

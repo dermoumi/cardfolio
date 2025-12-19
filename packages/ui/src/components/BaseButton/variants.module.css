@@ -1,0 +1,63 @@
+.primary {
+  --base-bg-color: var(--ui-color-accent);
+  --base-fg-color: var(--ui-color-contrast);
+  --base-border-color: transparent;
+}
+
+.secondary {
+  --base-bg-color: hsl(from var(--ui-color-accent) h s l / 0.1);
+  --base-fg-color: var(--ui-color-accent);
+  --base-border-color: var(--ui-color-accent);
+}
+
+.subtle {
+  --base-bg-color: transparent;
+  --base-fg-color: var(--ui-color-accent);
+  --base-border-color: transparent;
+
+  &:not([disabled]):hover {
+    --bg-color: color-mix(in srgb, var(--ui-color-accent) 10%, transparent);
+  }
+
+  &:not([disabled]):active {
+    --bg-color: color-mix(in srgb, var(--ui-color-accent) 20%, transparent);
+  }
+}
+
+.size-sm {
+  --padding-x: var(--ui-spacing-md);
+  --padding-y: var(--ui-spacing-sm);
+
+  font-size: 0.875em;
+}
+
+.size-md {
+  --padding-x: var(--ui-spacing-lg);
+  --padding-y: var(--ui-spacing-md);
+
+  font-size: 1em;
+}
+
+.size-lg {
+  --padding-x: var(--ui-spacing-xl);
+  --padding-y: var(--ui-spacing-lg);
+
+  text-transform: uppercase;
+  font-size: 1.125em;
+}
+
+.radius-sm {
+  --border-radius: var(--ui-radius-sm);
+}
+
+.radius-md {
+  --border-radius: var(--ui-radius-md);
+}
+
+.radius-lg {
+  --border-radius: var(--ui-radius-lg);
+}
+
+.radius-full {
+  --border-radius: var(--ui-radius-mx);
+}

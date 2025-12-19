@@ -1,6 +1,7 @@
 import type { Preview } from "@storybook/react-vite";
 
 import UiProvider from "../src/providers/UiProvider";
+import "../src/main.css";
 
 const getPreferredColorScheme = (): "light" | "dark" => {
   if (typeof window === "undefined") return "light";
@@ -10,6 +11,7 @@ const getPreferredColorScheme = (): "light" | "dark" => {
 };
 
 const preview: Preview = {
+  tags: ["autodocs"],
   parameters: {
     controls: {
       matchers: {
