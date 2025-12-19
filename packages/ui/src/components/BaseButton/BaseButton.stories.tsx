@@ -8,7 +8,6 @@ import { RADIUS_CLASSES, SIZE_CLASSES, VARIANT_CLASSES } from "./variants";
 const meta = {
   title: "Atoms/BaseButton",
   component: BaseButton,
-  parameters: { layout: "centered" },
   args: {
     onClick: fn(),
     children: "Button",
