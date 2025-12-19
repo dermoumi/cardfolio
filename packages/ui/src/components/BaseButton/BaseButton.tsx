@@ -19,16 +19,22 @@ export type BaseButtonProps = PropsWithChildren<{
 
   /**
    * Style variant of the button.
+   *
+   * @default "primary"
    */
   variant?: keyof typeof VARIANT_CLASSES;
 
   /**
    * Size of the button.
+   *
+   * @default "md"
    */
   size?: keyof typeof SIZE_CLASSES;
 
   /**
    * Radius style of the button.
+   *
+   * @default "full"
    */
   radius?: keyof typeof RADIUS_CLASSES;
 
