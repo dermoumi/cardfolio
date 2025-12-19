@@ -35,7 +35,7 @@ const Flex = forwardRef<HTMLDivElement, FlexProps>(
         className={classNames(
           styles.flex,
           vertical ? styles.vertical : styles.horizontal,
-          gap ? GAP_CLASSES[gap] : undefined,
+          GAP_CLASSES[gap],
           className,
         )}
       >
