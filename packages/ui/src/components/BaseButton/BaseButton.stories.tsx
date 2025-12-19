@@ -34,7 +34,7 @@ export const ClickableButton: Story = {
     children: "Click me",
   },
   play: async ({ args, canvas, userEvent }) => {
-    const button = canvas.getByText(args.children as string);
+    const button = canvas.getByRole("button");
     await userEvent.click(button);
 
     await expect(args.onClick).toHaveBeenCalled();
@@ -47,7 +47,7 @@ export const DisabledButton: Story = {
     disabled: true,
   },
   play: async ({ args, canvas, userEvent }) => {
-    const button = canvas.getByText(args.children as string);
+    const button = canvas.getByRole("button");
     await userEvent.click(button);
 
     await expect(args.onClick).not.toHaveBeenCalled();
