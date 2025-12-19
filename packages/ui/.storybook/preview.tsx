@@ -1,9 +1,14 @@
 import type { Preview } from "@storybook/react-vite";
 
 import UiProvider from "../src/providers/UiProvider";
-
 import "../src/main.css";
-import "./preview.css";
+
+const getPreferredColorScheme = (): "light" | "dark" => {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+};
 
 const preview: Preview = {
   tags: ["autodocs"],
@@ -13,14 +18,18 @@ const preview: Preview = {
         color: /(background|color)$/i,
         date: /Date$/i,
       },
+      disableSaveFromUI: true,
     },
     a11y: {
       test: "error",
     },
   },
+  initialGlobals: {
+    backgrounds: { value: getPreferredColorScheme() },
+  },
   decorators: [
-    (Story) => (
-      <UiProvider updateRootDataset>
+    (Story, { globals }) => (
+      <UiProvider updateRootDataset colorScheme={globals.backgrounds?.value}>
         <Story />
       </UiProvider>
     ),

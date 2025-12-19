@@ -1,20 +1,16 @@
-import type { FC, PropsWithChildren } from "react";
+import type { FC } from "react";
+import type { ColorSchemeProviderProps } from "../ColorSchemeProvider";
 
 import ColorSchemeProvider from "../ColorSchemeProvider";
 
-export type UiProviderProps = PropsWithChildren<{
-  /**
-   * Whether or not to update the root element's dataset with the current color scheme.
-   */
-  updateRootDataset?: boolean;
-}>;
+export type UiProviderProps = ColorSchemeProviderProps;
 
 /**
  * Helper provider that wraps all UI-related providers.
  */
-const UiProvider: FC<UiProviderProps> = ({ children, updateRootDataset }) => {
+const UiProvider: FC<UiProviderProps> = ({ children, updateRootDataset, colorScheme }) => {
   return (
-    <ColorSchemeProvider updateRootDataset={updateRootDataset}>
+    <ColorSchemeProvider updateRootDataset={updateRootDataset} colorScheme={colorScheme}>
       {children}
     </ColorSchemeProvider>
   );
