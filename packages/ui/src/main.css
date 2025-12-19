@@ -41,10 +41,10 @@
   --ui-color-accent: var(--ui-color-gray-70);
 
   --ui-disabled-opacity: 0.6;
-  --ui-disabled-filter: ;
+  --ui-disabled-filter: initial;
 
   --ui-hover-filter: contrast(1.2) brightness(1.1);
-  --ui-hover-transform: ;
+  --ui-hover-transform: initial;
 
   --ui-active-filter: brightness(0.95);
   --ui-active-transform: scale(0.97);
