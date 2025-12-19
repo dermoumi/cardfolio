@@ -18,7 +18,6 @@ const StoryComponent: FC<FlexProps> = (props) => {
 const meta = {
   title: "Atoms/Flex",
   component: StoryComponent,
-  parameters: { layout: "centered" },
   args: {
     gap: "md",
     vertical: false,
