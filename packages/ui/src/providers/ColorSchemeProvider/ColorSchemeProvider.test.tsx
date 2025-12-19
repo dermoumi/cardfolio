@@ -136,12 +136,45 @@ describe("ColorSchemeProvider", () => {
     expect(getByTestId("color-scheme-display").textContent).toBe("light");
   });
 
+  it("overrides system preferences when colorScheme prop is set", () => {
+    MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
+    const { getByTestId } = render(
+      <ColorSchemeProvider colorScheme="light">
+        <TestComponent />
+      </ColorSchemeProvider>,
+    );
+
+    // Should use light mode despite system preference for dark
+    expect(getByTestId("color-scheme-display").textContent).toBe("light");
+  });
+
   it("overrides system preferences when forced color scheme is set", () => {
     MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
     let colorSchemeValue: ColorSchemeContextType;
 
     const { getByTestId } = render(
       <ColorSchemeProvider>
+        <TestComponent
+          onMount={(values) => {
+            colorSchemeValue = values;
+          }}
+        />
+      </ColorSchemeProvider>,
+    );
+
+    expect(getByTestId("color-scheme-display").textContent).toBe("dark");
+
+    // Force light mode
+    act(() => colorSchemeValue.setForcedColorScheme("light"));
+    expect(getByTestId("color-scheme-display").textContent).toBe("light");
+  });
+
+  it("prefers forced color scheme over colorScheme prop", () => {
+    MediaQueryMock.setMatchingQueries("(prefers-color-scheme: dark)");
+    let colorSchemeValue: ColorSchemeContextType;
+
+    const { getByTestId } = render(
+      <ColorSchemeProvider colorScheme="dark">
         <TestComponent
           onMount={(values) => {
             colorSchemeValue = values;

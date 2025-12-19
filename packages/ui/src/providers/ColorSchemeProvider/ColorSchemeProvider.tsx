@@ -9,6 +9,13 @@ export type ColorSchemeProviderProps = PropsWithChildren<{
    * Whether or not to update the root element's dataset with the current color scheme.
    */
   updateRootDataset?: boolean;
+
+  /**
+   * A forced color scheme to override system preference.
+   *
+   * The color scheme forced by setForcedColorScheme takes precedence over this prop.
+   */
+  colorScheme?: ColorScheme | null;
 }>;
 
 export type ColorScheme = "light" | "dark";
@@ -16,11 +23,13 @@ export type ColorScheme = "light" | "dark";
 /**
  * Provider to manage and provide color scheme information.
  */
-const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ updateRootDataset, children }) => {
+const ColorSchemeProvider: FC<ColorSchemeProviderProps> = (
+  { updateRootDataset, colorScheme, children },
+) => {
   const [systemColorScheme, setSystemColorScheme] = useState<ColorScheme>("light");
   const [forcedColorScheme, setForcedColorScheme] = useState<ColorScheme | null>(null);
 
-  const colorScheme = forcedColorScheme ?? systemColorScheme;
+  const effectiveColorScheme = forcedColorScheme ?? colorScheme ?? systemColorScheme;
 
   // Update setSystemColorScheme when system preference changes
   useEffect(() => {
@@ -44,15 +53,17 @@ const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ updateRootDataset, 
       return;
     }
 
-    document.documentElement.dataset.colorScheme = colorScheme;
+    document.documentElement.dataset.colorScheme = effectiveColorScheme;
 
     return () => {
       delete document.documentElement.dataset.colorScheme;
     };
-  }, [colorScheme, updateRootDataset]);
+  }, [effectiveColorScheme, updateRootDataset]);
 
   return (
-    <ColorSchemeContext.Provider value={{ colorScheme, setForcedColorScheme }}>
+    <ColorSchemeContext.Provider
+      value={{ colorScheme: effectiveColorScheme, setForcedColorScheme }}
+    >
       {children}
     </ColorSchemeContext.Provider>
   );

@@ -1,7 +1,13 @@
 import type { Preview } from "@storybook/react-vite";
 
 import UiProvider from "../src/providers/UiProvider";
-import "./preview.css";
+
+const getPreferredColorScheme = (): "light" | "dark" => {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+};
 
 const preview: Preview = {
   parameters: {
@@ -16,9 +22,12 @@ const preview: Preview = {
       test: "error",
     },
   },
+  initialGlobals: {
+    backgrounds: { value: getPreferredColorScheme() },
+  },
   decorators: [
-    (Story) => (
-      <UiProvider updateRootDataset>
+    (Story, { globals }) => (
+      <UiProvider updateRootDataset colorScheme={globals.backgrounds?.value}>
         <Story />
       </UiProvider>
     ),
