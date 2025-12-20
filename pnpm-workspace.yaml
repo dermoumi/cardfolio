@@ -37,7 +37,7 @@ catalog:
   react: 19.2.3
   react-dom: 19.2.3
   storybook: 10.1.10
-  turbo: 2.6.3
+  turbo: 2.7.0
   typescript: 5.9.3
   typescript-eslint: 8.50.0
   vite: 7.3.0
