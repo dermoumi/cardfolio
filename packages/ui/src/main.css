@@ -40,7 +40,7 @@
   --ui-color-contrast: var(--ui-color-gray-10);
   --ui-color-accent: var(--ui-color-gray-70);
 
-  --ui-disabled-opacity: 0.6;
+  --ui-disabled-opacity: 0.4;
   --ui-disabled-filter: initial;
 
   --ui-hover-filter: contrast(1.2) brightness(1.1);

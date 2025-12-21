@@ -36,7 +36,7 @@
     transform: var(--ui-hover-transform);
     text-shadow: 0 0 2em rgba(255 255 255 / 0.25);
 
-    box-shadow: 0 0 0 3px hsl(from var(--bg-color) h s l / 0.1);
+    box-shadow: 0 0 0 3px color-mix(in srgb, transparent 60%, var(--bg-color));
   }
 
   &:not([disabled]):active {
@@ -45,6 +45,6 @@
   }
 
   &:focus-visible {
-    outline: 3px solid hsl(from var(--ui-color-accent) h s l / 0.2);
+    outline: 3px solid color-mix(in srgb, transparent 60%, var(--ui-color-accent));
   }
 }
