@@ -1,0 +1,9 @@
+.grow {
+  flex-grow: 9999;
+  align-content: center;
+  display: flex;
+
+  & > * {
+    flex-grow: 1;
+  }
+}

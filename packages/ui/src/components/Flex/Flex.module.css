@@ -1,7 +1,6 @@
 .flex {
   display: flex;
-  gap: var(--ui-spacing-md);
-  flex-direction: row;
+  align-content: center;
 }
 
 .horizontal {
@@ -10,4 +9,16 @@
 
 .vertical {
   flex-direction: column;
+}
+
+.stretch {
+  align-items: stretch;
+
+  &.vertical {
+    min-height: 100%;
+  }
+
+  & > * {
+    flex-grow: 1;
+  }
 }
