@@ -2,22 +2,25 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { FC } from "react";
 import type { FlexProps } from "./Flex";
 
-import FlexComponent from "./Flex";
+import Flex from "./Flex";
+import FlexGrow from "./FlexGrow";
+import FlexShrink from "./FlexShrink";
 import { GAP_CLASSES } from "./variants";
 
 const StoryComponent: FC<FlexProps> = (props) => {
   return (
-    <FlexComponent {...props}>
+    <Flex {...props}>
       <div style={{ backgroundColor: "#E0E0E0", padding: "8px" }}>Item 1</div>
       <div style={{ backgroundColor: "#C0C0C0", padding: "8px" }}>Item 2</div>
       <div style={{ backgroundColor: "#A0A0A0", padding: "8px" }}>Item 3</div>
-    </FlexComponent>
+    </Flex>
   );
 };
 
 const meta = {
   title: "Atoms/Flex",
-  component: StoryComponent,
+  component: Flex,
+  render: (args) => <StoryComponent {...args} />,
   args: {
     gap: "md",
     stretch: false,
@@ -25,19 +28,20 @@ const meta = {
   },
   argTypes: {
     gap: { control: "radio", options: Object.keys(GAP_CLASSES) },
+    className: { control: "text" },
   },
-} satisfies Meta<typeof FlexComponent>;
+} satisfies Meta<typeof Flex>;
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const FlexHorizontal: Story = {
+export const Horizontal: Story = {
   args: {
     vertical: false,
   },
 };
 
-export const FlexVertical: Story = {
+export const Vertical: Story = {
   args: {
     vertical: true,
   },
@@ -52,18 +56,18 @@ const GrowStoryComponent: FC<FlexProps> = ({ vertical, ...props }) => {
 
   return (
     <div style={style}>
-      <FlexComponent vertical={vertical} {...props}>
-        <FlexComponent.Grow>
+      <Flex vertical={vertical} {...props}>
+        <FlexGrow>
           <div style={{ backgroundColor: "#E0E0E0", padding: "8px" }}>Item 1</div>
-        </FlexComponent.Grow>
+        </FlexGrow>
         <div style={{ backgroundColor: "#C0C0C0", padding: "8px" }}>Item 2</div>
         <div style={{ backgroundColor: "#A0A0A0", padding: "8px" }}>Item 3</div>
-      </FlexComponent>
+      </Flex>
     </div>
   );
 };
 
-export const FlexWithGrow: Story = {
+export const WithGrow: Story = {
   render: (args) => <GrowStoryComponent {...args} />,
   args: {
     stretch: true,
@@ -79,18 +83,18 @@ const ShrinkStoryComponent: FC<FlexProps> = ({ vertical, ...props }) => {
 
   return (
     <div style={style}>
-      <FlexComponent vertical={vertical} {...props}>
-        <FlexComponent.Shrink>
+      <Flex vertical={vertical} {...props}>
+        <FlexShrink>
           <div style={{ backgroundColor: "#E0E0E0", padding: "8px" }}>Item 1</div>
-        </FlexComponent.Shrink>
+        </FlexShrink>
         <div style={{ backgroundColor: "#C0C0C0", padding: "8px" }}>Item 2</div>
         <div style={{ backgroundColor: "#A0A0A0", padding: "8px" }}>Item 3</div>
-      </FlexComponent>
+      </Flex>
     </div>
   );
 };
 
-export const FlexWithShrink: Story = {
+export const WithShrink: Story = {
   render: (args) => <ShrinkStoryComponent {...args} />,
   args: {
     stretch: true,

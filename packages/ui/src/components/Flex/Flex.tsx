@@ -1,16 +1,14 @@
-import type { ForwardRefExoticComponent, PropsWithChildren, RefAttributes } from "react";
+import type { PropsWithChildren } from "react";
 
 import classNames from "classnames";
 import { forwardRef } from "react";
 
 import styles from "./Flex.module.css";
-import Grow from "./Grow";
-import Shrink from "./Shrink";
 import { GAP_CLASSES } from "./variants";
 
 export type FlexProps = PropsWithChildren<{
   /**
-   * If the flex container is vertical
+   * If the flex container is vertical.
    *
    * @default false
    */
@@ -18,6 +16,8 @@ export type FlexProps = PropsWithChildren<{
 
   /**
    * If the flex content should stretch
+   *
+   * @default false
    */
   stretch?: boolean;
 
@@ -33,11 +33,6 @@ export type FlexProps = PropsWithChildren<{
    */
   className?: string;
 }>;
-
-export type FlexComponent = ForwardRefExoticComponent<FlexProps & RefAttributes<HTMLDivElement>> & {
-  Grow: typeof Grow;
-  Shrink: typeof Shrink;
-};
 
 const Flex = forwardRef<HTMLDivElement, FlexProps>(
   ({ vertical, stretch, className, children, gap = "md" }, ref) => {
@@ -56,10 +51,8 @@ const Flex = forwardRef<HTMLDivElement, FlexProps>(
       </div>
     );
   },
-) as FlexComponent;
+);
 
 Flex.displayName = "Flex";
-Flex.Grow = Grow;
-Flex.Shrink = Shrink;
 
 export default Flex;
