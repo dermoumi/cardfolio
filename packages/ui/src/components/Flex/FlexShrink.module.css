@@ -1,0 +1,4 @@
+.flex-shrink {
+  flex-grow: 0;
+  align-content: center;
+}

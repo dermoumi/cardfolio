@@ -1,0 +1,24 @@
+.flex {
+  display: flex;
+  align-content: center;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.stretch {
+  align-items: stretch;
+
+  &.vertical {
+    min-height: 100%;
+  }
+
+  & > * {
+    flex-grow: 1;
+  }
+}
