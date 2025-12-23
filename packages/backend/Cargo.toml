@@ -18,7 +18,7 @@ chrono = { version = "0.4.42", features = ["serde"] }
 form_urlencoded = "1.2.2"
 futures-util = "0.3.31"
 postgres-types = { version = "0.2.11", features = ["derive"] }
-reqwest = { version = "0.12.26", features = ["http2", "charset", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12.28", features = ["http2", "charset", "rustls-tls"], default-features = false }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_html_form = "0.2.8"
 serde_json = "1.0.146"
