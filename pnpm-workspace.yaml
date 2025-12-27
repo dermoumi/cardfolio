@@ -31,7 +31,7 @@ catalog:
   eslint-plugin-storybook: 10.1.10
   globals: 16.5.0
   husky: 9.1.7
-  jsdom: 27.3.0
+  jsdom: 27.4.0
   jsonc-eslint-parser: 2.4.2
   playwright: 1.57.0
   react: 19.2.3
