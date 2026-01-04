@@ -26,7 +26,7 @@ export type MotionPreference = "off" | "reduced" | "full";
 const MotionPreferenceProvider: FC<MotionPreferenceProviderProps> = (
   { updateRootDataset, motionPreference, children },
 ) => {
-  const [systemMotionPreference, setSystemMotionPreference] = useState<MotionPreference>("full");
+  const [systemMotionPreference, setSystemMotionPreference] = useState<MotionPreference>("reduced");
   const [forcedMotionPreference, setForcedMotionPreference] = useState<MotionPreference | null>(
     null,
   );
