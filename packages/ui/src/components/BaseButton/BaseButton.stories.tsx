@@ -22,6 +22,7 @@ const meta = {
     size: { control: "radio", options: Object.keys(SIZE_CLASSES) },
     radius: { control: "radio", options: Object.keys(RADIUS_CLASSES) },
     children: { description: "Content to be displayed inside the button." },
+    className: { control: "text" },
   },
 } satisfies Meta<typeof BaseButton>;
 export default meta;
