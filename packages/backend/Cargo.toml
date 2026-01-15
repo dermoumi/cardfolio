@@ -17,7 +17,7 @@ bitflags = "2.10.0"
 chrono = { version = "0.4.42", features = ["serde"] }
 form_urlencoded = "1.2.2"
 futures-util = "0.3.31"
-postgres-types = { version = "0.2.11", features = ["derive"] }
+postgres-types = { version = "0.2.12", features = ["derive"] }
 reqwest = { version = "0.13.1", features = ["http2", "charset", "rustls"], default-features = false }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_html_form = "0.4.0"
