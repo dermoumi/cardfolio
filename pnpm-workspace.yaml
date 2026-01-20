@@ -13,7 +13,7 @@ catalog:
   '@tanstack/router-core': 1.149.3
   '@tanstack/router-plugin': 1.149.3
   '@testing-library/dom': 10.4.1
-  '@testing-library/react': 16.3.1
+  '@testing-library/react': 16.3.2
   '@types/node': 24.10.9
   '@types/react': 19.2.8
   '@types/react-dom': 19.2.3
