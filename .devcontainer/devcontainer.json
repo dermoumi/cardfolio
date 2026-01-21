@@ -4,6 +4,7 @@
   "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
   "name": "cardfolio",
   "dockerComposeFile": ["compose.yaml"],
+  "remoteUser": "dev",
   "service": "cardfolio",
   "workspaceFolder": "/workspace",
   "forwardPorts": [3000, 8000],

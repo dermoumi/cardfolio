@@ -1,6 +1,4 @@
-# Using ubuntu:latest because it has glibc 2.39
-# libc 2.38+ is required for rust-analyzer to work
-FROM ubuntu:latest
+FROM debian:stable
 
 # Install basic dev tools and setup locale
 RUN apt-get update \
@@ -34,7 +32,7 @@ RUN useradd -mG sudo -s /bin/bash $USER \
 # Pre-create a workspace directory with the correct permissions
 RUN mkdir /workspace && chown $USER:$USER /workspace
 
-# Switch back to default user
+# Switch to default user
 USER $USER
 
 # Install rust
@@ -54,6 +52,9 @@ RUN touch /home/$USER/.sudo_as_admin_successful
 COPY --chown=$USER:$USER .devcontainer /tmp/.devcontainer
 RUN [ ! -f /tmp/.devcontainer/user/build.sh ] \
     || bash /tmp/.devcontainer/user/build.sh
+
+# Switch back to root, vscode devcontainers will log in as dev
+USER root
 
 # Command to stay running indefinitely
 CMD sleep infinity
