@@ -9,7 +9,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import jsoncParser from "jsonc-eslint-parser";
 import * as tseslint from "typescript-eslint";
-import yamlParser from "yaml-eslint-parser";
+import * as yamlParser from "yaml-eslint-parser";
 
 export default defineConfig(
   globalIgnores([
