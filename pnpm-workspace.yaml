@@ -8,10 +8,10 @@ catalog:
   '@storybook/addon-vitest': 10.2.0
   '@storybook/react-vite': 10.2.0
   '@tanstack/react-query': 5.90.20
-  '@tanstack/react-router': 1.156.0
-  '@tanstack/react-router-devtools': 1.156.0
-  '@tanstack/router-core': 1.156.0
-  '@tanstack/router-plugin': 1.156.0
+  '@tanstack/react-router': 1.157.14
+  '@tanstack/react-router-devtools': 1.157.14
+  '@tanstack/router-core': 1.157.14
+  '@tanstack/router-plugin': 1.157.14
   '@testing-library/dom': 10.4.1
   '@testing-library/react': 16.3.2
   '@types/node': 24.10.9
