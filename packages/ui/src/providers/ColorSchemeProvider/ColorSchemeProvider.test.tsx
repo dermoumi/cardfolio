@@ -5,6 +5,7 @@ import { render } from "@testing-library/react";
 import { act, useEffect } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { MediaQueryMock } from "../../test-utils/mediaQueryMock";
 import ColorSchemeProvider from "./ColorSchemeProvider";
 import { useColorScheme } from "./context";
 
@@ -23,90 +24,9 @@ const TestComponent: FC<TestComponentProps> = ({ onMount }) => {
   return <div data-testid="color-scheme-display">{values.colorScheme}</div>;
 };
 
-class MediaQueryMock {
-  private static matchingQueries: string[] = [];
-  private static mocks = new Set<WeakRef<MediaQueryMock>>();
-  public static setMatchingQueries(...queries: string[]) {
-    this.matchingQueries = queries;
-
-    // Notify all existing mocks of the change
-    for (const weakRef of this.mocks) {
-      const instance = weakRef.deref();
-      if (instance === undefined) {
-        this.mocks.delete(weakRef);
-        continue;
-      }
-
-      instance.triggerChangeEvent();
-    }
-  }
-
-  public static clear() {
-    this.matchingQueries = [];
-    this.mocks.clear();
-  }
-
-  private query: string;
-  private isMatching: boolean;
-  private listeners = new Map<string, Array<(event: MediaQueryListEvent) => void>>();
-  public constructor(query: string) {
-    this.query = query;
-    this.isMatching = MediaQueryMock.matchingQueries.includes(query);
-
-    // Register this instance for updates as a weak reference
-    MediaQueryMock.mocks.add(new WeakRef(this));
-  }
-
-  public get matches() {
-    return this.isMatching;
-  }
-
-  public get media() {
-    return this.query;
-  }
-
-  public addEventListener(type: string, callback: (event: MediaQueryListEvent) => void) {
-    let listeners = this.listeners.get(type);
-    if (!listeners) {
-      listeners = [];
-      this.listeners.set(type, listeners);
-    }
-
-    listeners.push(callback);
-  }
-
-  public removeEventListener(type: string, callback: (event: MediaQueryListEvent) => void) {
-    const listeners = this.listeners.get(type);
-    if (listeners) {
-      this.listeners.set(
-        type,
-        listeners.filter((listener) => listener !== callback),
-      );
-    }
-  }
-
-  private triggerChangeEvent() {
-    const isMatching = MediaQueryMock.matchingQueries.includes(this.query);
-    if (this.isMatching === isMatching) {
-      return;
-    }
-
-    this.isMatching = isMatching;
-    for (const listener of this.listeners.get("change") || []) {
-      const event = {
-        matches: isMatching,
-        media: this.query,
-      } as MediaQueryListEvent;
-      listener(event);
-    }
-  }
-}
-
 describe("ColorSchemeProvider", () => {
   beforeAll(() => {
-    window.matchMedia = (query: string) => {
-      return new MediaQueryMock(query) as unknown as MediaQueryList;
-    };
+    MediaQueryMock.installMock();
   });
 
   afterEach(() => {
