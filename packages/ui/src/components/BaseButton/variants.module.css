@@ -5,7 +5,7 @@
 }
 
 .secondary {
-  --base-bg-color: hsl(from var(--ui-color-accent) h s l / 0.1);
+  --base-bg-color: hsl(from var(--ui-color-accent) h s l / 0.2);
   --base-fg-color: var(--ui-color-accent);
   --base-border-color: var(--ui-color-accent);
 }
@@ -16,7 +16,7 @@
   --base-border-color: transparent;
 
   &:not([disabled]):hover {
-    --bg-color: color-mix(in srgb, var(--ui-color-accent) 10%, transparent);
+    --base-bg-color: hsl(from var(--ui-color-accent) h s l / 0.2);
   }
 
   &:not([disabled]):active {
