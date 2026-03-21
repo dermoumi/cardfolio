@@ -22,8 +22,8 @@ catalogs:
       specifier: 10.3.1
       version: 10.3.1
     '@tanstack/react-query':
-      specifier: 5.91.2
-      version: 5.91.2
+      specifier: 5.91.3
+      version: 5.91.3
     '@tanstack/react-router':
       specifier: 1.167.5
       version: 1.167.5
@@ -192,7 +192,7 @@ importers:
         version: link:../ui
       '@tanstack/react-query':
         specifier: 'catalog:'
-        version: 5.91.2(react@19.2.4)
+        version: 5.91.3(react@19.2.4)
       '@tanstack/react-router':
         specifier: 'catalog:'
         version: 1.167.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1221,8 +1221,8 @@ packages:
   '@tanstack/query-core@5.91.2':
     resolution: {integrity: sha512-Uz2pTgPC1mhqrrSGg18RKCWT/pkduAYtxbcyIyKBhw7dTWjXZIzqmpzO2lBkyWr4hlImQgpu1m1pei3UnkFRWw==}
 
-  '@tanstack/react-query@5.91.2':
-    resolution: {integrity: sha512-GClLPzbM57iFXv+FlvOUL56XVe00PxuTaVEyj1zAObhRiKF008J5vedmaq7O6ehs+VmPHe8+PUQhMuEyv8d9wQ==}
+  '@tanstack/react-query@5.91.3':
+    resolution: {integrity: sha512-D8jsCexxS5crZxAeiH6VlLHOUzmHOxeW5c11y8rZu0c34u/cy18hUKQXA/gn1Ila3ZIFzP+Pzv76YnliC0EtZQ==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -3793,7 +3793,7 @@ snapshots:
 
   '@tanstack/query-core@5.91.2': {}
 
-  '@tanstack/react-query@5.91.2(react@19.2.4)':
+  '@tanstack/react-query@5.91.3(react@19.2.4)':
     dependencies:
       '@tanstack/query-core': 5.91.2
       react: 19.2.4
