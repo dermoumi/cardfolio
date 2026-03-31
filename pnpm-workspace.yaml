@@ -21,7 +21,7 @@ catalog:
   '@vitest/browser-playwright': 4.1.0
   '@vitest/coverage-v8': 4.1.0
   classnames: 2.5.1
-  dprint: 0.53.0
+  dprint: 0.53.1
   eslint: 9.39.4
   eslint-plugin-import-x: 4.16.2
   eslint-plugin-pnpm: 1.6.0
