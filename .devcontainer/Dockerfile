@@ -1,4 +1,4 @@
-FROM debian:trixie-20260316
+FROM debian:trixie-20260406
 
 # Install basic dev tools and setup locale
 RUN apt-get update \
