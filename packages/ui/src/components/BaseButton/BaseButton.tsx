@@ -13,7 +13,7 @@ export type BaseButtonProps = PropsWithChildren<{
   onClick?: () => void;
 
   /**
-   * Disables the button if true.
+   * Whether or not the button is disabled.
    */
   disabled?: boolean;
 
