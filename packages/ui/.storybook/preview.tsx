@@ -10,6 +10,13 @@ const getPreferredColorScheme = (): "light" | "dark" => {
     : "light";
 };
 
+const getPreferredMotionPreference = (): "off" | "full" | "reduced" => {
+  if (typeof window === "undefined") return "full";
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? "reduced"
+    : "full";
+};
+
 const preview: Preview = {
   tags: ["autodocs"],
   parameters: {
@@ -25,12 +32,32 @@ const preview: Preview = {
       test: "error",
     },
   },
+  globalTypes: {
+    motionPreference: {
+      description: "Motion preference for components",
+      toolbar: {
+        title: "Motion Preference",
+        icon: "play",
+        dynamicTitle: true,
+        items: [
+          { value: "off", title: "Disable motion", icon: "stopalt" },
+          { value: "full", title: "Full motion", icon: "fastforward" },
+          { value: "reduced", title: "Reduced motion", icon: "playnext" },
+        ],
+      },
+    },
+  },
   initialGlobals: {
+    motionPreference: getPreferredMotionPreference(),
     backgrounds: { value: getPreferredColorScheme() },
   },
   decorators: [
     (Story, { globals }) => (
-      <UiProvider updateRootDataset colorScheme={globals.backgrounds?.value}>
+      <UiProvider
+        updateRootDataset
+        colorScheme={globals.backgrounds?.value}
+        motionPreference={globals.motionPreference}
+      >
         <Story />
       </UiProvider>
     ),
